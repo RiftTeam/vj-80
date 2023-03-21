@@ -11,7 +11,6 @@ if (beat/4%4 > 1) then ta = 0 else ta = s(pi*ta) end
 
 --]]
 
-
 -- Utils
 
 m=math
@@ -109,6 +108,33 @@ function FFT_FILL()
 end
 
 -- Effects
+
+Quup = 5
+
+function Quup_DRAW(it,ifft)
+ tt=it/8
+ P=3+tt//5%5
+ Q=P/2
+ I=tt/15%1
+ for i=1,20 do
+  for j=0,P-1,1 do
+   r=tt+pi*j/Q-i*sin(tt/50)
+   n=120+(i+I)*9*sin(r)
+   o=68+(i+I)*9*cos(r)
+   r=tt+pi*(j+1)/Q-i*sin(tt/50)
+   line(n,o,120+(i+I)*9*sin(r),68+(i+I)*9*cos(r),i+1)
+   l=i-1
+   r=tt+pi*j/Q-l*sin(tt/50)
+   if i>1 then 
+    k=(l+I)*9 
+   else 
+    k=l*9 
+   end
+   line(n,o,120+k*math.sin(r),68+k*cos(r),i+1)
+  end
+ end
+end
+
 
 ATTunnel = 4
 
@@ -506,6 +532,17 @@ function PAL_Fade(ip,l)
  end
 end
 
+-- pastels
+Pastels = 3
+
+-- TODO smooth ffs
+function PAL_Rotate1(it,l)
+  it=it/8
+  for i=0,47 do
+    poke(16320+i,(sin(it/8*sin(i//3)+(i%3)))*99)
+  end
+end
+
 function PAL_Handle(np,l)
  if np == Sweetie16 then
   PAL_Switch(Sweetie16PAL,0.1)
@@ -513,6 +550,8 @@ function PAL_Handle(np,l)
   PAL_Fade(BlueOrangePAL,l)
  elseif np == Reddish then
   PAL_Switch(ReddishPAL,0.1)
+ elseif np == Pastels then
+  PAL_Rotate1(ET,l)
  end
 end
 
@@ -547,11 +586,11 @@ TBASSC=4
 
 DEBUG=false
 
-NumEffects=4
+NumEffects=5
 NumOverlays=3
 NumModifiers=2
 NumModes=4
-NumPalettes=2
+NumPalettes=3
 
 -- Beat timing
 BT=0 -- beat time in ms
@@ -814,10 +853,12 @@ function TIC()t=time()
   TwistFFT_DRAW(ET,0)
  elseif Effect == SunBeat then
   SunBeat_DRAW(ET,0)
- elseif Effect == 3 then
+ elseif Effect == FujiTwist then
   FujiTwist_DRAW(ET,MID)
- elseif Effect == 4 then
+ elseif Effect == ATTunnel then
   ATTunnel_DRAW(ET,MID)
+elseif Effect == Quup then
+  Quup_DRAW(ET,MID)
  end
 
  if EModifier == 0 then
@@ -835,13 +876,13 @@ function TIC()t=time()
  -- Overlay timer mode and speed
  local od = abs(ODivider)
  if OTimerMode == TTIME then
-  OT=t/(2^od)
+  OT=(t/1000)/(2^od)
  elseif OTimerMode == TBEAT then
   OT=bt/(2^od)
  elseif OTimerMode == TBASS then
-  OT=BASS/(2^od)
+  OT=(BASS*100)/(2^od)
  elseif OTimerMode == TBASSC then
-  OT=BASSC/(2^od)
+  OT=(BASSC/100)/(2^od)
  else
   OT=0
  end

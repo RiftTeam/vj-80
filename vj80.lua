@@ -11,6 +11,21 @@ if (beat/4%4 > 1) then ta = 0 else ta = s(pi*ta) end
 
 --]]
 
+
+
+X = 7
+function X_BOOT()
+end
+
+function X_DRAW(it,ifft)
+end
+
+NumEffects=5
+NumOverlays=4
+NumModifiers=2
+NumModes=8
+NumPalettes=3
+
 -- Utils
 
 m=math
@@ -66,7 +81,7 @@ BASSC=0
 BASSDIV=10
 MID=0
 MIDC=0
-HIGHDIV=40
+HIGHDIV=50
 HIGH=0
 HIGHC=0
 
@@ -81,7 +96,7 @@ end
 
 function FFT_FILL()
  for i=0,239 do
-  f=fft(i)
+  f=fft(i)*Loudness
   FFTH[i]=f/FFTH_length + FFTH[i]*((FFTH_length-1)/FFTH_length)
   FFTC[i]=FFTC[i]+f
  end
@@ -433,6 +448,63 @@ function SmilyFaces_DRAW(it,ifft)
  end
 end
 
+TextWarp = 4
+TWp={}
+TWfirst = true
+
+function TextWarp_BOOT()
+end
+
+function TextWarp_DRAW(it,ifft)
+ if TWfirst then
+  TWfirst=false
+  TWp={}
+  cls()
+  l=print("3 WEEKS",-100,-100,12,false,5)
+  print("3 WEEKS",120-l/2,10,12,false,5)
+  
+  l=print("TO",-100,-100,12,false,5)
+  print("TO",120-l/2,40,12,false,5)
+  
+  l=print("REVISION",-100,-100,12,false,5)
+  print("REVISION",120-l/2,70,12,false,5)
+  
+  l=print("HYPE!!!!",-100,-100,12,false,5)
+  print("HYPE!!!!",120-l/2,100,12,false,5)
+  
+  l=print("irish sheep best sheep",200,230,12,false,1)
+  print("irish sheep best sheep",120-l/2,130,12,false,1)
+  for y=0,136 do 
+    for x=0,240 do
+     if pix(x,y) == 12 then 
+      if x < 80 then c = 6 
+      elseif x < 160 then c = 12
+      else c = 3
+      end
+      d=((x-120)^2+(y-68)^2)^.5
+      a=m.atan2(x-120,y-68)
+      nx=d*sin(a)
+      ny=d*cos(a)
+      
+      table.insert(TWp,{x,y,c,a,d})
+    end
+   end
+  end 
+  cls()
+ end
+
+ it=it//1
+ for i=1,#TWp do
+  pp=TWp[i]
+  b=pp[4]+(it/200)%1*2*pi*cos(BASS*pp[5]/40+it/200)
+  w=pp[5]/2+10*sin(pp[5]/40*MID+it/99)+(it/111)%5
+  nx=w*sin(b)
+  ny=w*cos(b)
+  pix(120+nx,68+ny,pp[3])
+ end
+end
+
+
 -- TestSheet
 TestSheetPAL={}
 function TestSheet_BOOT()
@@ -447,6 +519,26 @@ function TestSheet_DRAW(it,ifft)
   print(i,i*10,10,12)
   rect(i*10,20,10,10,i)
  end
+end
+
+VolTest = 6
+
+function VolTest_DRAW(it,ifft)
+ for i=239,0,-1 do
+  for j=0,135 do
+   pix(i,j,(pix(i+1,j)))
+  end
+ end
+ line(239,0,239,136,0)
+
+ print("TIME",0,20,3)
+ pix(239,20+t/1000,3)
+ print("TBEAT",0,50,6)
+ pix(239,60+bt,6)
+ print("TBASS",0,80,9)
+ pix(239,100+BASS,9)
+ print("TBASSC",0,110,12)
+ pix(239,110+BASSC/100,12)
 end
 
 -- Palettes
@@ -583,17 +675,15 @@ TTIME=1
 TBEAT=2
 TBASS=3
 TBASSC=4
+TMID=5
+TMIDC=6
+THIGH=7
+THIGHC=8
 
 DEBUG=false
 
-NumEffects=5
-NumOverlays=3
-NumModifiers=2
-NumModes=4
-NumPalettes=3
-
 -- Beat timing
-BT=0 -- beat time in ms
+BT=10 -- beat time in ms
 BTA={}
 BEATS=4
 LBT=0
@@ -624,6 +714,18 @@ function KEY_CHECK()
   BT=beatssum/BEATS
  end
  
+ -- home: Loudness up by 0.1
+ if keyp(56) then
+  Loudness = Loudness + 0.1
+ end
+
+ -- end: Loudness down by 0.1
+ if keyp(57) then
+  Loudness = Loudness - 0.1
+ end
+
+ Loudness = mm(Loudness,0.1,10)
+
  -- insert: effect cls switch
  if keyp(53) == true then
   if ECLS == true then 
@@ -833,14 +935,22 @@ function TIC()t=time()
  -- Effect timer mode and speed
  local ed = abs(EDivider)
  if ETimerMode == TTIME then
-  ET=t/(2^ed)
+  ET=t/1000/(2^ed)
  elseif ETimerMode == TBEAT then
-  ET=bt/(2^ed)
+  ET=(bt/(2^ed))%4
  elseif ETimerMode == TBASS then
-  ET=BASS/(2^ed)
+  ET=BASS*5/(2^ed)
  elseif ETimerMode == TBASSC then
-  ET=BASSC/(2^ed)
- else
+  ET=BASSC/50/(2^ed)
+elseif ETimerMode == TMID then
+  ET=MID*8/(2^ed)
+ elseif ETimerMode == TMIDC then
+  ET=MIDC/40/(2^ed)
+elseif ETimerMode == THIGH then
+  ET=HIGH*5/(2^ed)
+ elseif ETimerMode == THIGHC then
+  ET=HIGHC/100/(2^ed)
+else
   ET=0
  end
  if EDivider < 0 then
@@ -848,7 +958,7 @@ function TIC()t=time()
  end
  
  if Effect == 0 then
-  TestSheet_DRAW(t,t)
+  VolTest_DRAW(t,t)
  elseif Effect == TwistFFT then
   TwistFFT_DRAW(ET,0)
  elseif Effect == SunBeat then
@@ -878,11 +988,19 @@ elseif Effect == Quup then
  if OTimerMode == TTIME then
   OT=(t/1000)/(2^od)
  elseif OTimerMode == TBEAT then
-  OT=bt/(2^od)
+  OT=(bt/(2^od))%4
  elseif OTimerMode == TBASS then
-  OT=(BASS*100)/(2^od)
+  OT=(BASS*5)/(2^od)
  elseif OTimerMode == TBASSC then
-  OT=(BASSC/100)/(2^od)
+  OT=(BASSC/50)/(2^od)
+elseif OTimerMode == TMID then
+  OT=MID*8/(2^od)
+ elseif OTimerMode == TMIDC then
+  OT=MIDC/40/(2^od)
+elseif OTimerMode == THIGH then
+  OT=HIGH*5/(2^od)
+ elseif OTimerMode == THIGHC then
+  OT=HIGHC/100/(2^od)
  else
   OT=0
  end
@@ -897,6 +1015,8 @@ elseif Effect == Quup then
   SunSatOrbit_DRAW(OT,OT)
  elseif Overlay == SmilyFaces then
   SmilyFaces_DRAW(OT,OT)
+ elseif Overlay == TextWarp then
+  TextWarp_DRAW(OT,OT)
  end
 
  if OModifier == 0 then

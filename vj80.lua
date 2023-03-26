@@ -71,59 +71,6 @@ for i=0,np do
  end
  --]]
 
-Proxima = 14
-PR_p={}
-PR_np=127
-PR_tc=0
-function Proxima_BOOT()
- 
- for i=0,PR_np do
-  PR_p[i]={x=rand(240.0),y=rand(136.0),sx=rand(10.0)-5,sy=rand(10.0)-5}
- end
-end
-
-function Proxima_DRAW(it,ifft)
-  n = 255//PR_np
-
-  q={}
-  for i=0,PR_np do
-   v=PR_p[i]
-   v.x=(v.x+v.sx/5*sin(i/10+it)*it)%240
-   v.y=(v.y+v.sy/8*sin(i/11+it)*it)%136
-   q[i]=v
-  end
-  --table.sort(q, function (a,b) return a.x < b.x end)
-  for i=0,PR_np do
-   v=q[i]
-   fi=FFTH[i]*(.15+i/60) * EControl
-   pix(v.x,v.y,fi*500)
-   
-   for j=i,PR_np do
-    w=q[j] -- why not q[j]?
-    d=(v.x-w.x)^2 + (v.y-w.y)^2
-    d=d^.5
-    n=(i+j)/2
-    fj=FFTH[j]*(.15+j/60) * EControl
-    ft = (fi + fj)
-    if d < ft * 100 and i ~= j then
-     line(v.x,v.y,w.x,w.y,ft*100)
-     for l=j,PR_np do
-      z=q[l] -- q?  
-      d=(v.x-z.x)^2 + (v.y-z.y)^2
-      d=d^.5
-      fl = FFTH[l]*(.15+l/60) * EControl
-      ft = fi + fj + fl
-      if d < ft * 25 and l ~= j and l ~= i then
-       tri(v.x,v.y,w.x,w.y,z.x,z.y,ft*100)
-       goto continue
-      end
-     end
-    end
-   end
-    ::continue::
-  end
-end
-
 
 X = 7
 function X_BOOT()
@@ -235,6 +182,59 @@ function FFT_FILL()
 end
 
 -- Effects
+
+Proxima = 14
+PR_p={}
+PR_np=127
+PR_tc=0
+function Proxima_BOOT()
+ 
+ for i=0,PR_np do
+  PR_p[i]={x=rand(240.0),y=rand(136.0),sx=rand(10.0)-5,sy=rand(10.0)-5}
+ end
+end
+
+function Proxima_DRAW(it,ifft)
+  n = 255//PR_np
+
+  q={}
+  for i=0,PR_np do
+   v=PR_p[i]
+   v.x=(v.x+v.sx/5*sin(i/10+it)*it)%240
+   v.y=(v.y+v.sy/8*sin(i/11+it)*it)%136
+   q[i]=v
+  end
+  --table.sort(q, function (a,b) return a.x < b.x end)
+  for i=0,PR_np do
+   v=q[i]
+   fi=FFTH[i]*(.15+i/60) * EControl
+   pix(v.x,v.y,fi*500)
+   
+   for j=i,PR_np do
+    w=q[j] -- why not q[j]?
+    d=(v.x-w.x)^2 + (v.y-w.y)^2
+    d=d^.5
+    n=(i+j)/2
+    fj=FFTH[j]*(.15+j/60) * EControl
+    ft = (fi + fj)
+    if d < ft * 100 and i ~= j then
+     line(v.x,v.y,w.x,w.y,ft*100)
+     for l=j,PR_np do
+      z=q[l] -- q?  
+      d=(v.x-z.x)^2 + (v.y-z.y)^2
+      d=d^.5
+      fl = FFTH[l]*(.15+l/60) * EControl
+      ft = fi + fj + fl
+      if d < ft * 25 and l ~= j and l ~= i then
+       tri(v.x,v.y,w.x,w.y,z.x,z.y,ft*100)
+       goto continue
+      end
+     end
+    end
+   end
+    ::continue::
+  end
+end
 
 FFTCirc = 13
 FC_osize=20
@@ -547,6 +547,9 @@ Fuji_frames = {}
 Fuji_width=16
 Fuji_height=120
 Fuji_numframes=240
+OldLogos={}
+OL_ID=1
+
 function FujiTwist_BOOT()
  for y=1,Fuji_height do
   bend= 1.5*Fuji_width*m.exp((y/Fuji_height)^2)--+w/5
@@ -599,10 +602,105 @@ function FujiTwist_BOOT()
     table.insert(Fuji_drawlines,{x4,cy,x1,cy,c,az})
    end
   end
-  table.sort(Fuji_drawlines, function (a,b) return a[5] < b[5] end)
+  table.sort(Fuji_drawlines, function (a,b) return a[6] < b[6] end)
   Fuji_frames[j]=Fuji_drawlines
  end
+
+ table.insert(OldLogos,Fuji_frames)
 end
+
+function c64_BOOT()
+  c64_lines={}
+  c64_drawlines={}
+  c64_frames={}
+  l1y=Fuji_height*4/12
+  l2y=Fuji_height*4/8+Fuji_height/16
+  
+  numpoints=Fuji_height*10
+  p1={}
+  p2={}
+  
+  cls()
+  circ(110,52,50,1)
+  circ(110,52,34,0)
+  rect(120,0,120,136,0)
+  
+  rect(120,36,34,14,1)
+  rect(120,54,34,14,1)
+  
+  tri(140,52,160,32,160,72,0)
+  
+  for y=1,Fuji_height do
+   -- fuck it search by image
+   space=136-Fuji_height
+   c=1
+   for x=0,240 do
+    if c==1 and pix(x,y) == 1 then
+     c1=x
+     c=2
+    elseif c==2 and pix(x,y) == 0 then
+     c2=x
+      
+     r=c1-c2
+     l={cx=r/2+x-120, cy=y+space, r=r}
+     table.insert(c64_lines,l)
+     c=1
+    end
+   end
+  end
+ 
+  for j=1,Fuji_numframes do
+    c64_drawlines={}
+   a=math.pi/2+j/Fuji_numframes *tau
+   for i=1,#c64_lines do
+    ln=c64_lines[i]
+    cx=ln.cx
+    cy=ln.cy
+    x1=cx-ln.r/2
+    x2=cx+ln.r/2
+    z1=-Fuji_width/2
+    z2=Fuji_width/2
+    
+    a1=sin(a-tau/8)
+    a2=sin(a+tau/8)
+    a3=sin(a+tau*3/8)
+    a4=sin(a+tau*5/8)
+ 
+    X1=x1*cos(a)-z2*sin(a)
+    Z1=x1*sin(a)+z2*cos(a)
+    X2=x1*cos(a)-z1*sin(a)
+    Z2=x1*sin(a)+z1*cos(a)
+    X3=x2*cos(a)-z1*sin(a)
+    Z3=x2*sin(a)+z1*cos(a)
+    X4=x2*cos(a)-z2*sin(a)
+    Z4=x2*sin(a)+z2*cos(a)
+    if(X1 < X2) then
+     c=(X2-X1)/ln.r*4
+     c=(1+(a1+a2)/2)*8+2
+     table.insert(c64_drawlines,{X1,cy,X2,cy,c,(Z1+Z2)/2})
+    end
+    if(X2 < X3) then
+     c=(X3-X2)/Fuji_width * 15
+     c=(1-((a2+a3)/(2)))*16
+     table.insert(c64_drawlines,{X2,cy,X3,cy,c,(Z2+Z3)/2})
+    end
+    if(X3 < X4) then
+     c=(X4-X3)/ln.r * 15
+     c=(1+(a3+a4)/2)*8+2
+     table.insert(c64_drawlines,{X3,cy,X4,cy,c,(Z3+Z4)/2})
+    end
+    if(X4 < X1) then
+     c=(X1-X4)/Fuji_width * 15
+     c=(1+(a4+a1)/2)*8+2
+     table.insert(c64_drawlines,{X4,cy,X1,cy,c,(Z4+Z1)/2})
+    end
+   end
+   table.sort(c64_drawlines, function (a,b) return a[6] < b[6] end)
+   c64_frames[j]=c64_drawlines
+  end
+
+  table.insert(OldLogos,c64_frames)
+ end
 
 function FujiTwist_BDR(l)
   ftt=BASSC/100
@@ -619,9 +717,10 @@ end
 -- TODO: separate by lines for faster draw
 function FujiTwist_DRAW(it,ifft)
  bnc=sin(ifft)*10
+ frames = OldLogos[OL_ID]
  for y=1,Fuji_height do
   twist=Fuji_numframes*(1+cos(it/4*tau)+BASS/4*cos(y/Fuji_height))/2
-  dl=Fuji_frames[twist//1%Fuji_numframes+1]
+  dl=frames[twist//1%Fuji_numframes+1]
   for i=1,#dl do
    ln=dl[i]
    if ln[2] == y then  
@@ -843,7 +942,7 @@ function PIXJumpBlur_DRAW(amount, mt, mc)
    a=rand()*tau
    x=cx+d*sin(a)
    y=cy+d*cos(a)
-   if x >= -119 and x <= 118 and y >=-67 and y <= 66 then
+   if x >= 1 and x <= 239 and y >=1 and y <= 134 then
     pix(cx+(d+1)*sin(a),cy+(d+1)*cos(a),mm((pix(x,y)+pix(x+1,y+1)+pix(x+1,y-1)+pix(x-1,y+1)+pix(x-1,y-1))/4.8,0,15))
    end
   end
@@ -853,19 +952,31 @@ function PIXJumpBlur_DRAW(amount, mt, mc)
 
 --]]
 
-Texts={{"GOOD","TO BE","BACK IN","THE EWERK"},
-      {"MANTRA","TRONIC","MADTRIX","2023"}}
+Texts={{"GOOD","TO BE","BACK IN","THE EWERK",""},
+      {"MANTRA\nTRONIC","+ + +","MADTRIX","2023"}}
 TImages={}
 
 -- Overlays
 
 TextBounceUp = 1
 function TextBounceUp_DRAW(it,ifft)
- tt=t/BT//ODivider
- tx=abs(tt)%#Texts[TextID] + 1
+ if ODivider ~= 0 then
+  tt=t/BT//ODivider
+  tx=abs(tt)%#Texts[TextID] + 1
+  y=140-160*(it%1)
+ else
+  tt=t/BT//1
+  tx=abs(tt)%#Texts[TextID] + 1
+  -- count how many line breaks
+  linecount=1
+  for i=1, #Texts[TextID][tx] do
+    if string.sub(Texts[TextID][tx],i,i) == "\n" then linecount=linecount+1 end
+  end
+  y=68 - (3+OControl)*3 *linecount
+ end
  tc=mm(MID*15,8,15)
  tl=print(Texts[TextID][tx],0,-100,15,false,3+OControl)
- print(Texts[TextID][tx],120-tl/2,140-160*(it%1),tc,false,3+OControl)
+ print(Texts[TextID][tx],120-tl/2,y,tc,false,3+OControl)
 end
 
 SunSatOrbit = 2
@@ -1330,7 +1441,7 @@ function PAL_Rotate4(it,l)
  grader=sin(it*1/7+l/150)+1
  gradeg=sin(it*1/13+l/150)+1
  gradeb=sin(it*1/11+l/150)+1
-for i=0,15 do
+ for i=0,15 do
   poke(0x3fc0+i*3, 255-(8+4*grader)*i)
   poke(0x3fc0+i*3+1, math.max(0,math.min(255,255-(8+4*gradeg)*i)))
   poke(0x3fc0+i*3+2, math.max(0,math.min(255,255-(8+4*gradeb)*i)))
@@ -1422,7 +1533,59 @@ end
 function KEY_CHECK()
  -- 1-26: A-Z
  -- 27-36: 0-9
- 
+
+ -- panic! (alt)
+ if key(65) then
+  -- q: effect
+  if keyp(17) == true then
+   Effect = 1
+   EControl = 1
+   ETimerMode=0
+   EDivider=1
+   EPalette = 0
+  end
+
+  -- 1: effect mod
+  if keyp(28) == true then
+    EModifier=0
+    EMControl = 1
+  end
+
+  -- z: effect mod
+  if keyp(26) == true then
+    OModifier=0
+    OMControl = 1
+  end
+
+  -- a: overlay
+  if keyp(1) == true then
+   Overlay = 1
+   OControl = 1
+   OTimerMode=0
+   ODivider=1
+   OPalette = 0
+  end
+
+
+   
+  return
+ end
+
+ -- shift
+ if key(64) then
+ -- left: increase 3d logo
+  if keyp(60) then
+   OL_ID = OL_ID + 1
+  end
+  
+  -- right: decrease 3d logo
+  if keyp(61) then
+   OL_ID = OL_ID + 1
+  end
+  
+  OL_ID = mm(OL_ID%(#OldLogos+1),1,#OldLogos)
+ end
+
  -- Beat detection/input
  if keyp(48,10000,10) == true then
   local currentbeat=mm((BTC+1)%BEATS,1,BEATS)
@@ -1555,8 +1718,8 @@ function KEY_CHECK()
   EPalette = EPalette + 1
  end 
 
- EPalette = mm(EPalette,0,NumPalettes)
-
+ EPalette = mm(EPalette%(NumPalettes+1),0,NumPalettes)
+ 
  -- 1: effect modifier down
  if keyp(28) == true then
   EModifier = EModifier - 1
@@ -1567,7 +1730,7 @@ function KEY_CHECK()
   EModifier = EModifier + 1
  end
  
- EModifier = mm(EModifier,0,NumModifiers)
+ EModifier = mm(EModifier%(NumModifiers+1),0,NumModifiers)
  
  -- 3: effect modifier control down
  if keyp(30) == true then
@@ -1589,7 +1752,7 @@ function KEY_CHECK()
   OModifier = OModifier + 1
  end
  
- OModifier = mm(OModifier,0,NumModifiers)
+ OModifier = mm(OModifier%(NumModifiers+1),0,NumModifiers)
 
  -- c: overlay modifier control down
  if keyp(3) == true then
@@ -1645,7 +1808,7 @@ function KEY_CHECK()
   OPalette = OPalette + 1
  end 
 
- OPalette = mm(OPalette,0,NumPalettes)
+ OPalette = mm(OPalette%(NumPalettes+1),0,NumPalettes)
 
  -- delete: overlay cls switch
  if keyp(52) == true then
@@ -1675,7 +1838,7 @@ function KEY_CHECK()
   Overlay = Overlay + 1
  end
  
- Overlay = mm(Overlay,0,NumOverlays)
+ Overlay = mm(Overlay%(NumOverlays+1),0,NumOverlays)
  
 
  -- slash: debug switch
@@ -1712,6 +1875,7 @@ function BOOT()
  SunBeat_BOOT()
  SmilyFaces_BOOT()
  FujiTwist_BOOT()
+ c64_BOOT()
  SmokeCircles_BOOT()
  Chladni_BOOT()
  TextWarp_BOOT()

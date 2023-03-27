@@ -609,6 +609,65 @@ function FujiTwist_BOOT()
  table.insert(OldLogos,Fuji_frames)
 end
 
+OL_lines = {}
+OL_drawlines = {}
+OL_frames = {}
+OL_width=16
+OL_height=120
+OL_numframes=240
+
+function OL_scan(ilines)
+  OL_drawlines={}
+  OL_frames={}
+  for j=1,OL_numframes do
+    OL_drawlines={}
+   a=j/OL_numframes*tau
+   for i=1,#ilines do
+    ln=ilines[i]
+    cx=ln.cx
+    cy=ln.cy
+    x1=cx-ln.r/2
+    x2=cx+ln.r/2
+    z1=-OL_width/2
+    z2=OL_width/2
+    
+    a1=sin(a-tau/8)
+    a2=sin(a+tau/8)
+    a3=sin(a+tau*3/8)
+    a4=sin(a-tau*3/8)
+ 
+    X1=x1*cos(a)-z2*sin(a)
+    Z1=x1*sin(a)+z2*cos(a)
+    X2=x1*cos(a)-z1*sin(a)
+    Z2=x1*sin(a)+z1*cos(a)
+    X3=x2*cos(a)-z1*sin(a)
+    Z3=x2*sin(a)+z1*cos(a)
+    X4=x2*cos(a)-z2*sin(a)
+    Z4=x2*sin(a)+z2*cos(a)
+    if(X1 < X2) then
+     c=(1-(abs(a%tau-tau/4)/tau))*15
+     table.insert(OL_drawlines,{X1,cy,X2,cy,c,(Z1+Z2)/2})
+    end
+    if(X2 < X3) then
+     c=(1-(abs(a%tau-tau/2)/tau))*15
+     table.insert(OL_drawlines,{X2,cy,X3,cy,c,(Z2+Z3)/2})
+    end
+    if(X3 < X4) then
+     c=(1-(abs(a%tau-tau*3/4)/tau))*15
+     table.insert(OL_drawlines,{X3,cy,X4,cy,c,(Z3+Z4)/2})
+    end
+    if(X4 < X1) then
+     c=(1-((abs(a%tau-tau/1.1))/tau))*15
+     table.insert(OL_drawlines,{X4,cy,X1,cy,c,(Z4+Z1)/2})
+    end
+   end
+   table.sort(OL_drawlines, function (a,b) return a[6] < b[6] end)
+   OL_frames[j]=OL_drawlines
+  end
+
+  table.insert(OldLogos,OL_frames)
+end
+
 function c64_BOOT()
   c64_lines={}
   c64_drawlines={}
@@ -648,7 +707,9 @@ function c64_BOOT()
     end
    end
   end
- 
+
+  OL_scan(c64_lines)
+  --[[
   for j=1,Fuji_numframes do
     c64_drawlines={}
    a=math.pi/2+j/Fuji_numframes *tau
@@ -700,6 +761,7 @@ function c64_BOOT()
   end
 
   table.insert(OldLogos,c64_frames)
+  --]]
  end
 
 function FujiTwist_BDR(l)
@@ -719,7 +781,7 @@ function FujiTwist_DRAW(it,ifft)
  bnc=sin(ifft)*10
  frames = OldLogos[OL_ID]
  for y=1,Fuji_height do
-  twist=Fuji_numframes*(1+cos(it/4*tau)+BASS/4*cos(y/Fuji_height))/2
+  twist=Fuji_numframes*(1+it+BASS*EControl*cos(y/Fuji_height))/2
   dl=frames[twist//1%Fuji_numframes+1]
   for i=1,#dl do
    ln=dl[i]
@@ -862,10 +924,10 @@ function GridDim_DRAW(amount, mt, mc)
  for y=-1,36 do
   for x=-1,60 do
    i=i+1
-   if i > amount*5 then return end
+   --if i > amount*5 then return end
    sx=x*4+(mt*20)%4
    sy=y*4+(mt*5)%4
-   pix(sx,sy,mm(pix(sx,sy)-1,0,255))
+   pix(sx,sy,mm(pix(sx,sy)-mc,0,15))
   end
  end
 end

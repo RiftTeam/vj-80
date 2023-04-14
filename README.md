@@ -3,7 +3,7 @@ tic 80 vj'ing tool
 
 This version is pretty much a prototype which needs a lot of refactoring and clean up, but it works. The main idea is that there are 4 layers of visuals, with an effect and "modifier" on both visual banks of the TIC80.
 
-There are a lot of keyboard controls, and there isnt a helpfile yet.. So load the fft build of the TIC80 (), load the .tic file, start some music or other sound playing on your computer and try the following:
+There are a lot of keyboard controls, and there isnt a helpfile yet.. So load the fft build of the TIC80 (https://github.com/glastonbridge/TIC-80), load the .tic file, start some music or other sound playing on your computer and try the following:
 
 shift+1 to shift+4 will give you preset screens. (currently for the madtixx dj set at revision)
 

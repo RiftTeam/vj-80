@@ -17,59 +17,8 @@ if (beat/4%4 > 1) then ta = 0 else ta = s(pi*ta) end
 
 --]]
 --[[
-function SCN(l)
- for i=0,15 do
-  poke(0x3fc0+i*3, 255-15*i)
-  poke(0x3fc0+i*3+1, math.max(0,math.min(255,255-8*i-l)))
-  poke(0x3fc0+i*3+2, math.max(0,math.min(255,255-26*i)))
- end
-end
+--]]
 
-t=0.0
-function TIC()
-t=t+1--fft(1)*5.0 -- nm
-n = 255//np
-cls()
-for i=0,255 do
- ftoa = 0
- for j=0,n do
-  ftoa=ftoa+fft(i/n+j)*(.25+i/60)/n
- end
- fto[i]=fto[i]*3/4+ftoa/4
-end
-q={}
-for i=0,np do
- v=p[i]
- v.x=(v.x+v.sx/5*s(i/10+t/100))%240
- v.y=(v.y+v.sy/8*s(i/11+t/100))%136
- q[i]=v
-end
---table.sort(q, function (a,b) return a.x < b.x end)
-for i=0,np do
- v=q[i]
- pix(v.x,v.y,fto[i]*500)
- 
- for j=i,np do
-  w=p[j]
-  d=(v.x-w.x)^2 + (v.y-w.y)^2
-  d=d^.5
-  ft = fto[i] + fto[j]
-  if d < ft * 100 and i ~= j then
-   line(v.x,v.y,w.x,w.y,ft*100)
-   for l=j,np do
-    z=p[l]   
-    d=(v.x-z.x)^2 + (v.y-z.y)^2
-    d=d^.5
-    ft = fto[i] + fto[j] + fto[l]
-    if d < ft * 50 and l ~= j and l ~= i then
-     tri(v.x,v.y,w.x,w.y,z.x,z.y,ft*100)
-     goto continue
-    end
-   end
-  end
-  
- end
- --]]
 
 
 X = 7
@@ -79,11 +28,11 @@ end
 function X_DRAW(it,ifft)
 end
 
-NumEffects=14
-NumOverlays=10
-NumModifiers=6
+NumEffects=16
+NumOverlays=14
+NumModifiers=11
 NumModes=8
-NumPalettes=10
+NumPalettes=13
 
 -- Utils
 
@@ -129,7 +78,86 @@ function printlogo(x,y,kx,ky,col)
   end
  end
 end
- 
+
+local rle = "0800020ODODOHPDPHPHPHPHP4HPPHOHOHAHOHOHOHAHOHOHOHAHOP2HHAHOP2DHAHOPHOPOHHOPHP2HHOPHP2HHOHAHAHAHOHAHAHAHOPDPDHP3DPDHP3DPDHP2ODOPHOHAODOPHOHAODOPHOHAMBAOHOHAMBAOHOHAMBAOPHHAMBAOPDHAMBAOPHHAMPDAPDMHOPDAPHOP2DAP3HLDAHOHOHLDAHOHOHLDAHOHOHLDAHOHOHIDAHOHOP2HHAHOHOHOHAHOHOHOHAHOHOHOHAHOHOP5HOPHOP2HOPDMPPHA7HAHAHOHOHAHAHOHOHAHAHOHOHAHAHOHOPPHAPPHOPPHAOPHOOPHAMPHOA7MBAOHOHAMBAOHOHAMBAOHOHAMBAOHOHAPHPPHOP2HPPHOP2HPHHOOPA7HIDAHOHOHIDAHOHOHIDAHOHOHIDAHOHOHIDAHOPPHIDAHOPHHIDAHOODA7ODMHODMPPHOPPHOP8HOHOHOHAHOHOHOHAHOHOHOPDPPHOPHOHPHHOPDMP2BAHOHOPPBAHOHOPPBAHOHOIDAAHOHOIDAAHOHOIDAAHOHOIDAAHOHOIDAAHOHOHIDAHOH2IDAHOH2IDAHOH2IDAHOH2IDAHOH2IDAOH3IDAMDPHHIDAOHPHPPAAHA2PPAAHA2PPAAHA3OAAHA3OPDPDOHMPPHPHPHOHP4HPDAOHOHAPDHOPHAOHAHOHOAOHAHOHOAOHAHPHOAOHAPHHOPPHAPPHOPPHAONHOPHA7IDAAHOHOIDAAHOHOIDAAHOHOIDAAHOHOIDAAP3IDAAOPPHIDAAMPPDA7HLDAHOODHLDAHOMBHLDAHOMBHLDAHOMBPPDAHOMBOPDAHOMBMPBAHOMBA7HAOPHOHAHAPPHOHAHAPPHOHAHAHOHOHAP13OP2OPPHMPA8OAAMPA2OAAOPA2OAAOPA2OAAOA2MPOHPDMPOP3DOP5DPPHOHOOAHOHA4HAHAMBMBHAHAMBMBHAHA4HAPDPAPAHOPHPBPBHOP2BPBHOHOMBMBHOHA6HA6HA6HA6HAMPBAPDHAOPDAPHHAPPDAPPHAHLDAHOA31MHODMHMHOPPHOPOHP6HHOHOHOHAHOPPOAHOHOPPOAHOHOPHOAHOHOHAOAHOP3OAP3OPOAOPOPMPOAMPA6OHOMBMBPPHOMBMBPHHOMBMBPPHOMBMBHOHOMBMBHOHOMBMBHOHOMBMBHOA3MBAAHAHLDAHOHAHLDAHOHAHIDAHOHAHIDAHOPDHIDAHOPDHIDAHOODHIDAHOA7HOHOHOHAHOHOHOHAHOHOHOHAHOHOHOHAP5HAPHPHOPHAODPDMPHA2HAAOA7OPA5OHA5ODA43PBA5PBA5PA108HAAOA3HAAOA3HAAOA43HA6HA6HA6HA4MPPDHOHOOPPDHOHOP2DHOHOHAHAHOHOA31HIDAHOGOHIDAHOHOHIDAHOHOHIDAHOHOAAGAHA4HAHA4HAHA4HADA2PPHA4PPHA2MBPPHA2MBAOHA2PHA5IDA5IDA5IDA5MDA5MBA5MBA5MBAAPHAAOBPDHAHOHOOHHAHOHOMPHAHOHOAOHAHOHOP2HP5OHOPPHPHMHMPPDA7HIDAPPHOHLDAOHHOHLDAPPHOHLDAHOHOPPDAHOPPOPDAHOOPMPBAHOMPA6OMPHA2PHOHHA2PHPDHA2MBHA4MBPPHA4PPHA4PPHA14PHAAOA2PHAAOA6OA6PAHA2HAHAHA2HAHAHA2HAHADA76OPA5OHA5ODA167MHPBPHPHOPPDP6DP3HOIDAOAOHPIDAOAOHPIDMPMP2IDOHMHPPIDPDMPHOPPMP2HOPPOP2HOP5HOHAHAAOHOHAHAAOHOPDPDAP3HPHIHOPOP2MDMHMHA3OPOPA3P3A3HOHOA3HOHOA3PPHOHAPHOHPPHAPHP3HAPHPHIJDA2PPMJDA2PPMJDA3OP2A2MP3A2OHP2A2PDMJDA2HAMJDA2POIDHAAOPOIDHAAOHOIDHAAOHOIDHAAOPPIDP4HIDP2HODIDP2DA7MPAOHOMBAOAOHOMBAOAOHOMBAOAOHOMBAOP3MBAOPPOHMBAOPHMDMBA7HOOPHA2HOAOAAPHHOAOAAPHHOAOHAPHP3HA2PHPHHA2ODPDHA10PPMJDA2P4A2OP3A4P2A2MBMJDA2MBMJDA2MBMJBA10"
+-- font data {"A", sprite number, page?, num sprites x, y, width (px), height}
+fontd={	{0,0,1,2,8,16},{1,0,1,2,8,16},{2,0,1,2,8,16},{3,0,1,2,8,16},{4,0,1,2,8,16},{5,0,1,2,8,16},{6,0,1,2,8,16},{7,0,1,2,8,16},{8,0,1,2,7,16},{9,0,1,2,8,16},{10,0,1,2,8,16},{11,0,1,2,8,16},{12,0,2,2,10,16},{14,0,1,2,8,16},{15,0,1,2,8,16},
+		{128,0,1,2,8,16},{129,0,1,2,8,16},{130,0,1,2,8,16},{131,0,1,2,8,16},{132,0,2,2,9,16},{134,0,1,2,8,16},{135,0,1,2,8,16},{136,0,2,2,10,16},{138,0,1,2,8,16},{139,0,1,2,7,16},{140,0,1,2,8,16},{141,0,1,2,8,16},{142,0,1,2,8,16},{143,0,1,2,8,16},
+		{256,0,1,2,8,16},{257,0,1,2,8,16},{258,0,1,2,8,16},{259,0,1,3,8,19},{260,0,1,2,8,16},{261,0,1,2,5,16},{262,0,1,3,6,19},{263,0,1,2,8,16},{264,0,1,2,6,16},{265,0,2,2,10,16},{267,0,1,2,8,16},{268,0,1,2,8,16},{269,0,1,3,8,19},{270,0,1,3,8,19},{271,0,1,2,7,16},
+		{448,0,1,2,8,16},{449,0,1,2,7,16},{450,0,1,2,8,16},{451,0,1,2,8,16},{452,0,2,2,10,16},{454,0,1,2,8,16},{455,0,1,3,8,19},{456,0,1,2,8,16},{457,0,1,2,3,16},{458,0,1,2,3,16},{459,0,1,2,7,16},{460,0,1,2,3,16},{461,0,1,2,7,16},{462,0,1,2,3,16},{463,0,1,2,6,16},
+		{640,0,1,2,8,16},{641,0,1,2,6,16},{642,0,1,2,8,16},{643,0,1,2,8,16},{644,0,1,2,8,16},{645,0,1,2,8,16},{646,0,1,2,8,16},{647,0,1,2,8,16},{648,0,1,2,8,16},{649,0,1,2,8,16},{650,0,1,2,3,16},{651,0,1,2,7,16},{652,0,1,2,8,16},{653,0,2,2,12,16},{655,0,1,2,8,16}
+	}
+
+-- this could be useful for compression later
+font = {}
+chars="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!\'+,-./0123456789:=?# "
+
+-- the rle decoder
+function tomemrle(str)
+  local o=tonumber(str:sub(1,5),16) -- get (o)ffset
+  local w=tonumber(str:sub(6,7),16)*8-1 -- get (w)idth
+  local e=str:sub(8,str:len()) -- remove header to get (e)ncoded data
+  local d = "" -- (d)ecoded data
+  for m, c in e:gmatch("(%u+)([^%u]+)") do -- decode rle, (m)atch & (c)ounter
+    d = d .. m .. (m:sub(-1):rep(c))  
+  end
+  local y=0
+  for x = 1,#d,1 do -- write to mem
+    local c=string.byte(d:sub(x,x))-65 -- get (c)olor value
+    poke4(o+y,c) y=y+1
+    if y>w then y=0 o=o+1024 end
+  end
+end
+
+function font_init()
+	for i=1,#fontd do
+		font[string.sub(chars,i,i)] = fontd[i]
+	end
+end
+
+function flength(txt,kx,size)
+	kx = kx or 1
+  size = size or 1
+	pcx = 0
+	letter ={}
+	for i=1,string.len(txt) do
+		letter = font[string.sub(txt,i,i)]
+		-- update kerning
+		pcx = pcx + letter[5]*size + kx
+	end
+	return pcx
+end
+
+-- fprint ("text", x, y, [x kerning = 1],[y kerning = 1], [colour = 15])
+function fprint(txt,tx,ty,kx,ky,tc,size)
+	kx = kx or 1
+	ky = ky or 1
+	tc = tc or 10
+  size = size or 1
+	pcx = 0
+	pcy = 0
+	letter ={}
+	-- set to blit segment (8 = BG-1)
+	poke4(2*0x03ffc,8)
+	-- set colour
+	poke4(2*0x03FF0 + 1, tc)
+	-- print each letter
+	for i=1,string.len(txt) do
+		letter = font[string.sub(txt,i,i)]
+		spr(letter[1],tx+pcx,ty+pcy,0,size,0,0,letter[3],letter[4])
+
+		-- update kerning
+		pcx = pcx + letter[5]*size + kx
+	end
+end
+
+function FONT_BOOT()
+    -- initialize
+    tomemrle(rle)
+    font_init()
+end
+
+
 -- FFT setup
 
 FFTH={}
@@ -182,6 +210,148 @@ function FFT_FILL()
 end
 
 -- Effects
+
+RevisionBack = 16
+
+RB_cubes ={}
+RB_cubelines = {{-1,-1,-1,1,-1,-1},
+                {-1,-1,-1,-1,1,-1},
+                {-1,-1,-1,-1,-1,1},
+
+                {1,-1,-1,1,1,-1},
+                {1,-1,-1,1,-1,1},
+
+                {-1,1,-1,-1,1,1},
+                {-1,1,-1,1,1,-1},
+
+                {1,1,-1,1,1,1},
+
+                {-1,1,1,1,1,1},
+                {-1,1,1,-1,-1,1},
+
+                {-1,-1,1,1,-1,1},
+                {1,1,1,1,-1,1},
+                }
+function RevisionBack_BOOT()
+  for i = 1,5 do
+    for j = 1,16 do
+--      table.insert(RB_cubes,{15*sin(j/16*tau+it+i/13),15*cos(j/16*tau+it+i/13),5+i*4})
+    end
+  end
+--  RB_cubes[1]={5,5,10}
+end
+
+function RevisionBack_DRAW(it,ifft)
+  RB_cubes={}
+  for i = 1,5 do
+    for j = 1,16 do
+      table.insert(RB_cubes,{(13+BASS)*sin((j/16+it)*tau+i/15),(13+BASS)*cos((j/16+it)*tau+i/15),10+i*4})
+    end
+  end
+  for i=1,#RB_cubes do
+
+    for j=1,#RB_cubelines do
+      ln=RB_cubelines[j]
+      
+      x1=(ln[1]+RB_cubes[i][1]) *99/(RB_cubes[i][3]+ln[3])
+      y1=(ln[2]+RB_cubes[i][2])*99/(RB_cubes[i][3]+ln[3])
+      x2=(ln[4]+RB_cubes[i][1])*99/(RB_cubes[i][3]+ln[6])
+      y2=(ln[5]+RB_cubes[i][2]) *99/(RB_cubes[i][3]+ln[6])
+      line(x1+120,y1+68,x2+120,y2+68,16-RB_cubes[i][3]/2)
+
+    end
+  end
+end
+
+Lemons = 15
+LE_points={}
+LE_lines={}
+LE_columns={}
+LE_rd={}
+LE_np=15
+LE_nl=15
+LE_nc=5
+
+function Lemons_BOOT()
+ for i=1,LE_nl do
+  local lp={}
+  for j=1,LE_np do
+   lp[j]=5*rand()
+  end
+  LE_rd[i]=lp
+ end
+end
+
+function Lemons_DRAW(it,ifft)
+  local h=0
+  local n=0
+
+  numlem = mm(LE_nc+EControl,1,20)
+
+  local ccp={}
+  it=it*tau
+  for h=1,numlem do
+   local a = h/numlem * tau
+   ccp[h]={x=100*sin(a+it/7), y=0, z=30*cos(a+it/7), n=h}
+  end
+  table.sort(ccp, function (a,b) return a.z<b.z end)
+  
+  
+  for h=1,numlem do
+   LE_lines={}
+   fftl=FFTH
+   for i=1,LE_nl do
+    local lp={}
+    for j=1,LE_np do
+     local a = j/LE_np * tau
+     local p={x=(20+LE_rd[i][j]+fftl[i]*10)*sin(a+it)*sin(i/LE_nl*math.pi),
+             y=(i-(LE_nl/2))*4,
+             z=(20+LE_rd[i][j]+fftl[i]*10)*cos(a+it)*sin(i/LE_nl*math.pi)}
+     a = it/4+h
+     lp[j]={x=p.x*sin(a)-p.y*cos(a),
+            y=p.y*sin(a)+p.x*cos(a),
+            z=p.z}
+    end
+    LE_lines[i]=lp
+   end
+   LE_columns[h]=LE_lines
+  end 
+ 
+  for k=1,numlem do
+   if ccp[k].z >-23 then
+    h=ccp[k].n
+    for i=1,LE_nl do
+     for j=1,LE_np-1 do
+      sp=LE_columns[h][i][j]
+      ep=LE_columns[h][i][j+1]
+     
+      if(sp.z+ep.z)>0 then
+       sz=sp.z-100+ccp[k].z
+       ez=ep.z-100+ccp[k].z
+       sx=120+sp.x*99/sz+ccp[k].x
+       sy=68+sp.y*99/sz+ccp[k].y
+       ex=120+ep.x*99/ez+ccp[k].x
+       ey=68+ep.y*99/ez+ccp[k].y
+       line(sx,sy,ex,ey,ez/8)
+      end
+     --pix(120+sp.x*99/sz,68+sp.y*99/sz,12)
+     end
+     sp=LE_columns[h][i][LE_np]
+     ep=LE_columns[h][i][1]
+     if(sp.z+ep.z)>0 then
+       sz=sp.z-100+ccp[k].z
+       ez=ep.z-100+ccp[k].z
+       sx=120+sp.x*99/sz+ccp[k].x
+       sy=68+sp.y*99/sz+ccp[k].y
+       ex=120+ep.x*99/ez+ccp[k].x
+       ey=68+ep.y*99/ez+ccp[k].y
+      line(sx,sy,ex,ey,ez/8)
+     end
+  --  line(minx,miny,maxx,maxy,1)
+    end
+   end
+  end
+end
 
 Proxima = 14
 PR_p={}
@@ -657,7 +827,7 @@ function OL_scan(ilines)
      table.insert(OL_drawlines,{X3,cy,X4,cy,c,(Z3+Z4)/2})
     end
     if(X4 < X1) then
-     c=(1-((abs(a%tau-tau/1.1))/tau))*15
+     c=(1-((abs(a%tau-tau/2))/tau))*15
      table.insert(OL_drawlines,{X4,cy,X1,cy,c,(Z4+Z1)/2})
     end
    end
@@ -666,6 +836,73 @@ function OL_scan(ilines)
   end
 
   table.insert(OldLogos,OL_frames)
+end
+
+function vectrex_BOOT()
+  vec_lines={}
+  cls()
+  for y=10,Fuji_height-10 do
+    line(230-y,y,10+y,y,1)
+  end
+  for y=10,Fuji_height-40 do
+    line(30+y,y,30+Fuji_width+y,y,0)
+  end
+  for y=1,Fuji_height do
+    -- fuck it search by image
+    c=1
+    for x=0,240 do
+     if c==1 and pix(x,y) == 1 then
+      c1=x
+      c=2
+     elseif c==2 and pix(x,y) == 0 then
+      c2=x
+       
+      r=c1-c2
+      l={cx=r/2+x-120, cy=y+10, r=r}
+      table.insert(vec_lines,l)
+      c=1
+     end
+    end
+  end
+  OL_scan(vec_lines)
+end
+
+function amiga_BOOT()
+  amiga_lines={}
+  cls()
+  for y=10,Fuji_height-10 do
+    line(200-y,y,200+Fuji_width-y,y,1)
+
+    line(177-y,y,177+Fuji_width-y,y,1)
+  end
+
+  i=0
+  for y=Fuji_height-10,Fuji_height-50,-1 do
+    i=i+2
+    line(177-y-i,y,177-y-i+Fuji_width,y,1)
+
+    line(200-y-i,y,200-y-i+Fuji_width,y,1)
+  end
+  for y=1,Fuji_height do
+    -- fuck it search by image
+    --space=136-Fuji_height
+    c=1
+    for x=0,240 do
+     if c==1 and pix(x,y) == 1 then
+      c1=x
+      c=2
+     elseif c==2 and pix(x,y) == 0 then
+      c2=x
+       
+      r=c1-c2
+      l={cx=r/2+x-120, cy=y+10, r=r}
+      table.insert(amiga_lines,l)
+      c=1
+     end
+    end
+  end
+    OL_scan(amiga_lines)
+
 end
 
 function c64_BOOT()
@@ -709,59 +946,6 @@ function c64_BOOT()
   end
 
   OL_scan(c64_lines)
-  --[[
-  for j=1,Fuji_numframes do
-    c64_drawlines={}
-   a=math.pi/2+j/Fuji_numframes *tau
-   for i=1,#c64_lines do
-    ln=c64_lines[i]
-    cx=ln.cx
-    cy=ln.cy
-    x1=cx-ln.r/2
-    x2=cx+ln.r/2
-    z1=-Fuji_width/2
-    z2=Fuji_width/2
-    
-    a1=sin(a-tau/8)
-    a2=sin(a+tau/8)
-    a3=sin(a+tau*3/8)
-    a4=sin(a+tau*5/8)
- 
-    X1=x1*cos(a)-z2*sin(a)
-    Z1=x1*sin(a)+z2*cos(a)
-    X2=x1*cos(a)-z1*sin(a)
-    Z2=x1*sin(a)+z1*cos(a)
-    X3=x2*cos(a)-z1*sin(a)
-    Z3=x2*sin(a)+z1*cos(a)
-    X4=x2*cos(a)-z2*sin(a)
-    Z4=x2*sin(a)+z2*cos(a)
-    if(X1 < X2) then
-     c=(X2-X1)/ln.r*4
-     c=(1+(a1+a2)/2)*8+2
-     table.insert(c64_drawlines,{X1,cy,X2,cy,c,(Z1+Z2)/2})
-    end
-    if(X2 < X3) then
-     c=(X3-X2)/Fuji_width * 15
-     c=(1-((a2+a3)/(2)))*16
-     table.insert(c64_drawlines,{X2,cy,X3,cy,c,(Z2+Z3)/2})
-    end
-    if(X3 < X4) then
-     c=(X4-X3)/ln.r * 15
-     c=(1+(a3+a4)/2)*8+2
-     table.insert(c64_drawlines,{X3,cy,X4,cy,c,(Z3+Z4)/2})
-    end
-    if(X4 < X1) then
-     c=(X1-X4)/Fuji_width * 15
-     c=(1+(a4+a1)/2)*8+2
-     table.insert(c64_drawlines,{X4,cy,X1,cy,c,(Z4+Z1)/2})
-    end
-   end
-   table.sort(c64_drawlines, function (a,b) return a[6] < b[6] end)
-   c64_frames[j]=c64_drawlines
-  end
-
-  table.insert(OldLogos,c64_frames)
-  --]]
  end
 
 function FujiTwist_BDR(l)
@@ -885,6 +1069,16 @@ function ModifierHandler(COrder,IOrder,Mod, MT,MC)
       PIXMotionBlur_DRAW(1000*HIGH,MT,MC)
     elseif Mod == PIXJumpBlur then
       PIXJumpBlur_DRAW(1000*HIGH,MT,MC)
+    elseif Mod == ROTVert then
+      ROTVert_DRAW(1000*HIGH,MT,MC)
+    elseif Mod == ROTHorz then
+      ROTHorz_DRAW(1000*HIGH,MT,MC)
+    elseif Mod == SFTVert then
+      SFTVert_DRAW(1000*HIGH,MT,MC)
+    elseif Mod == SFTHorz then
+      SFTHorz_DRAW(1000*HIGH,MT,MC)
+    elseif Mod == POSTSquares then
+      POSTSquares_DRAW(1000*HIGH,MT,MC)
     end
     else
   end
@@ -1008,14 +1202,170 @@ function PIXJumpBlur_DRAW(amount, mt, mc)
     pix(cx+(d+1)*sin(a),cy+(d+1)*cos(a),mm((pix(x,y)+pix(x+1,y+1)+pix(x+1,y-1)+pix(x-1,y+1)+pix(x-1,y-1))/4.8,0,15))
    end
   end
- end
+end
  
---[[
+ROTVert = 7
+function ROTVert_DRAW(amount,mt,mc)
+  
+  dir=1
+  local lines = 0
+  if mc == 0 then
+    lines = mt%5//1
+  else
+    if mc < 0  then
+      dir = -1
+    end
+    --lines = abs(mc)*(mt%4+1)//1
+    lines = (abs(mc)*(mt+1)//1)%136
+  end
 
---]]
+  if dir == 1 then
+    -- going down
+    memcpy(0x8000,(135-lines)*120,120*lines)
+    for y=135-lines,0,-1 do
+     memcpy((y+lines)*120,y*120,120)
+    end
+    memcpy(0,0x8000,120*lines)
+  elseif dir == -1 then
+    -- going up
+    memcpy(0x8000,0,120*lines)
+    for y=0,135-lines do
+      memcpy(y*120,(y+lines)*120,120)
+     end
+     memcpy((136-lines)*120,0x8000,120*lines)
+ 
+  end
+end
+
+ROTHorz = 8
+function ROTHorz_DRAW(amount,mt,mc)
+  dir=1
+  local pixels = 0
+  if mc == 0 then
+    pixels = mt%5//1
+  else
+    if mc < 0  then
+      dir = -1
+    end
+    --pixels = abs((mc*mt)%120)
+    --pixels = (abs(mc)*mt)%120
+    pixels = (abs(mc)*(mt+1)//1)%120
+  end
+
+  if dir ==1 then
+    -- going right
+    for y=0,135 do
+      -- take the whole line
+      memcpy(0x8000,y*120, 120)
+
+      -- put it back in two sections
+      memcpy(y*120+pixels,0x8000, 120-pixels)
+      memcpy(y*120,0x8000+(120-pixels), pixels)
+    end
+  else
+    -- going left
+    for y=0,135 do
+      -- take the whole line
+      memcpy(0x8000,y*120, 120)
+
+      -- put it back in two sections
+      memcpy(y*120+(120-pixels),0x8000, pixels)
+      memcpy(y*120,0x8000+pixels, 120-pixels)
+    end
+  end
+
+end
+
+SFTVert = 9
+function SFTVert_DRAW(amount,mt,mc)
+  dir=1
+  local lines = 0
+  if mc == 0 then
+    lines = mt%5//1
+  else
+    if mc < 0  then
+      dir = -1
+    end
+ --    lines = abs(mc)*(mt%4+1)//1
+    lines = (abs(mc)*(mt+1)//1)%136
+  end
+
+  if dir == 1 then
+    -- going down
+    for y=135-lines,0,-1 do
+     memcpy((y+lines)*120,y*120,120)
+    end
+    memset(0,0,120*lines)
+  elseif dir == -1 then
+    -- going up
+    for y=0,135-lines do
+      memcpy(y*120,(y+lines)*120,120)
+     end
+     memset((136-lines)*120,0,120*lines)
+  end
+end
+
+SFTHorz = 10
+function SFTHorz_DRAW(amount,mt,mc)
+  dir=1
+  local pixels = 0
+  if mc == 0 then
+    pixels = mt%5//1
+  else
+    if mc < 0  then
+      dir = -1
+    end
+    --pixels = abs((mc*mt)%120)
+    --pixels = (abs(mc)+(mt*2))%120
+    pixels = (abs(mc)*(mt+1)//1)%120
+  end
+
+  if dir ==1 then
+    -- going right
+    for y=0,135 do
+      -- take the whole line
+      memcpy(0x8000,y*120, 120)
+
+      -- put it back in two sections
+      memcpy(y*120+pixels,0x8000, 120-pixels)
+      memset(y*120,0, pixels)
+    end
+  else
+    -- going left
+    for y=0,135 do
+      -- take the whole line
+      memcpy(0x8000,y*120, 120)
+
+      -- put it back in two sections
+      memset(y*120+(120-pixels),0, pixels)
+      memcpy(y*120,0x8000+pixels, 120-pixels)
+    end
+  end
+
+end
+
+POSTSquares = 11
+PSp={x=0,y=0,sx=10,sy=10,t=0.02,lt=0}
+function POSTSquares_DRAW(amount,mt,mc)
+ if abs(mt-PSp.lt) >= PSp.t then
+  PSp.lt=mt
+  grid=240/PSp.sx
+  PSp.x=(rand(grid//1)-1)*PSp.sx
+  grid=136/PSp.sy
+  PSp.y=(rand(grid//1)-1)*PSp.sy
+ end
+ for i=PSp.x,PSp.x+PSp.sx do
+  for j=PSp.y,PSp.y+PSp.sy do
+    pix(i,j,mm(pix(i,j)-mc,0,15))
+  end
+ end
+end
+--[[
+ --]]
 
 Texts={{"GOOD","TO BE","BACK IN","THE EWERK",""},
-      {"MANTRA\nTRONIC","+ + +","MADTRIX","2023"}}
+      {"MANTRATRONIC","+ + +","MADTIXX","2023"},
+      {"MAD","MY","DAY!"}}
 TImages={}
 
 -- Overlays
@@ -1037,8 +1387,10 @@ function TextBounceUp_DRAW(it,ifft)
   y=68 - (3+OControl)*3 *linecount
  end
  tc=mm(MID*15,8,15)
- tl=print(Texts[TextID][tx],0,-100,15,false,3+OControl)
- print(Texts[TextID][tx],120-tl/2,y,tc,false,3+OControl)
+ -- tl=print(Texts[TextID][tx],0,-100,15,false,3+OControl)
+ tl=flength(Texts[TextID][tx],1,OControl)
+ -- print(Texts[TextID][tx],120-tl/2,y,tc,false,3+OControl)
+ fprint(Texts[TextID][tx],120-tl/2,y,1,1,15,OControl)
 end
 
 SunSatOrbit = 2
@@ -1121,8 +1473,12 @@ end
 
 function TextWarp_BOOT()
   cls()
-  l=print("2 WEEKS",-100,-100,12,false,5)
-  print("2 WEEKS",120-l/2,10,12,false,5)
+  --[[
+  l=print("1 WEEK",-100,-100,12,false,5)
+  print("1 WEEK",120-l/2,10,12,false,5)
+
+  l=flength("1 WEEK",1,3)
+  fprint("1 WEEK",120-l/2,0,1,1,12,3)
   
   l=print("TO",-100,-100,12,false,5)
   print("TO",120-l/2,40,12,false,5)
@@ -1138,27 +1494,65 @@ function TextWarp_BOOT()
 
   TWp = ScreenToPoints()
   table.insert(TImages,TWp)
+  --]]
 
   cls()
-  l=print("MAN",-100,-100,12,true,5)
-  print("MAN",120-l/2,10,12,true,5)
-  
-  l=print("TRA",-100,-100,12,true,5)
-  print("TRA",120-l/2,40,12,true,5)
-  
-  l=print("TRO",-100,-100,12,true,5)
-  print("TRO",120-l/2,70,12,true,5)
-  
-  l=print("NIC",-100,-100,12,true,5)
-  print("NIC",120-l/2,100,12,true,5)
+  l=flength("MADTIXX",3,4)
+  fprint("MADTIXX",120-l/2,38,3,1,12,4)
   
   TWp = ScreenToPoints()
   table.insert(TImages,TWp)
 
   cls()
-  l=print("RiFT",-100,-100,12,true,9)
-  print("RiFT",120-l/2,40,12,true,9)
+  --l=print("MAN",-100,-100,12,true,5)
+  --print("MAN",120-l/2,10,12,true,5)
+  --l=print("TRA",-100,-100,12,true,5)
+  --print("TRA",120-l/2,40,12,true,5)
+  --l=print("TRO",-100,-100,12,true,5)
+  --print("TRO",120-l/2,70,12,true,5)
   
+  --l=print("NIC",-100,-100,12,true,5)
+  --print("NIC",120-l/2,100,12,true,5)
+  
+  l=flength("MAN",3,2)
+  fprint("MAN",120-l/2,0,3,1,12,2)
+  l=flength("TRA",3,2)
+  fprint("TRA",120-l/2,35,3,1,12,2)
+  l=flength("TRO",3,2)
+  fprint("TRO",120-l/2,70,3,1,12,2)
+  l=flength("NIC",3,2)
+  fprint("NIC",120-l/2,105,3,1,12,2)
+
+  
+  
+  TWp = ScreenToPoints()
+  table.insert(TImages,TWp)
+
+  cls()
+  --l=print("RiFT",-100,-100,12,true,9)
+  --print("RiFT",120-l/2,40,12,true,9)
+  l=flength("RiFT",3,4)
+  fprint("RiFT",120-l/2,38,3,1,12,4)
+  
+  TWp = ScreenToPoints()
+  table.insert(TImages,TWp)
+
+  cls()
+  --l=print("ALL",-100,-100,12,true,5)
+  --print("ALL",120-l/2,20,12,true,5)
+  --l=print("CODECS",-100,-100,12,true,5)
+  --print("CODECS",120-l/2,50,12,true,5)
+  --l=print("MUST DIE",-100,-100,12,true,5)
+  --print("MUST DIE",120-l/2,80,12,true,5)
+
+  l=flength("ALL",3,3)
+  fprint("ALL",120-l/2,0,3,1,12,3)
+  l=flength("CODECS",3,3)
+  fprint("CODECS",120-l/2,45,3,1,12,3)
+  l=flength("MUST DIE",3,3)
+  fprint("MUST DIE",120-l/2,90,3,1,12,3)
+
+
   TWp = ScreenToPoints()
   table.insert(TImages,TWp)
 end
@@ -1248,7 +1642,8 @@ function JoyDivision_BOOT()
 end
 
 function JoyDivision_DRAW(it,ifft)
- if JD_ot%OControl == 0 then
+
+ if OControl~=0 and JD_ot%OControl == 0 then
   JD_ft={}
   for j=0,255 do
    table.insert(JD_ft,FFTH[j])
@@ -1304,6 +1699,183 @@ function LineCut_DRAW(it,ifft)
       --]]
   end
  end
+end
+
+StickerLens = 11
+function StickerLens_BOOT()
+end
+ 
+function StickerLens_DRAW(it,ifft)
+  -- draw point data to spritesheet
+  -- first blank
+  --memset(0x4000,0,120*136)
+
+  size=100+40*BASS
+  hs=size/2
+  TWp = TImages[mm(TIimageID,1,#TImages)]
+  for i=1,#TWp do
+   p=TWp[i]
+
+   x=(p[1]-120)/OControl
+   y=(p[2]-68)/OControl
+   c=mm(FFTH[p[5]//1]*50*(.05 + p[5]/10)+it,0,15)
+   a=p[4]
+   d=p[5]/OControl
+
+   b=BASS/5
+   --focal=(d/(hs*it%2))^(b)
+   focal=1+sin(d/20+it/20)*(b+it%1/2)
+   d=d*focal--*(it%1+.5)
+
+   ix=d*sin(a)
+   iy=d*cos(a)
+
+   if d < size then
+    ox=ix+120
+    oy=iy+68
+    if ox >=0 and ox<240 and oy>=0 and oy<136 then
+     pix(ox,oy,c)
+     --     poke4(ox+oy*240,c)
+    end
+  end
+
+   -- poke4(0x4000+p[1] + p[2]*240,p[3])
+  end
+
+  --[[
+  focal=1 -- +.5*BASS
+ 
+  size=80+40*BASS
+  hs=size/2
+  for x=0,size do
+   px=x-hs
+   for y=0,size do
+    py=y-hs//1
+    
+    a=math.atan2(px,py)
+    d=(px^2+py^2)^.5
+    
+    focal=(d/hs)^(FFTH[1])
+    d=d*focal --*(it%1+.5)
+    ix=d*sin(a)+40
+    iy=d*cos(a)--+40
+    
+    if d < hs then
+     col=peek4(0x8000+ix+iy//1*240)
+    else
+     col = 0
+    end
+    
+    ox=px+120
+    oy=py+68
+    if ox >0 and ox<240 and oy>0 and oy<136 then
+     poke4(ox+oy*240,col)
+    end
+   end
+  end
+  --]]
+end
+
+RevisionTop = 12
+function RevisionTop_DRAW(it,ifft)
+ rlp={}
+ ca = it * tau
+ for x=-10,10 do
+  for y=-10,10 do
+   --dy=y*.8
+   d = (x^2+y^2)^.5 * (1+it%1/10)
+   a = m.atan2(x,y) + ca
+   s = (16-OControl)-2*d+BASS*5--abs(x)-abs(y)
+   nx= d * sin(a)
+   ny= d * cos(a)
+   if s >= .5 then
+    table.insert(rlp,{nx,ny,s})
+   end
+  end
+ end
+
+ for i=1,#rlp do
+  p=rlp[i]
+  circ(120+9.5*p[1],68+8.5*p[2],p[3],8)
+ end
+
+ for i=1,#rlp do
+  p=rlp[i]
+  circ(120+10*p[1],68+9*p[2],p[3],12)
+ end
+end
+ 
+RevisionLogo = 13
+function RevisionLogo_DRAW(it,ifft)
+  cx=120
+  cy=68
+  t1=it*tau
+  t2=it*tau
+  t3=it*tau
+  c=OControl
+  w=6+BASS
+  r1=w*10
+  r2=w*6
+  r3=w*2
+  arc(cx,cy,w,r1-w,0 +t1,2*math.pi,c)
+  arc(cx,cy,2*w,r1-2*w,math.pi/90 +t1,math.pi/8,c)
+  arc(cx,cy,2*w,r1-2*w,math.pi/4 +t1,math.pi/20,c)
+  arc(cx,cy,2*w,r1-2*w,math.pi/2.2 +t1,math.pi/14,c)
+  arc(cx,cy,2*w,r1-w,math.pi/1.5 +t1,math.pi/3,c)
+  arc(cx,cy,2*w,r1-2*w,math.pi/1.2 +t1,math.pi/20,c)
+  arc(cx,cy,2*w,r1-2*w,math.pi/0.95 +t1,math.pi/10,c)
+  arc(cx,cy,2*w,r1-2*w,-math.pi/2.7 +t1,math.pi/3,c)
+  arc(cx,cy,2*w,r1-w,-math.pi/4.5 +t1,math.pi/20,c)
+  
+  arc(cx,cy,w,r2-w,0 +t2,2*math.pi,c)
+  arc(cx,cy,2*w,r2-2*w,math.pi/3.5 +t2,math.pi/1.6,c)
+  arc(cx,cy,3*w,r2-3*w,math.pi/5 +t2,math.pi/5,c)
+  arc(cx,cy,2*w,r2-2*w,math.pi/1.08 +t2,math.pi/2.1,c)
+  arc(cx,cy,3*w,r2-3*w,math.pi/1.15 +t2,math.pi/5,c)
+  arc(cx,cy,2*w,r2-2*w,math.pi/3.5 +t2,math.pi/1.6,c)
+  arc(cx,cy,3*w,r2-3*w,math.pi/5 +t2,math.pi/5,c)
+  arc(cx,cy,2*w,r2-2*w,-math.pi/1.7 +t2,math.pi/3,c)
+  arc(cx,cy,3*w,r2-3*w,-math.pi/1.7 +t2,math.pi/15,c)
+  
+  arc(cx,cy,w,r3-w,0 +t3,2*math.pi,c)
+  arc(cx,cy,2*w,r3-w,-math.pi/4.5 +t3,math.pi/3,c)
+end
+
+MadtixxLogo = 14
+ML_first=true
+ML_points={}
+function MadtixxLogo_DRAW(it,ifft)
+  if ML_first then
+    cls()
+
+    -- sync into bank 2
+    sync(1,2)
+
+  	-- set to blit segment (8 = BG-1)
+   	poke4(2*0x03ffc,8)
+	  -- set colour
+	  poke4(2*0x03FF0 + 1, 12)
+
+    -- put it on screen 
+    spr(0,0,34,-1,1,0,0,30,10)
+
+    -- save it
+    ML_points = ScreenToPoints()
+
+    ML_first = false
+  else
+    sync(1,0)
+
+    for i=1,#ML_points do
+      pp=ML_points[i]
+      b=pp[4]--+2*pi*sin(it*pp[5]/100+MID)
+      w=pp[5]/2+10*sin(pp[5]/40*BASS)+(it/OControl)*pp[5]+HIGH
+      nx=w*sin(b)
+      ny=w*cos(b)
+      pix(120+nx,68+ny,15)-- pp[3])
+     end
+    
+  end
 end
 
 -- TestSheet
@@ -1376,20 +1948,26 @@ end
 Sweetie16=0
 Sweetie16PAL={}
 
-BlueOrange=1
-BlueOrangePAL={}
+OverBrown = 1
+OverBrownPAL={}
 
 Reddish=2
 ReddishPAL={}
 
-BlueGreySine=5
+BlueGreySine=3
 BlueGreySinePAL={}
 
-GreyScale = 6
+GreyScale = 4
 GreyScalePAL = {}
 
-OverBrown = 8
-OverBrownPAL={}
+UKR=11
+UKRPAL = {}
+
+Trans=12
+TransPAL = {}
+
+Eire=13
+EirePAL = {}
 
 function PAL_BOOT()
   for i=0,47 do
@@ -1411,31 +1989,64 @@ function PAL_BOOT()
     OverBrownPAL[i*3+1]=math.min(255,10+i*24)
     OverBrownPAL[i*3+2]=i*17
     
-   end
-  
+  end
+
+  UKRPAL = PAL_make3(0,0,0,0x00,0x5b,0xbb,0xff,0xd5,0x00)
+  TransPAL = PAL_make3(0x55,0xcd,0xfc,255,255,255,0xf7,0xa8,0xb8)
+  EirePAL = PAL_make3(0x00,0x9a,0x44,255,255,255,0xff,0x82,0x00)
+
+  OLDPALE = Sweetie16PAL
+  OLDPALO = Sweetie16PAL
 end
 
-function PAL_Switch(ip, speed)
- --[[
- if PAL_STATE ~= 1 then
-  PAL_STATE = 1
+
+PAL_time = 0
+PAL_done = true
+PAL_olde = 0
+PAL_oldo = 0
+PAL_currente = 0
+PAL_currento = 0
+OLDPALE = {}
+OLDPALO = {}
+function PAL_Switch(ip, speed, buffer)
+ if buffer == 0 and PAL_olde == PAL_currente then
+  --print("pt:"..PAL_time.."|old:"..PAL_olde.."|new:"..PAL_currente.."|buffer:"..buffer.."|s:"..speed,10,30,15)
+  return
+ elseif buffer == 1 and PAL_oldo == PAL_currento then
+  --print("new",10,40)
   return
  end
- 
- if PAL_STATE == 1 and peek(0x3fc0+15) == ip[15] then
-  PAL_STATE = 0
-  return
- end
- --]]
- local noneed
- for i=0,47 do
-  ic=peek(0x3fc0+i)
-  nc=ip[i] 
-  if ic ~= nc//1 then 
-   poke(0x3fc0+i, mm(ic*(1-speed)+(nc)*speed,0,255))
+
+ if PAL_time >= 1 then
+  if buffer == 0 then
+   PAL_olde = PAL_currente
+   OLDPALE = ip
+  else 
+   PAL_oldo = PAL_currento
+   OLDPALO = ip
   end
+  PAL_time = 0
  end
+
+ PAL_time = mm(PAL_time + speed,0,1)
+
+ for i=0,47 do
+  --ic=peek(0x3fc0+i)
+  if buffer == 0 then
+   ic = OLDPALE[i]
+  else
+   ic = OLDPALO[i]
+  end
+  nc = ip[i] 
+
+  poke(0x3fc0+i, mm(ic * (1-PAL_time) + nc *PAL_time,0,255))
+ end
+
+ --sprint("pt:"..PAL_time.."|old:"..PAL_olde.."|new:"..PAL_currente.."|buffer:"..buffer.."|s:"..speed,10,10,15)
 end
+
+BlueOrange=5
+BlueOrangePAL={}
 
 function PAL_Fade(ip,l)
  local lm=68-abs(68-l)
@@ -1445,7 +2056,7 @@ function PAL_Fade(ip,l)
 end
 
 -- pastels
-Pastels = 3
+Pastels = 8
 
 -- TODO smooth ffs
 function PAL_Rotate1(it,l)
@@ -1455,7 +2066,7 @@ function PAL_Rotate1(it,l)
   end
 end
 
-Dutch = 4
+Dutch = 6
 function PAL_Rotate2(it,l)
   grader=sin(it*1/7+l/150)+1
   gradeg=sin(it*1/13+l/150)+1
@@ -1510,29 +2121,75 @@ function PAL_Rotate4(it,l)
  end
 end
 
-function PAL_Handle(np,l)
- if np == Sweetie16 then
-  PAL_Switch(Sweetie16PAL,0.1)
+function PAL_Handle(np,l,b)
+ if np == Sweetie16 and l == 0 then
+  if b == 0 then 
+   PAL_currente = Sweetie16
+  else
+   PAL_currento = Sweetie16
+  end
+  PAL_Switch(Sweetie16PAL,0.01,b)
  elseif np == BlueOrange then
   PAL_Fade(BlueOrangePAL,l)
- elseif np == Reddish then
-  PAL_Switch(ReddishPAL,0.1)
+ elseif np == Reddish and l == 0 then
+  if b == 0 then 
+   PAL_currente = Reddish
+  else
+   PAL_currento = Reddish
+  end
+  PAL_Switch(ReddishPAL,0.01,b)
  elseif np == Pastels then
   PAL_Rotate1(t/BT,l)
  elseif np == Dutch then
   PAL_Rotate2(t/BT,l)
- elseif np == BlueGreySine then
-  PAL_Switch(BlueGreySinePAL,0.1)
- elseif np == GreyScale then
-  PAL_Switch(GreyScalePAL,0.1)
+ elseif np == BlueGreySine and l == 0 then
+  if b == 0 then 
+   PAL_currente = BlueGreySine
+  else
+   PAL_currento = BlueGreySine
+  end
+  PAL_Switch(BlueGreySinePAL,0.01,b)
+ elseif np == GreyScale and l == 0 then
+  if b == 0 then 
+    PAL_currente = GreyScale
+   else
+    PAL_currento = GreyScale
+   end
+   PAL_Switch(GreyScalePAL,0.01,b)
  elseif np == Dimmed then
   PAL_Rotate3(t/BT,l)
- elseif np == OverBrown then
-  PAL_Switch(OverBrownPAL,0.1)
+ elseif np == OverBrown and l == 0 then
+  if b == 0 then 
+    PAL_currente = OverBrown
+   else
+    PAL_currento = OverBrown
+   end
+   PAL_Switch(OverBrownPAL,0.01,b)
  elseif np == SlowWhite then
   PAL_SlowWhite(t/BT,l)
  elseif np == Inverted then
   PAL_Rotate4(t/BT,l)
+ elseif np == UKR and l == 0 then
+  if b == 0 then 
+   PAL_currente = UKR
+  else
+   PAL_currento = UKR
+  end
+  PAL_Switch(UKRPAL,0.01,b)
+ elseif np == Trans and l == 0 then
+  if b == 0 then 
+   PAL_currente = Trans
+  else
+   PAL_currento = Trans
+  end
+  PAL_Switch(TransPAL,0.01,b)
+ elseif np == Eire and l == 0 then
+  if b == 0 then 
+   PAL_currente = Eire
+  else
+   PAL_currento = Eire
+  end
+  PAL_Switch(EirePAL,0.01,b)
  end
 end
 
@@ -1554,12 +2211,23 @@ EMControl = 1
 OMControl = 1
 
 -- ie, beat, BASS, pos/neg
-ETimerMode=0
+ETimerMode=1
 OTimerMode=1
 EDivider=1
 ODivider=1
 ETimer=0
 OTimer=0
+
+EMT=0
+OMT=0
+EMTimerMode=1
+OMTimerMode=1
+EMDivider=1
+OMDivider=1
+
+-- stutter on beat
+EStutter = 0
+OStutter = 0
 
 -- Tmodes
 TNONE=0
@@ -1611,12 +2279,20 @@ function KEY_CHECK()
   if keyp(28) == true then
     EModifier=0
     EMControl = 1
-  end
+    EMTimerMode=0
+    EMDivider=1
+    EStutter=0
+    ECLS=true
+   end
 
   -- z: effect mod
   if keyp(26) == true then
     OModifier=0
     OMControl = 1
+    OMTimerMode=0
+    OMDivider=1
+    OStutter=0
+    OCLS=true
   end
 
   -- a: overlay
@@ -1627,14 +2303,102 @@ function KEY_CHECK()
    ODivider=1
    OPalette = 0
   end
-
-
    
   return
  end
 
  -- shift
  if key(64) then
+  -- set screens, 1-
+  if keyp(28) == true then
+    Effect = RevisionBack
+    ETimerMode = 1
+    EDivider = 3
+    EPalette = Reddish
+    EModifier=0
+    EMControl = 1
+    EMTimerMode=0
+    EMDivider=1
+    EStutter=0
+    ECLS=true
+
+    Overlay = RevisionTop
+    OTimerMode = 1
+    ODivider = 4
+    OControl = 7
+    OPalette = Sweetie16
+    OModifier = 0
+    OStutter=0
+    OCLS=true
+   end
+
+   if keyp(29) == true then
+    Effect = ATTunnel
+    ETimerMode = 4
+    EDivider = 2
+    EPalette = UKR
+    EModifier=ROTVert
+    EMControl = 1
+    EMTimerMode=0
+    EMDivider=1
+    EStutter=0
+    ECLS=false
+
+    Overlay = MadtixxLogo
+    OTimerMode = 3
+    ODivider = 4
+    OPalette = Dutch
+    OModifier = 2
+    OStutter=0
+    OCLS=true
+   end
+
+   if keyp(30) == true then
+    Effect = Proxima
+    ETimerMode = 5 
+    EDivider = 2
+    EPalette = OverBrown
+    EModifier=0
+    EMControl = 1
+    EMTimerMode=0
+    EMDivider=1
+    EStutter=0
+    ECLS=true
+
+    Overlay = SmilyFaces
+    OTimerMode = 3
+    ODivider = 4
+    OPalette = Dutch
+    OModifier = 3
+    OMControl = 10
+    OStutter=0
+    OCLS=false
+   end
+
+   if keyp(31) == true then
+    Effect = FujiTwist
+    EControl=1
+    ETimerMode = 4 
+    EDivider = 2
+    EPalette = 10
+    EModifier=4
+    EMControl = -2
+    EMTimerMode=1
+    EMDivider=1
+    EStutter=0
+    EOrder = 1
+    ECLS=true
+
+    Overlay = 0
+    OTimerMode = 3
+    ODivider = 4
+    OPalette = 4
+    OModifier = 3
+    OMControl = 10
+    OStutter=0
+    OCLS=true
+   end
+
  -- left: increase 3d logo
   if keyp(60) then
    OL_ID = OL_ID + 1
@@ -1642,10 +2406,41 @@ function KEY_CHECK()
   
   -- right: decrease 3d logo
   if keyp(61) then
-   OL_ID = OL_ID + 1
+   OL_ID = OL_ID - 1
   end
   
   OL_ID = mm(OL_ID%(#OldLogos+1),1,#OldLogos)
+
+  -- home: FFTH_length up by 1
+  if keyp(56) then
+      FFTH_length = FFTH_length + 1
+  end
+ 
+ -- end: FFT_Length down by 1
+ if keyp(57) then
+  FFTH_length = FFTH_length - 1
+ end 
+ FFTH_length = mm(FFTH_length,2,60)
+
+ -- insert: stutter effect cls switch
+ if keyp(53) == true then
+  if EStutter == 0 then 
+   EStutter = 1
+  else
+   EStutter = 0
+  end
+ end
+
+ -- delete: stutter overlay cls switch
+ if keyp(52) == true then
+  if OStutter == 0 then 
+   OStutter = 1
+  else
+   OStutter = 0
+  end
+ end
+
+ return
  end
 
  -- Beat detection/input
@@ -1663,24 +2458,15 @@ function KEY_CHECK()
  
  -- home: Loudness up by 0.1
  if keyp(56) then
-  if key(64) then -- shift, change FFTH_length by 1
-    FFTH_length = FFTH_length + 1
-  else
    Loudness = Loudness + 0.1
-  end
  end
 
  -- end: Loudness down by 0.1
  if keyp(57) then
-  if key(64) then -- shift, change FFT_Length by 1
-    FFTH_length = FFTH_length - 1
-  else
    Loudness = Loudness - 0.1
-  end
  end
 
  Loudness = mm(Loudness,0.1,10)
- FFTH_length = mm(FFTH_length,2,60)
 
  -- up: increase text image
  if keyp(58) then
@@ -1804,6 +2590,29 @@ function KEY_CHECK()
   EMControl = EMControl + 1
  end
  
+ -- 5: effect modifier timer down
+ if keyp(32) == true then
+  EMTimerMode = EMTimerMode - 1
+ end
+
+ -- 6: effect modifier timer up
+ if keyp(33) == true then
+  EMTimerMode = EMTimerMode + 1
+ end
+
+ EMTimerMode = mm(EMTimerMode,0,NumModes)
+
+ -- 7: effect modifier divider down
+ if keyp(34) == true then
+  EMDivider = EMDivider - 1
+ end
+
+ -- 8: effect modifier divider up
+ if keyp(35) == true then
+  EMDivider = EMDivider + 1
+ end
+ EMDivider = mm(EMDivider,-10,10)
+
  -- z: overlay modifier down
  if keyp(26) == true then
   OModifier = OModifier - 1
@@ -1825,7 +2634,42 @@ function KEY_CHECK()
  if keyp(22) == true then
   OMControl = OMControl + 1
  end
+
+ -- b: overlay modifier timer down
+ if keyp(2) == true then
+  OMTimerMode = OMTimerMode - 1
+ end
+  
+ -- n: effect modifier timer up
+ if keyp(14) == true then
+  OMTimerMode = OMTimerMode + 1
+ end
+  
+ OMTimerMode = mm(OMTimerMode,0,NumModes)
+  
+ -- m: overlay modifier divider down
+ if keyp(13) == true then
+  OMDivider = OMDivider - 1
+ end
+  
+ -- ,: overlay modifier divider up
+ if keyp(45) == true then
+  OMDivider = OMDivider + 1
+ end
+ OMDivider = mm(OMDivider,-10,10)
+  
+ -- a: overlay down
+ if keyp(1) == true then
+  Overlay = Overlay - 1
+ end
+
+ -- s: overlay up
+ if keyp(19) == true then
+  Overlay = Overlay + 1
+ end
  
+ Overlay = mm(Overlay%(NumOverlays+1),0,NumOverlays)
+  
  -- TODO: key instead of keyp? limit?
  -- d: overlay control down
  if keyp(4) == true then
@@ -1890,17 +2734,6 @@ function KEY_CHECK()
   end
  end
  
- -- a: overlay down
- if keyp(1) == true then
-  Overlay = Overlay - 1
- end
-
- -- s: overlay up
- if keyp(19) == true then
-  Overlay = Overlay + 1
- end
- 
- Overlay = mm(Overlay%(NumOverlays+1),0,NumOverlays)
  
 
  -- slash: debug switch
@@ -1922,27 +2755,32 @@ end
 
 function BDR(l)
  vbank(0)
- PAL_Handle(EPalette,l)
+ PAL_Handle(EPalette,l,0)
 
  vbank(1)
- PAL_Handle(OPalette,l)
+ PAL_Handle(OPalette,l,1)
 end
 
 function BOOT()
  FFT_BOOT()
  BEATTIME_BOOT()
  PAL_BOOT()
+ FONT_BOOT()
  
  TestSheet_BOOT()
  SunBeat_BOOT()
  SmilyFaces_BOOT()
  FujiTwist_BOOT()
  c64_BOOT()
+ amiga_BOOT()
+ vectrex_BOOT()
  SmokeCircles_BOOT()
  Chladni_BOOT()
  TextWarp_BOOT()
  JoyDivision_BOOT()
  Proxima_BOOT()
+ Lemons_BOOT()
+ RevisionBack_BOOT()
 end
 
 function TIC()t=time()
@@ -1953,6 +2791,14 @@ function TIC()t=time()
 
  bt=((t-LBT))/(BT)
  
+ if EStutter == 1 and SBT ~= bt//1 then
+  if ECLS == true then ECLS = false else ECLS = true end
+ end
+ if OStutter == 1 and SBT ~= bt//1 then
+  if OCLS == true then OCLS = false else OCLS = true end
+ end
+ SBT = bt//1
+
  if ECLS then 
   cls()
  end
@@ -1986,7 +2832,32 @@ else
   ET = -ET
  end
  
- ModifierHandler(EOrder,0,EModifier, ET,EMControl)
+ -- Effect modifier timer mode and speed
+ local emd = abs(EMDivider)
+ if EMTimerMode == TTIME then
+  EMT=t/1000/(2^emd)
+ elseif EMTimerMode == TBEAT then
+  EMT=(bt/(2^emd))%4
+ elseif EMTimerMode == TBASS then
+  EMT=BASS*5/(2^emd)
+ elseif EMTimerMode == TBASSC then
+  EMT=BASSC/50/(2^emd)
+elseif EMTimerMode == TMID then
+  EMT=MID*8/(2^emd)
+ elseif EMTimerMode == TMIDC then
+  EMT=MIDC/40/(2^emd)
+elseif EMTimerMode == THIGH then
+  EMT=HIGH*5/(2^emd)
+ elseif EMTimerMode == THIGHC then
+  EMT=HIGHC/100/(2^emd)
+ else
+  EMT=0
+ end
+ if EMDivider < 0 then
+  EMT = -EMT
+ end
+ 
+ ModifierHandler(EOrder,0,EModifier, EMT,EMControl)
 
  if Effect == 0 then
   VolTest_DRAW(t,t)
@@ -2018,9 +2889,13 @@ else
   FFTCirc_DRAW(ET,BASS)
  elseif Effect == Proxima then
   Proxima_DRAW(ET,BASS)
+ elseif Effect == Lemons then
+  Lemons_DRAW(ET,BASS)
+ elseif Effect == RevisionBack then
+  RevisionBack_DRAW(ET,BASS)
  end
  
- ModifierHandler(EOrder,1,EModifier, ET,EMControl)
+ ModifierHandler(EOrder,1,EModifier, EMT,EMControl)
 
  vbank(1)
  if OCLS then 
@@ -2052,7 +2927,32 @@ elseif OTimerMode == THIGH then
   OT = -OT
  end
 
- ModifierHandler(OOrder,0,OModifier, OT,OMControl)
+ -- overlay modifier timer mode and speed
+ local omd = abs(OMDivider)
+ if OMTimerMode == TTIME then
+  OMT=t/1000/(2^omd)
+ elseif OMTimerMode == TBEAT then
+  OMT=(bt/(2^omd))%4
+ elseif OMTimerMode == TBASS then
+  OMT=BASS*5/(2^omd)
+ elseif OMTimerMode == TBASSC then
+  OMT=BASSC/50/(2^omd)
+elseif OMTimerMode == TMID then
+  OMT=MID*8/(2^omd)
+ elseif OMTimerMode == TMIDC then
+  OMT=MIDC/40/(2^omd)
+elseif OMTimerMode == THIGH then
+  OMT=HIGH*5/(2^omd)
+ elseif OMTimerMode == THIGHC then
+  OMT=HIGHC/100/(2^omd)
+ else
+  OMT=0
+ end
+ if OMDivider < 0 then
+  OMT = -OMT
+ end
+
+ ModifierHandler(OOrder,0,OModifier, OMT,OMControl)
 
  if Overlay == 0 then
  elseif Overlay == TextBounceUp then
@@ -2073,17 +2973,24 @@ elseif OTimerMode == THIGH then
   Bobs_DRAW(OT,OT)
  elseif Overlay == JoyDivision then
   JoyDivision_DRAW(OT,OT)
-elseif Overlay == LineCut then
+ elseif Overlay == LineCut then
   LineCut_DRAW(OT,OT)
+ elseif Overlay == StickerLens then
+  StickerLens_DRAW(OT,OT)
+ elseif Overlay == RevisionTop then
+  RevisionTop_DRAW(OT,OT)
+ elseif Overlay == RevisionLogo then
+  RevisionLogo_DRAW(OT,OT)
+ elseif Overlay == MadtixxLogo then
+  MadtixxLogo_DRAW(OT,OT)
  end
-
- ModifierHandler(OOrder,1,OModifier, OT,OMControl)
+ ModifierHandler(OOrder,1,OModifier, OMT,OMControl)
 
  if DEBUG == true then
   print("Effect: "..Effect.."|Ctrl: "..EControl.."|Timer: "..ETimerMode.."|Sped: "..EDivider.."|Pal: "..EPalette,0,100,12)
-  print("EModifier: "..EModifier.."|Ctrl: "..EMControl,0,108,12)
+  print("EModifier: "..EModifier.."|Ctrl: "..EMControl.."|Timer: "..EMTimerMode.."|Sped: "..EMDivider.."|ET:"..ET,0,108,12)
   print("Overlay: "..Overlay.."|Ctrl: "..OControl.."|Timer: "..OTimerMode.."|Sped: "..ODivider.."|Pal: "..OPalette,0,116,12)
-  print("OModifier: "..OModifier.."|Ctrl: "..OMControl,0,124,12)
+  print("OModifier: "..OModifier.."|Ctrl: "..OMControl.."|Timer: "..OMTimerMode.."|Sped: "..OMDivider,0,124,12)
  end
 end
 
@@ -2111,4 +3018,87 @@ end
 -- <PALETTE>
 -- 000:1a1c2c5d275db13e53ef7d57ffcd75a7f07038b76425717929366f3b5dc941a6f673eff7f4f4f494b0c2566c86333c57
 -- </PALETTE>
+
+-- <TILES2>
+-- 000:000000000000000000000000000000000cffffff0cffffff0cffffff0cffffff
+-- 001:00000000000000000000000000000000ffffffffffffffffffffffffffffffff
+-- 002:00000000000000000000000000000000ffffffffffffffffffffffffffffffff
+-- 003:00000000000000000000000000000000ffffffffffffffffffffffffffffffff
+-- 004:00000000000000000000000000000000ffffffffffffffffffffffffffffffff
+-- 005:00000000000000000000000000000000ffffffffffffffffffffffffffffffff
+-- 006:00000000000000000000000000000000ffffffffffffffffffffffffffffffff
+-- 007:00000000000000000000000000000000fff10000fff10000fff10000fff10000
+-- 016:0cffffff0cf000000c7000000c7000000c7000000c7000000c7000000c700000
+-- 017:ffffffff00000000000000000000000000000000000000000000000000000000
+-- 018:ffffffff00000000000000000000000000000000000000000000000000000000
+-- 019:ffffffff00000000000000000000000000000000000000000000000000000000
+-- 020:ffffffff00000000000000000000000000000000000000000000000000000000
+-- 021:ffffffff00000000000000000000000000000000000000000000000000000000
+-- 022:ffffffff00000000000000000000000000000000000000000000000000000000
+-- 023:fff1000008f1000008f1000008f1000008f1000008f1000008f1000008f10000
+-- 032:0c7000000c7000000c700ff10c700ff10c700ff30c700ff30c700ff70c700ff7
+-- 033:00000000000000000000000f0000000f0000008f0000008f000000cf000000cf
+-- 034:0000000000000000f008008ff008008ff00c108ff00c108ff00c308ff00e308f
+-- 035:0000000000000000ff10cffffff30fffffff1cffffff78fffffff1fffffff3ef
+-- 036:0000000000000000ffff7ef9ffff7ef1ffff7ef1ffff7ef1ffff7ef1ffff7ef1
+-- 037:0000000000000000ff100cf7ff100cffff3008ffef7008ffcff000ffcff000ef
+-- 038:0000000000000000cf000ff387000ff393008ff11300cff03000cf707000ef70
+-- 039:08f1000008f1000008f1000008f1000008f1000008f1000008f1000008f10000
+-- 048:0c700fff0c700fff0c700fff0c700fff0c700fff0c700fff0c700fff0c700fff
+-- 049:000000ef000000ef100000ff100000ff300000ff300008ff700008ff70000cff
+-- 050:f00e308ff00e708ff00f708ff00ff08ff08ff08ff08ff08ff08ff18ff0cff18f
+-- 051:fffff7cfffffff00708fff10700eff107008ff307000ff307000ef707000cf70
+-- 052:ffff7ef1ef300ef1cf300ef1cf300ef1cf300ef1cf300ef1cf300ef1cf300ef1
+-- 053:8ff100cf0ff300cf0ef3008f0ef7081f0cff083f08ff1c7e08ff1e7c00ff3ef8
+-- 054:f000ff30f008ff10f108ff10f30cff00f30ef700f70ef300ff0ff300ff9ff100
+-- 055:08f1000008f1000008f1000008f1000008f1000008f1000008f1000008f10000
+-- 064:0c700fff0c700fff0c700fff0c700fff00000fff00000fff00000ffc00000ffc
+-- 065:f0000cfff0000efff1000efff1000ffff3000ffff3008ffff3008f7ff700cf7f
+-- 066:f0cff18ff0eff38ff0eff38ff0eff78ff0fff78ff0fff78ff0f7ff8ff8f7ef8f
+-- 067:70008ff070008ff070008ff070000ff070000ff070000ff070000ff070000ff0
+-- 068:cf300ef1cf300ef1cf300ef1cf300ef1cf300ef1cf300ef1cf300ef1cf300ef1
+-- 069:00ef7ff900effff100cffff0008ffff0000fff70000fff30000eff10000cff10
+-- 070:ff9ff000fffff000efff7000efff3000cfff10008fff10000fff00000ff70000
+-- 071:08f1000008f1000008f1000000f0000000000000000000000000000000000000
+-- 080:00000ff800000ff800000ff000000ff000000ff00c700ff00c700ff00c700ff0
+-- 081:f700cf3fff00ef3fff00ef1fff10ef1fef10ff0fef30ff0fcf38f70fcf78f70f
+-- 082:f8f3ef9ffcf3ef9ffcf3cf1f7cf1cf3f7ef1cf3e3ef18f7e3ff08f7e3ff08f7c
+-- 083:70000ff070000ff070000ff070000ff070000ff070000ff070008ff070008ff0
+-- 084:cf300ef1cf300ef1cf300ef1cf300ef1cf300ef1cf300ef1cf300ef1cf300ef1
+-- 085:000cff00000eff10000eff30000fff70008fff70008ffff000cffff100effff1
+-- 086:0ef700000fff00008fff00008fff1000cfff3000efff7000ffff7000fffff000
+-- 087:000000000000000000000000000000000000000008f1000008f1000008f10000
+-- 096:0c700ff00c700ff00c700ff00c700ff00c700ff00c700ff00c700ff00c700ff0
+-- 097:8f7cf30f8ffcf30f0ffef10f0ffff10f0efff00f0efff0070cff70070cff7007
+-- 098:1f700ffc9f700ffc8f700ef9cf300ef9cf300ef1cf300cf3ef100cf3ef100cf3
+-- 099:7000cf707000cf707000ef707000ff30700cff10700fff1078ffff00effff700
+-- 100:cf300ef1cf300ef1cf300ef1cf300ef1cf300ef1cf300ef1cf300ef1cf300ef1
+-- 101:00ff3ff300ff3ef708ff1cff0cff0cff0cf708ff0ef700ff0ff300ef8ff100ef
+-- 102:ef9ff100ef0ff300c70ff300870ef700130cff00310cff003008ff107000ff30
+-- 103:08f1000008f1000008f1000008f1000008f1000008f1000008f1000008f10000
+-- 112:0c700ff00c700ff00c700ff00c700ff00c700ff00c700ff00c7000000c700000
+-- 113:08ff300300ff300300ff100100ef100900000008000000080000000000000000
+-- 114:ef1008f7ff0008f7ff0008ffff0000fff70000fff70000ff0000000000000000
+-- 115:effff300cffff100cfff7000cfff10008ff700009f7000000000000000000000
+-- 116:cf300ef1cf300ef1cf300ef1cf300ef1cf300ef1cf300ef90000000000000000
+-- 117:8ff100cfcff0008fef70009fef30083fff300c3eff100c7c0000000000000000
+-- 118:f000ef70f100ef70f100cff0f3008ff1f7000ff1f7000ff30000000000000000
+-- 119:08f1000008f1000008f1000008f1000008f1000008f1000008f1000008f10000
+-- 128:0c7000000c7000000c7000000c7000000c7000000c7000000c7000000cffffff
+-- 129:00000000000000000000000000000000000000000000000000000000ffffffff
+-- 130:00000000000000000000000000000000000000000000000000000000ffffffff
+-- 131:00000000000000000000000000000000000000000000000000000000ffffffff
+-- 132:00000000000000000000000000000000000000000000000000000000ffffffff
+-- 133:00000000000000000000000000000000000000000000000000000000ffffffff
+-- 134:00000000000000000000000000000000000000000000000000000000ffffffff
+-- 135:08f1000008f1000008f1000008f1000008f1000008f1000008f10000fff10000
+-- 144:0cffffff0cffffff0cffffff0cffffff00000000000000000000000000000000
+-- 145:ffffffffffffffffffffffffffffffff00000000000000000000000000000000
+-- 146:ffffffffffffffffffffffffffffffff00000000000000000000000000000000
+-- 147:ffffffffffffffffffffffffffffffff00000000000000000000000000000000
+-- 148:ffffffffffffffffffffffffffffffff00000000000000000000000000000000
+-- 149:ffffffffffffffffffffffffffffffff00000000000000000000000000000000
+-- 150:ffffffffffffffffffffffffffffffff00000000000000000000000000000000
+-- 151:fff10000fff10000fff10000fff1000000000000000000000000000000000000
+-- </TILES2>
 

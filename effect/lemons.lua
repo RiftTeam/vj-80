@@ -1,12 +1,12 @@
 -- Was effect index = 15
 
-LE_points={}
-LE_lines={}
-LE_columns={}
-LE_rd={}
-LE_np=15
-LE_nl=15
-LE_nc=5
+local LE_points={}
+local LE_lines={}
+local LE_columns={}
+local LE_rd={}
+local LE_np=15
+local LE_nl=15
+local LE_nc=5
 return {
   id='lemons',
   boot=function()
@@ -23,7 +23,7 @@ return {
     local h=0
     local n=0
   
-    numlem = mm(LE_nc+EControl,1,20)
+    numlem = clamp(LE_nc+EControl,1,20)
   
     local ccp={}
     it=it*tau

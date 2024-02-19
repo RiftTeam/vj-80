@@ -10,13 +10,13 @@ function StickerLens_DRAW(it,ifft)
 
   size=100+40*BASS
   hs=size/2
-  TWp = TImages[mm(TIimageID,1,#TImages)]
+  TWp = TImages[clamp(TIimageID,1,#TImages)]
   for i=1,#TWp do
    p=TWp[i]
 
    x=(p[1]-120)/OControl
    y=(p[2]-68)/OControl
-   c=mm(FFTH[p[5]//1]*50*(.05 + p[5]/10)+it,0,15)
+   c=clamp(FFTH[p[5]//1]*50*(.05 + p[5]/10)+it,0,15)
    a=p[4]
    d=p[5]/OControl
 

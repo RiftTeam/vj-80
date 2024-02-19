@@ -15,7 +15,7 @@ function TextBounceUp_DRAW(it,ifft)
   end
   y=68 - (3+OControl)*3 *linecount
  end
- tc=mm(MID*15,8,15)
+ tc=clamp(MID*15,8,15)
  tl=flength(Texts[TextID][tx],1,OControl)
  fprint(Texts[TextID][tx],120-tl/2,y,1,1,15,OControl)
 end

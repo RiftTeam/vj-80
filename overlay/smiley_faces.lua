@@ -12,7 +12,7 @@ return {
         table.sort(SmilyFaces_xysr, function (a,b) return a[3]<b[3] end)
     end,
     draw=function(data)
-        nsf = mm(OControl,1,NumSmilyFaces)
+        nsf = clamp(OControl,1,NumSmilyFaces)
         for i=1,nsf do
          local sm=SmilyFaces_xysr[i]
          x=(sm[1])%300 - 30

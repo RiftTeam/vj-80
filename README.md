@@ -12,8 +12,8 @@ each line of a qwerty keyboard will control one of the layers: q-p is for the ba
 | Level | Effect+ | Effect- | Var+ | Var- | Time Mode+ | Time Mode- | Time+ | Time- | Palette+ | Palette- |
 | ---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
 | Back Modifier | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
-| Back Effect | Q | W | E | R | T | Y | U | I |
-| Front Effect | A | S | D | F | G | H | J | K |
+| Back Bank Effect | Q | W | E | R | T | Y | U | I | O | P |
+| Front Bank Effect | A | S | D | F | G | H | J | K | L | ; |
 | Front Modifier | Z | X | C | V | B | N | M | < |
 
 in each line, controls are grouped in 2 keys. 

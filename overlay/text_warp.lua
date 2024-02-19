@@ -42,7 +42,7 @@ end
 
 function TextWarp_DRAW(it,ifft)
  it=sin(it/4*tau)^2
- TWp = TImages[mm(TIimageID,1,#TImages)]
+ TWp = TImages[clamp(TIimageID,1,#TImages)]
  for i=1,#TWp do
   pp=TWp[i]
   b=pp[4]+2*pi*sin(it*pp[5]/100+MID)

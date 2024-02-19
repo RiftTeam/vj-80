@@ -28,23 +28,23 @@ return {
             d=d/4
         
             if y1 < y2 then
-            line(i,cy+y1,i,cy+y2,mm(d,0,15))
+            line(i,cy+y1,i,cy+y2,clamp(d,0,15))
             end
             if y2 < y3 then
-            line(i,cy+y2,i,cy+y3,mm(d+1,0,15))
+            line(i,cy+y2,i,cy+y3,clamp(d+1,0,15))
             end
             if y3 < y4 then
-            line(i,cy+y3,i,cy+y4,mm(d+2,0,15))
+            line(i,cy+y3,i,cy+y4,clamp(d+2,0,15))
             end
             if y4 < y1 then
-            line(i,cy+y4,i,cy+y1,mm(d+3,0,15))
+            line(i,cy+y4,i,cy+y1,clamp(d+3,0,15))
             end
         end
     end,
     bdr=function(l)
         local lm=68-abs(68-l)
         for i=0,47 do
-            poke(16320+i,mm(sin(i)^2*i*lm/5.5,0,255))
+            poke(16320+i,clamp(sin(i)^2*i*lm/5.5,0,255))
         end
     end,
 }
@@ -66,7 +66,7 @@ function SwirlTunnel_DRAW(it,ifft)
 	  d=(x*x+y*y)^.5
 	  v=99/d
 	   c=sin(v+(u+sin(v)*sin(ifft/4)*tau)+t/1000)+1
-	  poke4(i,mm(c*8-c*((138-d)/138),0,15))
+	  poke4(i,clamp(c*8-c*((138-d)/138),0,15))
   end
 end
 --]]
@@ -84,7 +84,7 @@ function BrokenEgg_DRAW(it,ifft)
  BE_p={}
  it=it*tau*(EControl+.5)
  for i=1,BE_sz^2 do
-  y=i//(BE_sz/2)-BE_sz/2 + FFTH[mm((i/10)%256,0,255)//1]*100*i/255
+  y=i//(BE_sz/2)-BE_sz/2 + FFTH[clamp((i/10)%256,0,255)//1]*100*i/255
   a=(i%BE_sz)/BE_sz*tau
   d=BE_sz/2*sin(it/BE_depth)+BE_sz*sin(y/BE_sz)
   x=d*sin(a+it/13)
@@ -97,7 +97,7 @@ function BrokenEgg_DRAW(it,ifft)
        58+BE_p[i].y*BE_p[i].z/9,
        120+BE_p[i-1].x*BE_p[i-1].z/9+20*sin(BE_p[i-1].y/5),
        58+BE_p[i-1].y*BE_p[i-1].z/9,
-       mm((abs(BE_p[i-1].z)+abs(BE_p[i].z))/2,0,15))
+       clamp((abs(BE_p[i-1].z)+abs(BE_p[i].z))/2,0,15))
  end
 end
 --]]
@@ -229,7 +229,7 @@ return {
         table.sort(SmilyFaces_xysr, function (a,b) return a[3]<b[3] end)
     end,
     draw=function(data)
-        nsf = mm(OControl,1,NumSmilyFaces)
+        nsf = clamp(OControl,1,NumSmilyFaces)
         for i=1,nsf do
          local sm=SmilyFaces_xysr[i]
          x=(sm[1])%300 - 30
@@ -356,7 +356,7 @@ function CircleColumn_DRAW(it,ifft)
   for i=1,CC_sz^2 do
    y=i//(CC_sz/2)-CC_sz/2
    a=(i%CC_sz)/CC_sz*tau
-   d=CC_sz+CC_sz/3*math.cos(y/5+it/4)+FFTH[mm(i/10+5,0,255)//1]*(i/255)*500-- ifft
+   d=CC_sz+CC_sz/3*math.cos(y/5+it/4)+FFTH[clamp(i/10+5,0,255)//1]*(i/255)*500-- ifft
    x=d*sin(a+it/7+sin(y/CC_sz))
    z=d*cos(a+it/7+sin(y/CC_sz))
    CC_p[i]={x=x,y=y,z=z}
@@ -364,7 +364,7 @@ function CircleColumn_DRAW(it,ifft)
   table.sort(CC_p, function(a,b) return b.z > a.z end)
   for i=1,#CC_p do
    if CC_p[i].z > 15+EControl then
-    circ(120+CC_p[i].x*CC_p[i].z/9+20*sin(CC_p[i].y/5),48+CC_p[i].y*CC_p[i].z/5,CC_p[i].z/5,mm(CC_p[i].z/2,0,15))
+    circ(120+CC_p[i].x*CC_p[i].z/9+20*sin(CC_p[i].y/5),48+CC_p[i].y*CC_p[i].z/5,CC_p[i].z/5,clamp(CC_p[i].z/2,0,15))
    end
   end
 end
@@ -420,7 +420,7 @@ return {
     local h=0
     local n=0
   
-    numlem = mm(LE_nc+EControl,1,20)
+    numlem = clamp(LE_nc+EControl,1,20)
   
     local ccp={}
     it=it*tau
@@ -524,9 +524,9 @@ SunBeatPAL = {}
 
 function SunBeat_BOOT()
  for i=0,15 do
-  SunBeatPAL[i*3]=mm(i*32,0,255)
-  SunBeatPAL[i*3+1]=mm(i*24-128,0,255)
-  SunBeatPAL[i*3+2]=mm(i*24-256,0,255)
+  SunBeatPAL[i*3]=clamp(i*32,0,255)
+  SunBeatPAL[i*3+1]=clamp(i*24-128,0,255)
+  SunBeatPAL[i*3+2]=clamp(i*24-256,0,255)
  end
 end
 
@@ -555,9 +555,9 @@ function FujiTwist_BDR(l)
     gradeg=sin(ftt*11/3+l/30)+1
     gradeb=sin(ftt*11/2+l/30)+1
     for i=0,15 do
-     poke(0x3fc0+i*3,  mm(i*16*(grader),0,255))
-     poke(0x3fc0+i*3+1,mm(i*16*(gradeg),0,255))
-     poke(0x3fc0+i*3+2,mm(i*16*(gradeb),0,255))
+     poke(0x3fc0+i*3,  clamp(i*16*(grader),0,255))
+     poke(0x3fc0+i*3+1,clamp(i*16*(gradeg),0,255))
+     poke(0x3fc0+i*3+2,clamp(i*16*(gradeb),0,255))
     end
   end
   
@@ -669,7 +669,7 @@ function TunnelWall_DRAW(it,ifft)
     e=(k*k+l*l)^.5  
     K=X//r 
     L=Y//r 
-    ff = mm(abs(K+L)//1 + 10,0,255)
+    ff = clamp(abs(K+L)//1 + 10,0,255)
     ff = FFTH[ff]*.2+K
     pix(x,y,((99/e)*2*sin(it*ff+K+L)-a*2.55)%(8)+K+L*4)
   end
@@ -941,12 +941,12 @@ m=math
 sin=m.sin cos=m.cos max=m.max min=m.min
 abs=m.abs pi=m.pi tau=m.pi*2 rand=m.random
 
-function mm(x,a,b)
+function clamp(x,a,b)
  return max(a,min(b,x))
 end
 
 function ss(x,e1,e2)
- y=mm(x,e1,e2)
+ y=clamp(x,e1,e2)
  st=(y-e1)/(e2-e1)
  return st*st*(3-2*st)
 end
@@ -1325,7 +1325,7 @@ function PIXNoise_DRAW(amount, mc)
  for i=0,amount do
   x=rand(240)-1
   y=rand(136)-1
-  pix(x,y,mm(pix(x,y)-mc,0,15))
+  pix(x,y,clamp(pix(x,y)-mc,0,15))
  end
 end
 
@@ -1357,7 +1357,7 @@ function GridDim_DRAW(amount, mt, mc)
    --if i > amount*5 then return end
    sx=x*4+(mt*20)%4
    sy=y*4+(mt*5)%4
-   pix(sx,sy,mm(pix(sx,sy)-mc,0,15))
+   pix(sx,sy,clamp(pix(sx,sy)-mc,0,15))
   end
  end
 end
@@ -1366,7 +1366,7 @@ POSTCirc = 4
 
 function POSTCirc_DRAW(amount, mt,mc)
   it=mt*40
-  lim = mm(8+mc,0,15)
+  lim = clamp(8+mc,0,15)
   for y=0,135 do 
    for x=0,239 do
     Y=(68-y)
@@ -1376,7 +1376,7 @@ function POSTCirc_DRAW(amount, mt,mc)
     if((10*sin(it/4+d/5))%100>50) then
      c=pix(x,y)
      if c>lim then
-      pix(x,y,mm(c-8,0,15))
+      pix(x,y,clamp(c-8,0,15))
      end
     end 
    end 
@@ -1394,7 +1394,7 @@ function PIXMotionBlur_DRAW(amount, mt, mc)
   x=d*sin(a)
   y=d*cos(a)
   if x >= -119 and x <= 118 and y >=-67 and y <= 66 then
-   pix(120+x,68+y,mm(((pix(120+x,68+y)+pix(120+x-1,68+y-1)+pix(120+x+1,68+y-1)+pix(120+x-1,68+y+1)+pix(120+x+1,68+y+1))/4.8),0,15))
+   pix(120+x,68+y,clamp(((pix(120+x,68+y)+pix(120+x-1,68+y-1)+pix(120+x+1,68+y-1)+pix(120+x-1,68+y+1)+pix(120+x+1,68+y+1))/4.8),0,15))
   end
  end
     
@@ -1435,7 +1435,7 @@ function PIXJumpBlur_DRAW(amount, mt, mc)
    x=cx+d*sin(a)
    y=cy+d*cos(a)
    if x >= 1 and x <= 239 and y >=1 and y <= 134 then
-    pix(cx+(d+1)*sin(a),cy+(d+1)*cos(a),mm((pix(x,y)+pix(x+1,y+1)+pix(x+1,y-1)+pix(x-1,y+1)+pix(x-1,y-1))/4.8,0,15))
+    pix(cx+(d+1)*sin(a),cy+(d+1)*cos(a),clamp((pix(x,y)+pix(x+1,y+1)+pix(x+1,y-1)+pix(x-1,y+1)+pix(x-1,y-1))/4.8,0,15))
    end
   end
 end
@@ -1592,7 +1592,7 @@ function POSTSquares_DRAW(amount,mt,mc)
  end
  for i=PSp.x,PSp.x+PSp.sx do
   for j=PSp.y,PSp.y+PSp.sy do
-    pix(i,j,mm(pix(i,j)-mc,0,15))
+    pix(i,j,clamp(pix(i,j)-mc,0,15))
   end
  end
 end
@@ -1671,7 +1671,7 @@ function TextBounceUp_DRAW(it,ifft)
   end
   y=68 - (3+OControl)*3 *linecount
  end
- tc=mm(MID*15,8,15)
+ tc=clamp(MID*15,8,15)
  tl=flength(Texts[TextID][tx],1,OControl)
  fprint(Texts[TextID][tx],120-tl/2,y,1,1,15,OControl)
 end
@@ -1735,7 +1735,7 @@ end
 
 function TextWarp_DRAW(it,ifft)
  it=sin(it/4*tau)^2
- TWp = TImages[mm(TIimageID,1,#TImages)]
+ TWp = TImages[clamp(TIimageID,1,#TImages)]
  for i=1,#TWp do
   pp=TWp[i]
   b=pp[4]+2*pi*sin(it*pp[5]/100+MID)
@@ -1788,7 +1788,7 @@ function Spiral_DRAW(it,ifft)
   local z=j+i2
   local X=sin(j)*z
   local Y=cos(j)*z
-  circ(120+X,68+Y,z/10-OControl*2,mm(15*j/120,0,15))
+  circ(120+X,68+Y,z/10-OControl*2,clamp(15*j/120,0,15))
  end
 end
 
@@ -1877,13 +1877,13 @@ function StickerLens_DRAW(it,ifft)
 
   size=100+40*BASS
   hs=size/2
-  TWp = TImages[mm(TIimageID,1,#TImages)]
+  TWp = TImages[clamp(TIimageID,1,#TImages)]
   for i=1,#TWp do
    p=TWp[i]
 
    x=(p[1]-120)/OControl
    y=(p[2]-68)/OControl
-   c=mm(FFTH[p[5]//1]*50*(.05 + p[5]/10)+it,0,15)
+   c=clamp(FFTH[p[5]//1]*50*(.05 + p[5]/10)+it,0,15)
    a=p[4]
    d=p[5]/OControl
 
@@ -1981,9 +1981,9 @@ PAL_CURRENT=0
 function PAL_make2(r1,g1,b1,r2,g2,b2)
  local pal={}
  for i=0,15 do
-  pal[i*3]   = mm(r1*abs(15-i)/15 + r2*abs(i)/15,0,255)
-  pal[i*3+1] = mm(g1*abs(15-i)/15 + g2*abs(i)/15,0,255)
-  pal[i*3+2] = mm(b1*abs(15-i)/15 + b2*abs(i)/15,0,255)
+  pal[i*3]   = clamp(r1*abs(15-i)/15 + r2*abs(i)/15,0,255)
+  pal[i*3+1] = clamp(g1*abs(15-i)/15 + g2*abs(i)/15,0,255)
+  pal[i*3+2] = clamp(b1*abs(15-i)/15 + b2*abs(i)/15,0,255)
  end
  return pal
 end
@@ -1991,14 +1991,14 @@ end
 function PAL_make3(r1,g1,b1,r2,g2,b2,r3,g3,b3)
  local pal={}
  for i=0,7 do
-  pal[i*3]   = mm(r1*abs(7-i)/7 + r2*abs(i)/7,0,255)
-  pal[i*3+1] = mm(g1*abs(7-i)/7 + g2*abs(i)/7,0,255)
-  pal[i*3+2] = mm(b1*abs(7-i)/7 + b2*abs(i)/7,0,255)
+  pal[i*3]   = clamp(r1*abs(7-i)/7 + r2*abs(i)/7,0,255)
+  pal[i*3+1] = clamp(g1*abs(7-i)/7 + g2*abs(i)/7,0,255)
+  pal[i*3+2] = clamp(b1*abs(7-i)/7 + b2*abs(i)/7,0,255)
  end
  for i=1,8 do
-  pal[21+i*3]   = mm(r2*abs(8-i)/8 + r3*abs(i)/8,0,255)
-  pal[21+i*3+1] = mm(g2*abs(8-i)/8 + g3*abs(i)/8,0,255)
-  pal[21+i*3+2] = mm(b2*abs(8-i)/8 + b3*abs(i)/8,0,255)
+  pal[21+i*3]   = clamp(r2*abs(8-i)/8 + r3*abs(i)/8,0,255)
+  pal[21+i*3+1] = clamp(g2*abs(8-i)/8 + g3*abs(i)/8,0,255)
+  pal[21+i*3+2] = clamp(b2*abs(8-i)/8 + b3*abs(i)/8,0,255)
  end
  return pal
 end
@@ -2031,7 +2031,7 @@ function PAL_BOOT()
   for i=0,47 do
     Sweetie16PAL[i]=peek(0x3fc0+i)
 
-    BlueOrangePAL[i]=mm(sin(i)^2*i,0,255)
+    BlueOrangePAL[i]=clamp(sin(i)^2*i,0,255)
 
     BlueGreySinePAL[i]=sin(i/15)*255
 
@@ -2039,9 +2039,9 @@ function PAL_BOOT()
   end
 
   for i=0,15 do
-    ReddishPAL[i*3]=mm(i*32,0,255)
-    ReddishPAL[i*3+1]=mm(i*24-128,0,255)
-    ReddishPAL[i*3+2]=mm(i*24-256,0,255)
+    ReddishPAL[i*3]=clamp(i*32,0,255)
+    ReddishPAL[i*3+1]=clamp(i*24-128,0,255)
+    ReddishPAL[i*3+2]=clamp(i*24-256,0,255)
 
     OverBrownPAL[i*3]=math.min(255,20+i*32)
     OverBrownPAL[i*3+1]=math.min(255,10+i*24)
@@ -2086,7 +2086,7 @@ function PAL_Switch(ip, speed, buffer)
   PAL_time = 0
  end
 
- PAL_time = mm(PAL_time + speed,0,1)
+ PAL_time = clamp(PAL_time + speed,0,1)
 
  for i=0,47 do
   --ic=peek(0x3fc0+i)
@@ -2097,7 +2097,7 @@ function PAL_Switch(ip, speed, buffer)
   end
   nc = ip[i] 
 
-  poke(0x3fc0+i, mm(ic * (1-PAL_time) + nc *PAL_time,0,255))
+  poke(0x3fc0+i, clamp(ic * (1-PAL_time) + nc *PAL_time,0,255))
  end
 
  --sprint("pt:"..PAL_time.."|old:"..PAL_olde.."|new:"..PAL_currente.."|buffer:"..buffer.."|s:"..speed,10,10,15)
@@ -2109,7 +2109,7 @@ BlueOrangePAL={}
 function PAL_Fade(ip,l)
  local lm=68-abs(68-l)
  for i=0,47 do
-  poke(0x3fc0+i, mm(ip[i]*lm/5.5,0,255))
+  poke(0x3fc0+i, clamp(ip[i]*lm/5.5,0,255))
  end
 end
 
@@ -2130,9 +2130,9 @@ function PAL_Rotate2(it,l)
   gradeg=sin(it*1/13+l/150)+1
   gradeb=sin(it*1/11+l/150)+1
   for i=0,15 do
-   poke(0x3fc0+i*3,  mm(i*16*(grader),0,255))
-   poke(0x3fc0+i*3+1,mm(i*16*(gradeg),0,255))
-   poke(0x3fc0+i*3+2,mm(i*16*(gradeb),0,255))
+   poke(0x3fc0+i*3,  clamp(i*16*(grader),0,255))
+   poke(0x3fc0+i*3+1,clamp(i*16*(gradeg),0,255))
+   poke(0x3fc0+i*3+2,clamp(i*16*(gradeb),0,255))
   end
 end
 
@@ -2140,11 +2140,11 @@ Dimmed = 7
 function PAL_Rotate3(it,l)
  for i=0,15 do
   r=i*(8+8*(sin(tau/6*5+it+l/100)))
-  poke(0x3fc0+i*3,mm(r,0,255))
+  poke(0x3fc0+i*3,clamp(r,0,255))
   g=i*(8+8*(math.sin(it+l/100)))
-  poke(0x3fc0+i*3+1,mm(g,0,255))
+  poke(0x3fc0+i*3+1,clamp(g,0,255))
   b=i*(8+8*(math.cos(it+l/100)))
-  poke(0x3fc0+i*3+2,mm(b,0,255))
+  poke(0x3fc0+i*3+2,clamp(b,0,255))
  end
 end    
 
@@ -2633,7 +2633,7 @@ function KEY_CHECK()
    OL_ID = OL_ID - 1
   end
   
-  OL_ID = mm(OL_ID%(#OldLogos+1),1,#OldLogos)
+  OL_ID = clamp(OL_ID%(#OldLogos+1),1,#OldLogos)
 
   -- home: FFTH_length up by 1
   if keyp(56) then
@@ -2644,7 +2644,7 @@ function KEY_CHECK()
  if keyp(57) then
   FFTH_length = FFTH_length - 1
  end 
- FFTH_length = mm(FFTH_length,2,60)
+ FFTH_length = clamp(FFTH_length,2,60)
 
  -- insert: stutter effect cls switch
  if keyp(53) == true then
@@ -2669,7 +2669,7 @@ function KEY_CHECK()
 
  -- Beat detection/input
  if keyp(48,10000,10) == true then
-  local currentbeat=mm((BTC+1)%BEATS,1,BEATS)
+  local currentbeat=clamp((BTC+1)%BEATS,1,BEATS)
   BTA[currentbeat]= time()-LBT
   LBT=time()
   BTC=currentbeat
@@ -2690,7 +2690,7 @@ function KEY_CHECK()
    Loudness = Loudness - 0.1
  end
 
- Loudness = mm(Loudness,0.1,10)
+ Loudness = clamp(Loudness,0.1,10)
 
  -- up: increase text image
  if keyp(58) then
@@ -2702,7 +2702,7 @@ function KEY_CHECK()
   TIimageID = TIimageID + 1
  end
 
- TIimageID = mm(TIimageID%(#TImages+1),1,#TImages)
+ TIimageID = clamp(TIimageID%(#TImages+1),1,#TImages)
 
  -- left: decrease text image
  if keyp(60) then
@@ -2716,7 +2716,7 @@ function KEY_CHECK()
   if TextID > #Texts then TextID = 1 end
  end
   
- --TextID = mm(TextID%(#Texts+1),1,#Texts)
+ --TextID = clamp(TextID%(#Texts+1),1,#Texts)
   
  -- insert: effect cls switch
  if keyp(53) == true then
@@ -2748,7 +2748,7 @@ function KEY_CHECK()
   if Effect > #Effects then Effect = 1 end
  end
  
- --Effect = mm(Effect%(#Effects+1),0,#Effects)
+ --Effect = clamp(Effect%(#Effects+1),0,#Effects)
 
  -- TODO: key instead of keyp? limit?
  -- e: effect control down
@@ -2771,7 +2771,7 @@ function KEY_CHECK()
   ETimerMode = ETimerMode + 1
  end
 
- ETimerMode = mm(ETimerMode,0,NumModes)
+ ETimerMode = clamp(ETimerMode,0,NumModes)
 
  -- u: effect divider down
  if keyp(21) == true then
@@ -2782,7 +2782,7 @@ function KEY_CHECK()
  if keyp(9) == true then
   EDivider = EDivider + 1
  end
- EDivider = mm(EDivider,-10,10)
+ EDivider = clamp(EDivider,-10,10)
 
  -- o: effect palette down
  if keyp(15) == true then
@@ -2794,7 +2794,7 @@ function KEY_CHECK()
   EPalette = EPalette + 1
  end 
 
- EPalette = mm(EPalette%(NumPalettes+1),0,NumPalettes)
+ EPalette = clamp(EPalette%(NumPalettes+1),0,NumPalettes)
  
  -- 1: effect modifier down
  if keyp(28) == true then
@@ -2808,7 +2808,7 @@ function KEY_CHECK()
   if EModifier > #Modifiers then EModifier = 1 end
  end
  
- --EModifier = mm(EModifier%(NumModifiers+1),0,NumModifiers)
+ --EModifier = clamp(EModifier%(NumModifiers+1),0,NumModifiers)
  
  -- 3: effect modifier control down
  if keyp(30) == true then
@@ -2830,7 +2830,7 @@ function KEY_CHECK()
   EMTimerMode = EMTimerMode + 1
  end
 
- EMTimerMode = mm(EMTimerMode,0,NumModes)
+ EMTimerMode = clamp(EMTimerMode,0,NumModes)
 
  -- 7: effect modifier divider down
  if keyp(34) == true then
@@ -2841,7 +2841,7 @@ function KEY_CHECK()
  if keyp(35) == true then
   EMDivider = EMDivider + 1
  end
- EMDivider = mm(EMDivider,-10,10)
+ EMDivider = clamp(EMDivider,-10,10)
 
  -- z: overlay modifier down
  if keyp(26) == true then
@@ -2855,7 +2855,7 @@ function KEY_CHECK()
   if OModifier > #Modifiers then OModifier = 1 end
  end
  
- --OModifier = mm(OModifier%(NumModifiers+1),0,NumModifiers)
+ --OModifier = clamp(OModifier%(NumModifiers+1),0,NumModifiers)
 
  -- c: overlay modifier control down
  if keyp(3) == true then
@@ -2877,7 +2877,7 @@ function KEY_CHECK()
   OMTimerMode = OMTimerMode + 1
  end
   
- OMTimerMode = mm(OMTimerMode,0,NumModes)
+ OMTimerMode = clamp(OMTimerMode,0,NumModes)
   
  -- m: overlay modifier divider down
  if keyp(13) == true then
@@ -2888,7 +2888,7 @@ function KEY_CHECK()
  if keyp(45) == true then
   OMDivider = OMDivider + 1
  end
- OMDivider = mm(OMDivider,-10,10)
+ OMDivider = clamp(OMDivider,-10,10)
   
  -- a: overlay down
  if keyp(1) == true then
@@ -2902,7 +2902,7 @@ function KEY_CHECK()
   if Overlay > #Overlays then Overlay = 1 end
  end
  
- --Overlay = mm(Overlay%(NumOverlays+1),0,NumOverlays)
+ --Overlay = clamp(Overlay%(NumOverlays+1),0,NumOverlays)
   
  -- TODO: key instead of keyp? limit?
  -- d: overlay control down
@@ -2925,7 +2925,7 @@ function KEY_CHECK()
   OTimerMode = OTimerMode + 1
  end
 
- OTimerMode = mm(OTimerMode,0,NumModes)
+ OTimerMode = clamp(OTimerMode,0,NumModes)
 
  -- j: overlay divider down
  if keyp(10) == true then
@@ -2936,7 +2936,7 @@ function KEY_CHECK()
  if keyp(11) == true then
   ODivider = ODivider + 1
  end
- ODivider = mm(ODivider,-10,10)
+ ODivider = clamp(ODivider,-10,10)
 
  -- l: overlay palette down
  if keyp(12) == true then
@@ -2948,7 +2948,7 @@ function KEY_CHECK()
   OPalette = OPalette + 1
  end 
 
- OPalette = mm(OPalette%(NumPalettes+1),0,NumPalettes)
+ OPalette = clamp(OPalette%(NumPalettes+1),0,NumPalettes)
 
  -- delete: overlay cls switch
  if keyp(52) == true then

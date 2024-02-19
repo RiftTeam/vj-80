@@ -10,7 +10,7 @@ function Spiral_DRAW(it,ifft)
   local z=j+i2
   local X=sin(j)*z
   local Y=cos(j)*z
-  circ(120+X,68+Y,z/10-OControl*2,mm(15*j/120,0,15))
+  circ(120+X,68+Y,z/10-OControl*2,clamp(15*j/120,0,15))
  end
 end
 --]]

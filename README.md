@@ -9,6 +9,13 @@ shift+1 to shift+4 will give you preset screens. (currently for the madtixx dj s
 
 each line of a qwerty keyboard will control one of the layers: q-p is for the background bank, 1-8 for the background modifier, a-; for the overlay bank, z-, for the overlay modifier
 
+| Level | Effect+ | Effect- | Var+ | Var- | Time Mode+ | Time Mode- | Time+ | Time- | Palette+ | Palette- |
+| ---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| Back Modifier | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
+| Back Effect | Q | W | E | R | T | Y | U | I |
+| Front Effect | A | S | D | F | G | H | J | K |
+| Front Modifier | Z | X | C | V | B | N | M | < |
+
 in each line, controls are grouped in 2 keys. 
   the first two keys (ie, q and w) will rotate through the various options. 
   the next two change a control variable (e and r), different for each option. 

@@ -36,6 +36,7 @@ VolTest_DRAW(t,t)
  Worms_DRAW(ET,BASS)
  --]]
 
+-- effects follow the template: {boot=function(), draw=function(), bdr=function()}
 Effects={
   require("effect/vol_test"),
   require("effect/twist_fft"),
@@ -58,6 +59,44 @@ Effects={
   require("effect/revision_back"),
 ----		require("effect/bitnick"),
   require("effect/worms"),
+}
+
+--[[
+  TextBounceUp_DRAW(OT,OT)
+  SineBobs_DRAW(OT,OT)
+  --SunSatOrbit_DRAW(OT,BASS)
+  SmilyFaces_DRAW(OT,OT)
+  TextWarp_DRAW(OT,OT)
+  Snow_DRAW(OT,OT)
+  SmokeCircles_DRAW(OT,OT)
+  Spiral_DRAW(OT,OT)
+  Bobs_DRAW(OT,OT)
+  JoyDivision_DRAW(OT,OT)
+  LineCut_DRAW(OT,OT)
+  StickerLens_DRAW(OT,OT)
+  RevisionTop_DRAW(OT,OT)
+ --]]
+
+-- overlays follow the template: {id='', boot=function(), draw=function(), bdr=function()}
+Overlays = {
+  require("overlay/smiley_faces"),
+  --[[
+	TextBounceUp,
+	--SunSatOrbit,
+	SineBobs,
+	SmilyFaces,
+	TextWarp,
+	Snow,
+	SmokeCircles,
+	Spiral,
+	Bobs,
+	JoyDivision,
+	LineCut,
+	StickerLens
+--	RevisionTop,
+--	RevisionLogo,
+--	MadtixxLogo
+--]]
 }
 
 --NumEffects=16
@@ -783,308 +822,6 @@ Texts={
       {"BREAK","BEAT","DANCE","HIT","HOP","SHOUT","SCREAM","JUMP"}
       }
 TImages={}
-
--- Overlays
-
-TextBounceUp = 1
-function TextBounceUp_DRAW(it,ifft)
- if ODivider ~= 0 then
-  tt=t/BT//ODivider
-  tx=abs(tt)%#Texts[TextID] + 1
-  y=140-160*(it%1)
- else
-  tt=t/BT//1
-  tx=abs(tt)%#Texts[TextID] + 1
-  -- count how many line breaks
-  linecount=1
-  for i=1, #Texts[TextID][tx] do
-    if string.sub(Texts[TextID][tx],i,i) == "\n" then linecount=linecount+1 end
-  end
-  y=68 - (3+OControl)*3 *linecount
- end
- tc=mm(MID*15,8,15)
- tl=flength(Texts[TextID][tx],1,OControl)
- fprint(Texts[TextID][tx],120-tl/2,y,1,1,15,OControl)
-end
-
-SineBobs = 2
-function SineBobs_DRAW(it,ifft)
-	local tt=time()+it*1000
- for x=-9,9 do
-		for y=-5,5 do
-			circ(x*11+120, y*10+68,
-				3*sin(tt/400+x/2-y/3*sin(tt/300+y/10))+3,
-				13)
-			
-			circ(x*11+120, y*10+68,
-				3*sin(tt/400+x/2-y/3*sin(tt/300+y/10)),
-				12)
-		end
-	end
-end
-
-TextWarp = 4
-TWp={}
-TWfirst = true
-
-function ScreenToPoints()
-  local p={}
-  for y=0,135 do 
-    for x=0,239 do
-     if pix(x,y) == 12 then 
-      if x < 80 then c = 6 
-      elseif x < 160 then c = 12
-      else c = 3
-      end
-      d=((x-120)^2+(y-68)^2)^.5
-      a=m.atan2(x-120,y-68)
-      nx=d*sin(a)
-      ny=d*cos(a)
-      
-      table.insert(p,{x,y,c,a,d})
-    end
-   end
-  end 
-  return p
-end
-
-function TextWarp_BOOT()
-  cls()
-  l=flength("GOTO80",3,4)
-  fprint("GOTO80",120-l/2,38,3,1,12,4)
-  TWp = ScreenToPoints()
-  table.insert(TImages,TWp)
-
-  cls()
-  l=flength("LOVEBYTE",3,2)
-  fprint("LOVEBYTE",120-l/2,35,3,1,12,2)
-  l=flength("2024",3,2)
-  fprint("2024",120-l/2,70,3,1,12,2)
-  TWp = ScreenToPoints()
-  table.insert(TImages,TWp)
-end
-
-function TextWarp_DRAW(it,ifft)
- it=sin(it/4*tau)^2
- TWp = TImages[mm(TIimageID,1,#TImages)]
- for i=1,#TWp do
-  pp=TWp[i]
-  b=pp[4]+2*pi*sin(it*pp[5]/100+MID)
-  w=pp[5]/2+10*sin(pp[5]/40*BASS)+(it/OControl)*pp[5]+HIGH
-  nx=w*sin(b)
-  ny=w*cos(b)
-  pix(120+nx,68+ny,15)
- end
-end
-
-Snow = 5
-function Snow_BOOT()
-end
-function Snow_DRAW(it,ifft)
-  for i=0,OControl do
-    circ(rand(240),rand(136),rand(4),it)
-  end
-end
-
-SmokeCircles = 6
-SC_p={}
-SC_np = 99
-function SmokeCircles_BOOT()
-  for i=0,SC_np do
-    SC_p[i]={x=4-8*rand(),y=4-8*rand(),z=20*rand()}
-  end
-end
-
-function SmokeCircles_DRAW(it,ifft)
-  local tt=it*5
-  for i=0,SC_np do
-    local z=(SC_p[i].z+tt)%20
-    local x=SC_p[i].x
-    local y=SC_p[i].y
-    local t2=-(1-z/9)
-    local X=x*cos(t2)-y*sin(t2)
-    local Y=y*cos(t2)+x*sin(t2)
-    circ(120+X*z,68+Y*z,20-z,15-(z/1.5))
-  end
-end
-
-Spiral = 7
-
-function Spiral_DRAW(it,ifft)
- local tt=it*30
- for i=0,200 do
-  local j=(i/10+tt)%120
-  local i2=i/20
-  i2=i2*i2
-  local z=j+i2
-  local X=sin(j)*z
-  local Y=cos(j)*z
-  circ(120+X,68+Y,z/10-OControl*2,mm(15*j/120,0,15))
- end
-end
-
-Bobs = 8
-function Bobs_DRAW(it,ifft)
-  for i=0,99 do
-    local j=i/12
-    local x=10*sin(pi*j+it)
-    local y=10*cos(pi*j+it)
-    local z=10*sin(pi*j)
-    local X=x*sin(it)-z*cos(it)
-    local Z=x*cos(it)+z*sin(it)
-    circ(120+X*Z,68+y*Z,Z,OControl*MID)
-  end
-end
-
-JoyDivision = 9
-JD_ffts={}
-JD_oldffts={}
-JD_ft={}
-JD_fi=0
-JD_ot=0
-function JoyDivision_BOOT()
- for i=1,8 do
-  table.insert(JD_ffts,{})
- end
-end
-
-function JoyDivision_DRAW(it,ifft)
-
- if OControl~=0 and JD_ot%OControl == 0 then
-  JD_ft={}
-  for j=0,255 do
-   table.insert(JD_ft,FFTH[j])
-  end
-  JD_oldffts=JD_ffts
-  JD_ffts={}
-  table.insert(JD_ffts,JD_ft)
-  for i=1,7 do
-   table.insert(JD_ffts,JD_oldffts[i])
-  end
- end
- JD_ot = JD_ot + 1
-    
- rectb(46,4,146,110,15)
-    
- int=0
- for i=1,#JD_ffts do
-  JD_ft=JD_ffts[i]
-  if #JD_ft > 0 then
-   for j=1,127 do
-    k=(JD_ft[j*2]+JD_ft[j*2+1])*(j/255 + .05)
-    k=k*400
-    int=(int + k)/2
-    pix(54+j,8+i*12-int,15-i/4)
-   end
-  end
- end
-
- print("Tic80 Division",54,116,15)
-end
-
-LineCut = 10
-
-function LineCut_DRAW(it,ifft)
-	local s=10+OControl
-	local x=(it*s*2)%s*4
-
-	for sx=-136,240+s+136,s*4 do
-    for y=0,136+s,s do
-     local cx=sx-y+x
-     tri(cx,y-s,cx-s,y,cx,y+s,1)
-     tri(cx,y-s,cx+s,y,cx,y+s,1)
-    end
- end
-end
-
-StickerLens = 11
-function StickerLens_BOOT()
-end
- 
-function StickerLens_DRAW(it,ifft)
-  -- draw point data to spritesheet
-  -- first blank
-  --memset(0x4000,0,120*136)
-
-  size=100+40*BASS
-  hs=size/2
-  TWp = TImages[mm(TIimageID,1,#TImages)]
-  for i=1,#TWp do
-   p=TWp[i]
-
-   x=(p[1]-120)/OControl
-   y=(p[2]-68)/OControl
-   c=mm(FFTH[p[5]//1]*50*(.05 + p[5]/10)+it,0,15)
-   a=p[4]
-   d=p[5]/OControl
-
-   b=BASS/5
-   --focal=(d/(hs*it%2))^(b)
-   focal=1+sin(d/20+it/20)*(b+it%1/2)
-   d=d*focal--*(it%1+.5)
-
-   ix=d*sin(a)
-   iy=d*cos(a)
-
-   if d < size then
-    ox=ix+120
-    oy=iy+68
-    if ox >=0 and ox<240 and oy>=0 and oy<136 then
-     pix(ox,oy,c)
-    end
-  end
- end
-end
-
-RevisionTop = 12
-function RevisionTop_DRAW(it,ifft)
- rlp={}
- ca = it * tau
- for x=-10,10 do
-  for y=-10,10 do
-   --dy=y*.8
-   d = (x^2+y^2)^.5 * (1+it%1/10)
-   a = m.atan2(x,y) + ca
-   s = (16-OControl)-2*d+BASS*5--abs(x)-abs(y)
-   nx= d * sin(a)
-   ny= d * cos(a)
-   if s >= .5 then
-    table.insert(rlp,{nx,ny,s})
-   end
-  end
- end
-
- for i=1,#rlp do
-  p=rlp[i]
-  circ(120+9.5*p[1],68+8.5*p[2],p[3],8)
- end
-
- for i=1,#rlp do
-  p=rlp[i]
-  circ(120+10*p[1],68+9*p[2],p[3],12)
- end
-end
-
-Bitnick = 17
-
-function Bitnick_DRAW(it,ifft)
-   math.randomseed(2)
-   local tt=(t/OControl)
-   for x=0,51 do
-				local w=math.random()*70+30
-				local h=math.random()*20+10
-				local posx=(math.random()*240+(tt/w*4)*x/20)%(240+w+x)-w
-				local posy=math.random()*(136+h)-h
-				local col=math.random()*2+math.cos(tt/2000)*2+5
-				
-				clip(posx,posy,w,h)
-				for i=posx,posx+w do
-						circ(i,posy+i//1%h,w/(col+16),col+i/300)
-				end
-				clip()
-			end
-end
-
 
 -- TestSheet
 TestSheetPAL={}
@@ -2164,29 +1901,6 @@ function BOOT()
  --]]
 end
 
-
-
-Overlays = {
-  require("overlay/smiley_faces"),
-  --[[
-	TextBounceUp,
-	--SunSatOrbit,
-	SineBobs,
-	SmilyFaces,
-	TextWarp,
-	Snow,
-	SmokeCircles,
-	Spiral,
-	Bobs,
-	JoyDivision,
-	LineCut,
-	StickerLens
---	RevisionTop,
---	RevisionLogo,
---	MadtixxLogo
---]]
-}
-
 Modifiers={
 	PIXNoise,
 	PIXZoom,
@@ -2349,35 +2063,6 @@ elseif OMTimerMode == THIGH then
   Ov.draw({ot=OT})
  end
 
- --[[
-	local Ov = Overlays[Overlay]
- if Ov == TextBounceUp then
-  TextBounceUp_DRAW(OT,OT)
- elseif Ov == SineBobs then
-  SineBobs_DRAW(OT,OT)
-  --SunSatOrbit_DRAW(OT,BASS)
- elseif Ov == SmilyFaces then
-  SmilyFaces_DRAW(OT,OT)
- elseif Ov == TextWarp then
-  TextWarp_DRAW(OT,OT)
- elseif Ov == Snow then
-  Snow_DRAW(OT,OT)
- elseif Ov == SmokeCircles then
-  SmokeCircles_DRAW(OT,OT)
- elseif Ov == Spiral then
-  Spiral_DRAW(OT,OT)
- elseif Ov == Bobs then
-  Bobs_DRAW(OT,OT)
- elseif Ov == JoyDivision then
-  JoyDivision_DRAW(OT,OT)
- elseif Ov == LineCut then
-  LineCut_DRAW(OT,OT)
- elseif Ov == StickerLens then
-  StickerLens_DRAW(OT,OT)
- elseif Ov == RevisionTop then
-  RevisionTop_DRAW(OT,OT)
- end
- --]]
  ModifierHandler(OOrder,1,OModifier, OMT,OMControl)
 
  --[[if DEBUG == true then

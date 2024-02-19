@@ -47,24 +47,6 @@ Effects={
   require("effect/worms"),
 }
 
-EffectsLookup={}
-OverlaysLookup={}
-ModifiersLookup={}
-
-function MakeLookups()
-  for i,effect in ipairs(Effects) do
-    EffectsLookup[effect.id]=i
-  end
-
-  for i,overlay in ipairs(Overlays) do
-    OverlaysLookup[overlay.id]=i
-  end
-
-  for i,modifier in ipairs(Modifiers) do
-    ModifiersLookup[modifier.id]=i
-  end
-end
-
 -- overlays follow the template: {id='', boot=function(), draw=function(), bdr=function()}
 Overlays = {
   require("overlay/bobs"),
@@ -95,6 +77,24 @@ Modifiers={
   require("modifier/post_squares"),
   require("modifier/line_scratch"),
 }
+
+EffectsLookup={}
+OverlaysLookup={}
+ModifiersLookup={}
+
+function MakeLookups()
+  for i,effect in ipairs(Effects) do
+    EffectsLookup[effect.id]=i
+  end
+
+  for i,overlay in ipairs(Overlays) do
+    OverlaysLookup[overlay.id]=i
+  end
+
+  for i,modifier in ipairs(Modifiers) do
+    ModifiersLookup[modifier.id]=i
+  end
+end
 
 NumModes=8
 NumPalettes=13
@@ -1013,9 +1013,7 @@ function KEY_CHECK()
  --if keyp(51) == true then
  -- exit()
  --end
- 
 end
-
 
 function BDR(l)
  vbank(0)
@@ -1046,10 +1044,32 @@ function BOOT()
   MakeLookups()
 
   GigSetup.boot()
+  TicRun=TICstartup
 end
 
 function TIC()
-	
+  TicRun()
+end
+
+function TICstartup()
+  cls()
+  print("VJ80",105,0,12)
+  if keyp(48) then
+    TicRun=TICvj
+  end
+  for i,effect in ipairs(Effects) do
+    print(effect.id,0,8+i*6,13)
+  end
+  for i,overlay in ipairs(Overlays) do
+    print(overlay.id,80,8+i*6,13)
+  end
+  for i,modifier in ipairs(Modifiers) do
+    print(modifier.id,160,8+i*6,13)
+  end
+  print("Space to start", 80,128,12)
+end
+
+function TICvj()
  -- remove mouse pointer but doesnt
  poke(0x3ffb,4)
 	

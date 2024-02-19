@@ -1,566 +1,5 @@
 -- Assembled by the RiFT bundler
 
-rift_debugfakefft=function()
-if fft == nil then
-    -- Not great =^D
-    function fft(v)
-        return (0.5+(math.sin(v)^2)*.5)/v
-    end
-end
-
-end
-
-rift_effectattunnel=function()
--- was: effect index = 4
-return {
-    id='at_tunnel',
-    boot=function()
-    end,
-    draw=function(data)
-        it,ifft=data.et,data.mid
-        ta=ss((it*4)%4/4,0,1)
-        for j=1,20 do
-            n=3+j
-            d=(4*j-it%64)
-            if d~=0 then
-                d=99/d
-            end
-
-            if d<120 and d >5 then 
-                w=(ifft*2)*d/6
-                chroma=.01*(1+sin(ta))
-                cr=ss((it/4+2*j)%5,2,4)*tau+EControl*it/2
-                if j%2 == 0 then
-                    for i=1,n do
-                        if (it/4%8 < 4) then
-                            arc(120,68,w,d,cr + tau/n*i +j/10,pi/n,12)
-                        else
-                            arc(120,68,1,d*(1-chroma),cr + tau/n*i +j/10,pi/n,2)
-                            arc(120,68,1,d+w,cr + tau/n*i +j/10,pi/n,10)
-                            arc(120,68,w,d,cr + tau/n*i +j/10,pi/n,12)
-                        end
-                    end
-                else
-                    for i=1,n do
-                        if (it/4%6 < 3) then
-                            tangent(120,68,1,d-1,cr + tau/n*i +j/10,d,0)
-                            tangent(120,68,w,d,cr + tau/n*i +j/10,d,11+(j/2)%4)
-                        else
-                            tangent(120,68,1,d*(1-chroma),cr + tau/n*i +j/10,d,1)
-                            tangent(120,68,1,d*(1+chroma),cr + tau/n*i +j/10,d,9)
-                            tangent(120,68,w,d,cr + tau/n*i +j/10,d,11+(j/2)%4)
-                        end
-                    end
-                end
-            end
-        end
-    end,
-}
-
-end
-
-rift_effectswirltunnel=function()
--- was: effect index = 8
-return {
-	id='swirl_tunnel',
-	boot=function()
-	end,
-	draw=function(data)
-		local it,ifft=data.et,data.bass
-		it=it/10
-		k=sin(it*tau)*99
-		l=sin(it*tau*2)*49
-		for i=0,32639 do
-			x=i%240-k-120
-			y=i/240-l-68
-			u=m.atan2(y,x)
-			d=(x*x+y*y)^.5
-			v=99/d
-			 c=sin(v+(u+sin(v)*sin(ifft/4)*tau)+t/1000)+1
-			poke4(i,clamp(c*8-c*((138-d)/138),0,15))
-		end
-	end,
-}
-
-end
-
-rift_effectparaflower=function()
--- was: effect index = 12
-local PF_depth = 3
-local PF_t=0
-
-
-return {
-    id='para_flower',
-    boot=function()
-    end,
-    draw=function(data)
-        local it,ifft=data.et,data.bass
-        PF_t=PF_t+1
-        for y=0+(PF_t%4)//1,135,4 do 
-         for x=0,239 do
-          X=x-120
-          Y=y-68
-          a=math.atan(X,Y)
-          d=math.sqrt(X^2+Y^2)
-          pix(x,y,8+8*sin((5*ifft)*sin((PF_depth+EControl)*a+it*tau)+d/10+it))
-         end
-        end
-    end,
-}
-
-end
-
-rift_modifiersftvert=function()
--- Was: modifier index = 9
-
-return {
-    id='sft_vert',
-    draw=function(data)
-        local amount,mt,mc=data.amount,data.mt,data.mc
-
-        dir=1
-        local lines = 0
-        if mc == 0 then
-            lines = mt%5//1
-        else
-            if mc < 0  then
-                dir = -1
-            end
-            --    lines = abs(mc)*(mt%4+1)//1
-            lines = (abs(mc)*(mt+1)//1)%136
-        end
-
-        if dir == 1 then
-            -- going down
-            for y=135-lines,0,-1 do
-                memcpy((y+lines)*120,y*120,120)
-            end
-            memset(0,0,120*lines)
-        elseif dir == -1 then
-            -- going up
-            for y=0,135-lines do
-                memcpy(y*120,(y+lines)*120,120)
-            end
-            memset((136-lines)*120,0,120*lines)
-        end
-    end,
-}
-
-end
-
-rift_modifiersfthorz=function()
--- Was: modifier index = 10
-
-return {
-    id='sft_horz',
-    draw=function(data)
-      local amount,mt,mc=data.amount,data.mt,data.mc
-
-        dir=1
-        local pixels = 0
-        if mc == 0 then
-            pixels = mt%5//1
-        else
-            if mc < 0  then
-                dir = -1
-            end
-            --pixels = abs((mc*mt)%120)
-            --pixels = (abs(mc)+(mt*2))%120
-            pixels = (abs(mc)*(mt+1)//1)%120
-        end
-
-        if dir ==1 then
-            -- going right
-            for y=0,135 do
-                -- take the whole line
-                memcpy(0x8000,y*120, 120)
-
-                -- put it back in two sections
-                memcpy(y*120+pixels,0x8000, 120-pixels)
-                memset(y*120,0, pixels)
-            end
-        else
-            -- going left
-            for y=0,135 do
-                -- take the whole line
-                memcpy(0x8000,y*120, 120)
-
-                -- put it back in two sections
-                memset(y*120+(120-pixels),0, pixels)
-                memcpy(y*120,0x8000+pixels, 120-pixels)
-            end
-        end
-    end,
-}
-
-end
-
-rift_modifierlinescratch=function()
--- Was: modifier index = 13
-
-return {
-    id='line_scratch',
-    draw=function(data)
-		local amount,mt,mc=data.amount,data.mt,data.mc
-
-		for a=0,46 do
-			local x=math.random(240)
-			local y=math.random(136)
-			local w=math.random(20)
-			line(x,y,x+w,y,pix(x,y))
-			line(x,y+1,x+w/2,y+1,pix(x,y))
-		end
-	end,
-}
-
-end
-
-rift_effectquup=function()
--- was: effect index = 5
-return {
-    id='quup',
-    boot=function()
-    end,
-    draw=function(data)
-        local it,ifft=data.et,data.mid
-        tt=it/8 * EControl
-        P=3+tt//5%5
-        Q=P/2
-        I=tt/15%1
-        for i=1,20 do
-         for j=0,P-1,1 do
-          r=tt+pi*j/Q-i*sin(tt/50)
-          n=120+(i+I)*9*sin(r)
-          o=68+(i+I)*9*cos(r)
-          r=tt+pi*(j+1)/Q-i*sin(tt/50)
-          line(n,o,120+(i+I)*9*sin(r),68+(i+I)*9*cos(r),i+1)
-          l=i-1
-          r=tt+pi*j/Q-l*sin(tt/50)
-          if i>1 then 
-           k=(l+I)*9 
-          else 
-           k=l*9 
-          end
-          line(n,o,120+k*math.sin(r),68+k*cos(r),i+1)
-         end
-        end
-    end,
-}
-
-end
-
-rift_effectcloudtunnel=function()
--- was: effect index = 7
-return {
-    id='cloud_tunnel',
-    boot=function()
-    end,
-    draw=function(data)
-        local it,ifft=data.et,data.mid
-        for i=0,32639 do
-            x=i%240-120
-            y=i//240-68
-            s=sin(it)
-            c=cos(it)
-            k=(x*s-y*c)%40-20
-            l=(y*s+x*c)%40-20
-            d=(x*x+y*y)^.5
-            a=math.atan2(y,x)
-            e=(k*k+l*l)^.5
-            c=((99/d)*(e/30+sin(it)+ ifft)-a*2.55 )%8+EControl
-            poke4(i,c)
-        end
-    end,
-}
-
-end
-
-rift_overlaysmokecircles=function()
--- was: overlay index = 6
-local SC_p={}
-local SC_np = 99
-
-return {
-  id="smoke_circles",
-  boot=function()
-    for i=0,SC_np do
-      SC_p[i]={x=4-8*rand(),y=4-8*rand(),z=20*rand()}
-    end
-  end,
-  draw=function(data)
-    local it,ifft=data.ot,data.ot
-    local tt=it*5
-    for i=0,SC_np do
-      local z=(SC_p[i].z+tt)%20
-      local x=SC_p[i].x
-      local y=SC_p[i].y
-      local t2=-(1-z/9)
-      local X=x*cos(t2)-y*sin(t2)
-      local Y=y*cos(t2)+x*sin(t2)
-      circ(120+X*z,68+Y*z,20-z,15-(z/1.5))
-    end  
-  end,
-}
-
-end
-
-rift_overlayspiral=function()
--- was: overlay index = 7
-
-return {
-    id="spiral",
-    boot=function()
-    end,
-    draw=function(data)
-        local it,ifft=data.ot,data.ot
-        local tt=it*30
-        for i=0,200 do
-            local j=(i/10+tt)%120
-            local i2=i/20
-            i2=i2*i2
-            local z=j+i2
-            local X=sin(j)*z
-            local Y=cos(j)*z
-            circ(120+X,68+Y,z/10-OControl*2,clamp(15*j/120,0,15))
-        end
-    end,
-}
-
-end
-
-rift_modifiergriddim=function()
--- Was: modifier index = 3
-
-return {
-    id='grid_dim',
-    draw=function(data)
-        local amount,mt,mc=data.amount,data.mt,data.mc
-
-        i=0
-        for y=-1,36 do
-            for x=-1,60 do
-                i=i+1
-                --if i > amount*5 then return end
-                sx=x*4+(mt*20)%4
-                sy=y*4+(mt*5)%4
-                pix(sx,sy,clamp(pix(sx,sy)-mc,0,15))
-            end
-        end
-    end,
-}
-
-end
-
-rift_modifierpixmotionblur=function()
--- Was: modifier index = 5
-
-local PMBsize = 20
-return {
-    id='pix_motion_blur',
-    draw=function(data)
-        local amount,mt,mc=data.amount,data.mt,data.mc
-
-        local size=PMBsize+(mt)%5
-        local limit=50 + mc
-        for i=0,amount/4 do
-            d=2+size+rand(limit)
-            a=rand()*tau
-            x=d*sin(a)
-            y=d*cos(a)
-            if x >= -119 and x <= 118 and y >=-67 and y <= 66 then
-                pix(120+x,68+y,clamp(((pix(120+x,68+y)+pix(120+x-1,68+y-1)+pix(120+x+1,68+y-1)+pix(120+x-1,68+y+1)+pix(120+x+1,68+y+1))/4.8),0,15))
-            end
-        end
-
-        for i=0,amount do
-            d=size+rand(limit)
-            a=rand()*tau
-            x=d*sin(a)
-            y=d*cos(a)
-            if x >= -120 and x <= 119 and y >=-68 and y <= 67 then
-                pix(120+x,68+y,pix(120+(d-1)*sin(a),68+(d-1)*cos(a)))
-            end
-        end
-    end,
-}
-
-end
-
-rift_modifierrothorz=function()
--- Was: modifier index = 8
-
-return {
-  id='rot_horz',
-  draw=function(data)
-    local amount,mt,mc=data.amount,data.mt,data.mc
-
-    dir=1
-    local pixels = 0
-    if mc == 0 then
-      pixels = mt%5//1
-    else
-      if mc < 0  then
-        dir = -1
-      end
-      --pixels = abs((mc*mt)%120)
-      --pixels = (abs(mc)*mt)%120
-      pixels = (abs(mc)*(mt+1)//1)%120
-    end
-
-    if dir ==1 then
-      -- going right
-      for y=0,135 do
-        -- take the whole line
-        memcpy(0x8000,y*120, 120)
-
-        -- put it back in two sections
-        memcpy(y*120+pixels,0x8000, 120-pixels)
-        memcpy(y*120,0x8000+(120-pixels), pixels)
-      end
-    else
-      -- going left
-      for y=0,135 do
-        -- take the whole line
-        memcpy(0x8000,y*120, 120)
-
-        -- put it back in two sections
-        memcpy(y*120+(120-pixels),0x8000, pixels)
-        memcpy(y*120,0x8000+pixels, 120-pixels)
-      end
-    end
-  end,
-}
-
-end
-
-rift_effecttunnelwall=function()
--- was: effect index = 6
-return {
-  id='tunnel_wall',
-  boot=function()
-  end,
-  draw=function(data)
-    local it,ifft=data.et,data.mid
-    it=it/2
-   for x=0,239 do
-    for y=0,135 do
-      sx=x-120*sin(it)
-      sy=y-68 
-      r=99+50*sin(it/3) - EControl*2
-      s=sin(it)
-      c=cos(it)
-      X=(sx*s-sy*c)
-      Y=(sy*s+sx*c)
-      k=X%r-r/2
-      l=Y%r-r/2
-      a=math.atan2(k,l)
-      e=(k*k+l*l)^.5  
-      K=X//r 
-      L=Y//r 
-      ff = clamp(abs(K+L)//1 + 10,0,255)
-      ff = FFTH[ff]*.2+K
-      pix(x,y,((99/e)*2*sin(it*ff+K+L)-a*2.55)%(8)+K+L*4)
-    end
-   end
-  end,
-}
-
-end
-
-rift_effectcirclecolumn=function()
--- was: effect index = 10
-local CC_p={}
-local CC_sz = 25
-
-return {
-  id='circle_column',
-  boot=function()
-  end,
-  draw=function(data)
-    local it=data.et
-    it=it*tau
-    CC_p={}
-    for i=1,CC_sz^2 do
-     y=i//(CC_sz/2)-CC_sz/2
-     a=(i%CC_sz)/CC_sz*tau
-     d=CC_sz+CC_sz/3*math.cos(y/5+it/4)+FFTH[clamp(i/10+5,0,255)//1]*(i/255)*500-- ifft
-     x=d*sin(a+it/7+sin(y/CC_sz))
-     z=d*cos(a+it/7+sin(y/CC_sz))
-     CC_p[i]={x=x,y=y,z=z}
-    end
-    table.sort(CC_p, function(a,b) return b.z > a.z end)
-    for i=1,#CC_p do
-     if CC_p[i].z > 15+EControl then
-      circ(120+CC_p[i].x*CC_p[i].z/9+20*sin(CC_p[i].y/5),48+CC_p[i].y*CC_p[i].z/5,CC_p[i].z/5,clamp(CC_p[i].z/2,0,15))
-     end
-    end
-  end,
-}
-
-end
-
-rift_overlaytextwarp=function()
--- was: overlay index = 4
-local TWp={}
-local TWfirst = true
-
-function ScreenToPoints()
-  local p={}
-  for y=0,135 do 
-    for x=0,239 do
-     if pix(x,y) == 12 then 
-      if x < 80 then c = 6 
-      elseif x < 160 then c = 12
-      else c = 3
-      end
-      d=((x-120)^2+(y-68)^2)^.5
-      a=m.atan2(x-120,y-68)
-      nx=d*sin(a)
-      ny=d*cos(a)
-      
-      table.insert(p,{x,y,c,a,d})
-    end
-   end
-  end 
-  return p
-end
-
-return {
-  id='text_warp',
-  boot=function()
-    cls()
-    l=flength("GOTO80",3,4)
-    fprint("GOTO80",120-l/2,38,3,1,12,4)
-    TWp = ScreenToPoints()
-    table.insert(TImages,TWp)
-  
-    cls()
-    l=flength("LOVEBYTE",3,2)
-    fprint("LOVEBYTE",120-l/2,35,3,1,12,2)
-    l=flength("2024",3,2)
-    fprint("2024",120-l/2,70,3,1,12,2)
-    TWp = ScreenToPoints()
-    table.insert(TImages,TWp)
-  end,
-  draw=function(data)
-    local it,ifft=data.ot,data.ot
-
-    it=sin(it/4*tau)^2
-    TWp = TImages[clamp(TIimageID,1,#TImages)]
-    for i=1,#TWp do
-     pp=TWp[i]
-     b=pp[4]+2*pi*sin(it*pp[5]/100+MID)
-     w=pp[5]/2+10*sin(pp[5]/40*BASS)+(it/OControl)*pp[5]+HIGH
-     nx=w*sin(b)
-     ny=w*cos(b)
-     pix(120+nx,68+ny,15)
-    end
-  end,
-}
-
-end
-
 rift_gig20240210lovebytepsgoto80=function()
 return {
     -- #TODO: This might get renamed...
@@ -623,377 +62,51 @@ return {
 
 end
 
-rift_effectlemons=function()
--- Was effect index = 15
-
-local LE_points={}
-local LE_lines={}
-local LE_columns={}
-local LE_rd={}
-local LE_np=15
-local LE_nl=15
-local LE_nc=5
+rift_effectcloudtunnel=function()
+-- was: effect index = 7
 return {
-  id='lemons',
-  boot=function()
-    for i=1,LE_nl do
-      local lp={}
-      for j=1,LE_np do
-        lp[j]=5*rand()
-      end
-      LE_rd[i]=lp
-      end
-  end,
-  draw=function(data)
-    local it=data.et
-    local h=0
-    local n=0
-  
-    numlem = clamp(LE_nc+EControl,1,20)
-  
-    local ccp={}
-    it=it*tau
-    for h=1,numlem do
-      local a = h/numlem * tau
-      ccp[h]={x=100*sin(a+it/7), y=0, z=30*cos(a+it/7), n=h}
-    end
-    table.sort(ccp, function (a,b) return a.z<b.z end)
-    
-    
-    for h=1,numlem do
-      LE_lines={}
-      fftl=FFTH
-      for i=1,LE_nl do
-      local lp={}
-      for j=1,LE_np do
-        local a = j/LE_np * tau
-        local p={x=(20+LE_rd[i][j]+fftl[i]*10)*sin(a+it)*sin(i/LE_nl*math.pi),
-                y=(i-(LE_nl/2))*4,
-                z=(20+LE_rd[i][j]+fftl[i]*10)*cos(a+it)*sin(i/LE_nl*math.pi)}
-        a = it/4+h
-        lp[j]={x=p.x*sin(a)-p.y*cos(a),
-              y=p.y*sin(a)+p.x*cos(a),
-              z=p.z}
-      end
-      LE_lines[i]=lp
-      end
-      LE_columns[h]=LE_lines
-    end 
-    
-    for k=1,numlem do
-      if ccp[k].z >-23 then
-      h=ccp[k].n
-      for i=1,LE_nl do
-        for j=1,LE_np-1 do
-        sp=LE_columns[h][i][j]
-        ep=LE_columns[h][i][j+1]
-        
-        if(sp.z+ep.z)>0 then
-          sz=sp.z-100+ccp[k].z
-          ez=ep.z-100+ccp[k].z
-          sx=120+sp.x*99/sz+ccp[k].x
-          sy=68+sp.y*99/sz+ccp[k].y
-          ex=120+ep.x*99/ez+ccp[k].x
-          ey=68+ep.y*99/ez+ccp[k].y
-          line(sx,sy,ex,ey,ez/8)
-        end
-        --pix(120+sp.x*99/sz,68+sp.y*99/sz,12)
-        end
-        sp=LE_columns[h][i][LE_np]
-        ep=LE_columns[h][i][1]
-        if(sp.z+ep.z)>0 then
-          sz=sp.z-100+ccp[k].z
-          ez=ep.z-100+ccp[k].z
-          sx=120+sp.x*99/sz+ccp[k].x
-          sy=68+sp.y*99/sz+ccp[k].y
-          ex=120+ep.x*99/ez+ccp[k].x
-          ey=68+ep.y*99/ez+ccp[k].y
-        line(sx,sy,ex,ey,ez/8)
-        end
-    --  line(minx,miny,maxx,maxy,1)
-      end
-      end
-    end
-  end,
-}
-
-
-end
-
-rift_effectworms=function()
--- was: effect index = 18
-return {
-    id='worms',
+    id='cloud_tunnel',
     boot=function()
     end,
     draw=function(data)
-        local et=data.et
-        local abs,sin=math.abs,math.sin
-        for p=0,14,.01 do
-        circ(120+sin(p+et/3)*(p*6-8+sin(et)*20),
-            68+sin(p+et+1)*(p*3-8+sin(et)*10),
-            abs(sin(p+et)*p*2.5),
-            p*17%8)
+        local it,ifft=data.et,data.mid
+        for i=0,32639 do
+            x=i%240-120
+            y=i//240-68
+            s=sin(it)
+            c=cos(it)
+            k=(x*s-y*c)%40-20
+            l=(y*s+x*c)%40-20
+            d=(x*x+y*y)^.5
+            a=math.atan2(y,x)
+            e=(k*k+l*l)^.5
+            c=((99/d)*(e/30+sin(it)+ ifft)-a*2.55 )%8+EControl
+            poke4(i,c)
         end
     end,
 }
 
 end
 
-rift_overlaysinebobs=function()
--- was: overlay index = 2
+rift_modifierpixzoom=function()
+-- Was: modifier index = 2
 
 return {
-    id="sinebobs",
-    boot=function()
-    end,
+    id='pix_zoom',
     draw=function(data)
-		local it,ifft=data.ot,data.ot
-		local tt=time()+it*1000
-		for x=-9,9 do
-		   for y=-5,5 do
-			   circ(x*11+120, y*10+68,
-				   3*sin(tt/400+x/2-y/3*sin(tt/300+y/10))+3,
-				   13)
-			   
-			   circ(x*11+120, y*10+68,
-				   3*sin(tt/400+x/2-y/3*sin(tt/300+y/10)),
-				   12)
-		   end
-	   end
-	end,
-}
+        local amount,mc=data.amount,data.mc
 
-end
+        local d=1+2*rand()
+        for i=1,amount do
+            x=240*rand()
+            y=136*rand()
+            a=math.atan(x-120,y-68)
 
-rift_modifierrotvert=function()
--- Was: modifier index = 7
-
-return {
-  id='rot_vert',
-  draw=function(data)
-    local amount,mt,mc=data.amount,data.mt,data.mc
-    dir=1
-    local lines = 0
-    if mc == 0 then
-      lines = mt%5//1
-    else
-      if mc < 0  then
-        dir = -1
-      end
-      --lines = abs(mc)*(mt%4+1)//1
-      lines = (abs(mc)*(mt+1)//1)%136
-    end
-  
-    if dir == 1 then
-      -- going down
-      memcpy(0x8000,(135-lines)*120,120*lines)
-      for y=135-lines,0,-1 do
-       memcpy((y+lines)*120,y*120,120)
-      end
-      memcpy(0,0x8000,120*lines)
-    elseif dir == -1 then
-      -- going up
-      memcpy(0x8000,0,120*lines)
-      for y=0,135-lines do
-        memcpy(y*120,(y+lines)*120,120)
-       end
-       memcpy((136-lines)*120,0x8000,120*lines)
-   
-    end  
-  end,
-}
-
-end
-
-rift_codefont=function()
-local rle = "0800020ODODOHPDPHPHPHPHP4HPPHOHOHAHOHOHOHAHOHOHOHAHOP2HHAHOP2DHAHOPHOPOHHOPHP2HHOPHP2HHOHAHAHAHOHAHAHAHOPDPDHP3DPDHP3DPDHP2ODOPHOHAODOPHOHAODOPHOHAMBAOHOHAMBAOHOHAMBAOPHHAMBAOPDHAMBAOPHHAMPDAPDMHOPDAPHOP2DAP3HLDAHOHOHLDAHOHOHLDAHOHOHLDAHOHOHIDAHOHOP2HHAHOHOHOHAHOHOHOHAHOHOHOHAHOHOP5HOPHOP2HOPDMPPHA7HAHAHOHOHAHAHOHOHAHAHOHOHAHAHOHOPPHAPPHOPPHAOPHOOPHAMPHOA7MBAOHOHAMBAOHOHAMBAOHOHAMBAOHOHAPHPPHOP2HPPHOP2HPHHOOPA7HIDAHOHOHIDAHOHOHIDAHOHOHIDAHOHOHIDAHOPPHIDAHOPHHIDAHOODA7ODMHODMPPHOPPHOP8HOHOHOHAHOHOHOHAHOHOHOPDPPHOPHOHPHHOPDMP2BAHOHOPPBAHOHOPPBAHOHOIDAAHOHOIDAAHOHOIDAAHOHOIDAAHOHOIDAAHOHOHIDAHOH2IDAHOH2IDAHOH2IDAHOH2IDAHOH2IDAOH3IDAMDPHHIDAOHPHPPAAHA2PPAAHA2PPAAHA3OAAHA3OPDPDOHMPPHPHPHOHP4HPDAOHOHAPDHOPHAOHAHOHOAOHAHOHOAOHAHPHOAOHAPHHOPPHAPPHOPPHAONHOPHA7IDAAHOHOIDAAHOHOIDAAHOHOIDAAHOHOIDAAP3IDAAOPPHIDAAMPPDA7HLDAHOODHLDAHOMBHLDAHOMBHLDAHOMBPPDAHOMBOPDAHOMBMPBAHOMBA7HAOPHOHAHAPPHOHAHAPPHOHAHAHOHOHAP13OP2OPPHMPA8OAAMPA2OAAOPA2OAAOPA2OAAOA2MPOHPDMPOP3DOP5DPPHOHOOAHOHA4HAHAMBMBHAHAMBMBHAHA4HAPDPAPAHOPHPBPBHOP2BPBHOHOMBMBHOHA6HA6HA6HA6HAMPBAPDHAOPDAPHHAPPDAPPHAHLDAHOA31MHODMHMHOPPHOPOHP6HHOHOHOHAHOPPOAHOHOPPOAHOHOPHOAHOHOHAOAHOP3OAP3OPOAOPOPMPOAMPA6OHOMBMBPPHOMBMBPHHOMBMBPPHOMBMBHOHOMBMBHOHOMBMBHOHOMBMBHOA3MBAAHAHLDAHOHAHLDAHOHAHIDAHOHAHIDAHOPDHIDAHOPDHIDAHOODHIDAHOA7HOHOHOHAHOHOHOHAHOHOHOHAHOHOHOHAP5HAPHPHOPHAODPDMPHA2HAAOA7OPA5OHA5ODA43PBA5PBA5PA108HAAOA3HAAOA3HAAOA43HA6HA6HA6HA4MPPDHOHOOPPDHOHOP2DHOHOHAHAHOHOA31HIDAHOGOHIDAHOHOHIDAHOHOHIDAHOHOAAGAHA4HAHA4HAHA4HADA2PPHA4PPHA2MBPPHA2MBAOHA2PHA5IDA5IDA5IDA5MDA5MBA5MBA5MBAAPHAAOBPDHAHOHOOHHAHOHOMPHAHOHOAOHAHOHOP2HP5OHOPPHPHMHMPPDA7HIDAPPHOHLDAOHHOHLDAPPHOHLDAHOHOPPDAHOPPOPDAHOOPMPBAHOMPA6OMPHA2PHOHHA2PHPDHA2MBHA4MBPPHA4PPHA4PPHA14PHAAOA2PHAAOA6OA6PAHA2HAHAHA2HAHAHA2HAHADA76OPA5OHA5ODA167MHPBPHPHOPPDP6DP3HOIDAOAOHPIDAOAOHPIDMPMP2IDOHMHPPIDPDMPHOPPMP2HOPPOP2HOP5HOHAHAAOHOHAHAAOHOPDPDAP3HPHIHOPOP2MDMHMHA3OPOPA3P3A3HOHOA3HOHOA3PPHOHAPHOHPPHAPHP3HAPHPHIJDA2PPMJDA2PPMJDA3OP2A2MP3A2OHP2A2PDMJDA2HAMJDA2POIDHAAOPOIDHAAOHOIDHAAOHOIDHAAOPPIDP4HIDP2HODIDP2DA7MPAOHOMBAOAOHOMBAOAOHOMBAOAOHOMBAOP3MBAOPPOHMBAOPHMDMBA7HOOPHA2HOAOAAPHHOAOAAPHHOAOHAPHP3HA2PHPHHA2ODPDHA10PPMJDA2P4A2OP3A4P2A2MBMJDA2MBMJDA2MBMJBA10"
--- font data {"A", sprite number, page?, num sprites x, y, width (px), height}
-fontd={	{0,0,1,2,8,16},{1,0,1,2,8,16},{2,0,1,2,8,16},{3,0,1,2,8,16},{4,0,1,2,8,16},{5,0,1,2,8,16},{6,0,1,2,8,16},{7,0,1,2,8,16},{8,0,1,2,7,16},{9,0,1,2,8,16},{10,0,1,2,8,16},{11,0,1,2,8,16},{12,0,2,2,10,16},{14,0,1,2,8,16},{15,0,1,2,8,16},
-		{128,0,1,2,8,16},{129,0,1,2,8,16},{130,0,1,2,8,16},{131,0,1,2,8,16},{132,0,2,2,9,16},{134,0,1,2,8,16},{135,0,1,2,8,16},{136,0,2,2,10,16},{138,0,1,2,8,16},{139,0,1,2,7,16},{140,0,1,2,8,16},{141,0,1,2,8,16},{142,0,1,2,8,16},{143,0,1,2,8,16},
-		{256,0,1,2,8,16},{257,0,1,2,8,16},{258,0,1,2,8,16},{259,0,1,3,8,19},{260,0,1,2,8,16},{261,0,1,2,5,16},{262,0,1,3,6,19},{263,0,1,2,8,16},{264,0,1,2,6,16},{265,0,2,2,10,16},{267,0,1,2,8,16},{268,0,1,2,8,16},{269,0,1,3,8,19},{270,0,1,3,8,19},{271,0,1,2,7,16},
-		{448,0,1,2,8,16},{449,0,1,2,7,16},{450,0,1,2,8,16},{451,0,1,2,8,16},{452,0,2,2,10,16},{454,0,1,2,8,16},{455,0,1,3,8,19},{456,0,1,2,8,16},{457,0,1,2,3,16},{458,0,1,2,3,16},{459,0,1,2,7,16},{460,0,1,2,3,16},{461,0,1,2,7,16},{462,0,1,2,3,16},{463,0,1,2,6,16},
-		{640,0,1,2,8,16},{641,0,1,2,6,16},{642,0,1,2,8,16},{643,0,1,2,8,16},{644,0,1,2,8,16},{645,0,1,2,8,16},{646,0,1,2,8,16},{647,0,1,2,8,16},{648,0,1,2,8,16},{649,0,1,2,8,16},{650,0,1,2,3,16},{651,0,1,2,7,16},{652,0,1,2,8,16},{653,0,2,2,12,16},{655,0,1,2,8,16}
-	}
-
--- this could be useful for compression later
-font = {}
-chars="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!\'+,-./0123456789:=?# "
-
--- the rle decoder
-function tomemrle(str)
-  local o=tonumber(str:sub(1,5),16) -- get (o)ffset
-  local w=tonumber(str:sub(6,7),16)*8-1 -- get (w)idth
-  local e=str:sub(8,str:len()) -- remove header to get (e)ncoded data
-  local d = "" -- (d)ecoded data
-  for m, c in e:gmatch("(%u+)([^%u]+)") do -- decode rle, (m)atch & (c)ounter
-    d = d .. m .. (m:sub(-1):rep(c))  
-  end
-  local y=0
-  for x = 1,#d,1 do -- write to mem
-    local c=string.byte(d:sub(x,x))-65 -- get (c)olor value
-    poke4(o+y,c) y=y+1
-    if y>w then y=0 o=o+1024 end
-  end
-end
-
-function font_init()
-	for i=1,#fontd do
-		font[string.sub(chars,i,i)] = fontd[i]
-	end
-end
-
-
-function flength(txt,kx,size)
-	kx = kx or 1
-  size = size or 1
-	pcx = 0
-	letter ={}
-	for i=1,string.len(txt) do
-		letter = font[string.sub(txt,i,i)]
-		-- update kerning
-		pcx = pcx + letter[5]*size + kx
-	end
-	return pcx
-end
-
--- fprint ("text", x, y, [x kerning = 1],[y kerning = 1], [colour = 15])
-function fprint(txt,tx,ty,kx,ky,tc,size)
-	kx = kx or 1
-	ky = ky or 1
-	tc = tc or 10
-  size = size or 1
-	pcx = 0
-	pcy = 0
-	letter ={}
-	-- set to blit segment (8 = BG-1)
-	poke4(2*0x03ffc,8)
-	-- set colour
-	poke4(2*0x03FF0 + 1, tc)
-	-- print each letter
-	for i=1,string.len(txt) do
-		letter = font[string.sub(txt,i,i)]
-		spr(letter[1],tx+pcx,ty+pcy,0,size,0,0,letter[3],letter[4])
-
-		-- update kerning
-		pcx = pcx + letter[5]*size + kx
-	end
-end
-
-
-return function()
-    -- initialize
-    tomemrle(rle)
-    font_init()
-end
-
-end
-
-rift_effectfftcirc=function()
--- was: effect index = 13
-local FC_osize=20
-
-return {
-  id='xxxx',
-  boot=function()
-  end,
-  draw=function(data)
-    local it,ifft=data.et,data.bass
-    local size=FC_osize+ifft*2 + EControl
-  
-    local tt=it
-    for t=0,255 do
-     a=(t/255+tt)*tau
-     k=t//3
-     c=((FFTH[(k-1)%256]+FFTH[(k+1)%256])/2+FFTH[k])*600*((k/255)*1.5+.015)
-  
-     x=(size)*sin(a)
-     y=(size)*cos(a)
-     x1=(size+c/4*EControl)*sin(a)
-     y1=(size+c/4*EControl)*cos(a)
-     --pix(120+x,68+y,1+c)
-     line(120+x,68+y,120+x1,68+y1,1+min(14,c))
-    end
-  end,
-}
-
-end
-
-rift_effectrevisionback=function()
--- was effect index = 16
-
-local cubes ={}
-local cubeLines = {
-    {-1,-1,-1,1,-1,-1},
-    {-1,-1,-1,-1,1,-1},
-    {-1,-1,-1,-1,-1,1},
-
-    {1,-1,-1,1,1,-1},
-    {1,-1,-1,1,-1,1},
-
-    {-1,1,-1,-1,1,1},
-    {-1,1,-1,1,1,-1},
-
-    {1,1,-1,1,1,1},
-
-    {-1,1,1,1,1,1},
-    {-1,1,1,-1,-1,1},
-
-    {-1,-1,1,1,-1,1},
-    {1,1,1,1,-1,1},
-}
-
-return {
-    id='revision_back',
-    boot=function()
-        for i = 1,5 do
-            for j = 1,16 do
-        --      table.insert(cubes,{15*sin(j/16*tau+it+i/13),15*cos(j/16*tau+it+i/13),5+i*4})
-            end
-          end
-        --  cubes[1]={5,5,10}
-    end,
-    draw=function(data)
-        RB_cubes={}
-        for i = 1,5 do
-          for j = 1,16 do
-            table.insert(cubes,{(13+data.bass)*sin((j/16+data.et)*tau+i/15),(13+data.bass)*cos((j/16+data.et)*tau+i/15),10+i*4})
-          end
-        end
-        for i=1,#cubes do
-          for j=1,#cubeLines do
-            local ln=cubeLines[j]
-            
-            local x1=(ln[1]+cubes[i][1]) *99/(cubes[i][3]+ln[3])
-            local y1=(ln[2]+cubes[i][2])*99/(cubes[i][3]+ln[3])
-            local x2=(ln[4]+cubes[i][1])*99/(cubes[i][3]+ln[6])
-            local y2=(ln[5]+cubes[i][2]) *99/(cubes[i][3]+ln[6])
-            line(x1+120,y1+68,x2+120,y2+68,16-cubes[i][3]/2)
-          end
-        end
-    end,
-}
-
-end
-
-rift_overlaylinecut=function()
--- was: overlay index = 10
-
-return {
-    id="line_cut",
-    boot=function()
-    end,
-    draw=function(data)
-        local it,ifft=data.ot,data.ot
-
-        local s=10+OControl
-        local x=(it*s*2)%s*4
-
-        for sx=-136,240+s+136,s*4 do
-            for y=0,136+s,s do
-                local cx=sx-y+x
-                tri(cx,y-s,cx-s,y,cx,y+s,1)
-                tri(cx,y-s,cx+s,y,cx,y+s,1)
+            op=pix(x,y)-mc
+            if op >= 0 then
+                pix(x+d*(sin(a)+sin(t/300)),y+d*(cos(a)+sin(t/300)),op)
+            else
+                pix(x+d*sin(a),y+d*cos(a),0)
             end
         end
     end,
@@ -1001,143 +114,66 @@ return {
 
 end
 
-rift_overlaysmileyfaces=function()
--- was: overlay index = 3
-
-local NumSmilyFaces = 30
-local SmilyFaces_xysr = {}
+rift_modifiergriddim=function()
+-- Was: modifier index = 3
 
 return {
-    id="smiley_faces",
-    boot=function()
-        for i=1,NumSmilyFaces do
-            SmilyFaces_xysr[i]={rand(300),rand(200)-32,rand(20)+10,rand()*tau}
+    id='grid_dim',
+    draw=function(data)
+        local amount,mt,mc=data.amount,data.mt,data.mc
+
+        i=0
+        for y=-1,36 do
+            for x=-1,60 do
+                i=i+1
+                --if i > amount*5 then return end
+                sx=x*4+(mt*20)%4
+                sy=y*4+(mt*5)%4
+                pix(sx,sy,clamp(pix(sx,sy)-mc,0,15))
+            end
         end
-        table.sort(SmilyFaces_xysr, function (a,b) return a[3]<b[3] end)
+    end,
+}
+
+end
+
+rift_codeglobals=function()
+m=math
+sin,cos,max,min=m.sin,m.cos,m.max,m.min
+abs,pi,rand,exp=m.abs,m.pi,m.random,m.exp
+tau=pi*2
+
+end
+
+rift_effectquup=function()
+-- was: effect index = 5
+return {
+    id='quup',
+    boot=function()
     end,
     draw=function(data)
-        nsf = clamp(OControl,1,NumSmilyFaces)
-        for i=1,nsf do
-         local sm=SmilyFaces_xysr[i]
-         x=(sm[1])%300 - 30
-         y=(sm[2]+FFTC[i]*2*i^0.8)%200 - 32
-         s=(sm[3])
-         a=sin(FFTC[i]*2)-tau/4
-       
-         ds = s/20
-         x1=9*sin(a)-7*cos(a)
-         y1=9*cos(a)+7*sin(a)
-         x2=-9*sin(a)-7*cos(a)
-         y2=-9*cos(a)+7*sin(a)
-         circ(x,y,s,(i%15)+1)
-         circ(x+x1*ds,y+y1*ds,4*ds,0)
-         circ(x+x2*ds,y+y2*ds,4*ds,0)
-         l=15*ds
-         for j=-l,l do
-          circ(x+12*ds*sin(j/l+a+tau/4),y+10*ds*cos(j/l+a+tau/4),1,0)
+        local it,ifft=data.et,data.mid
+        tt=it/8 * EControl
+        P=3+tt//5%5
+        Q=P/2
+        I=tt/15%1
+        for i=1,20 do
+         for j=0,P-1,1 do
+          r=tt+pi*j/Q-i*sin(tt/50)
+          n=120+(i+I)*9*sin(r)
+          o=68+(i+I)*9*cos(r)
+          r=tt+pi*(j+1)/Q-i*sin(tt/50)
+          line(n,o,120+(i+I)*9*sin(r),68+(i+I)*9*cos(r),i+1)
+          l=i-1
+          r=tt+pi*j/Q-l*sin(tt/50)
+          if i>1 then 
+           k=(l+I)*9 
+          else 
+           k=l*9 
+          end
+          line(n,o,120+k*math.sin(r),68+k*cos(r),i+1)
          end
         end
-    end,
-}
-
-end
-
-rift_modifierpixnoise=function()
--- Was: modifier index = 1
-
-return {
-    id='pix_noise',
-    draw=function(data)
-      local amount,mc=data.amount,data.mc
-
-        for i=0,amount do
-            x=rand(240)-1
-            y=rand(136)-1
-            pix(x,y,clamp(pix(x,y)-mc,0,15))
-        end
-    end,
-}
-
-end
-
-rift_effecttwistfft=function()
--- was: effect index = 1
-
-local TF_size=200
-return {
-    id='twist_fft',
-    boot=function()
-    end,
-    draw=function(data)
-        local it=data.et*10*EControl
-        -- lets do the twist again
-        for i=0,239 do
-            local x=(i-it//1)%240
-            local fhx = (FFTH[(x-1)%240]+FFTH[(x)%240]+FFTH[(x+1)%240])/3*(.9+x/60)
-            local a=sin(it/10)* x/80
-        
-            local d=TF_size*fhx+5+5*BASS
-        
-            local cy = 68+10*BASS*sin(i/110+ it/12)
-        
-            local y1=d*sin(a)
-            local y2=d*sin(a + tau/4)
-            local y3=d*sin(a + tau/2)
-            local y4=d*sin(a + tau*3/4)
-        
-            d=d/4
-        
-            if y1 < y2 then
-                line(i,cy+y1,i,cy+y2,clamp(d,0,15))
-            end
-            if y2 < y3 then
-                line(i,cy+y2,i,cy+y3,clamp(d+1,0,15))
-            end
-            if y3 < y4 then
-                line(i,cy+y3,i,cy+y4,clamp(d+2,0,15))
-            end
-            if y4 < y1 then
-                line(i,cy+y4,i,cy+y1,clamp(d+3,0,15))
-            end
-        end
-    end,
-    bdr=function(l)
-        local lm=68-abs(68-l)
-        for i=0,47 do
-            poke(16320+i,clamp(sin(i)^2*i*lm/5.5,0,255))
-        end
-    end,
-}
-
-end
-
-rift_effectsunbeat=function()
--- was: effect index = 2
-
-local SunBeatPAL = {}
-
-return {
-    id='sun_beat',
-    boot=function()
-        for i=0,15 do
-            SunBeatPAL[i*3]=clamp(i*32,0,255)
-            SunBeatPAL[i*3+1]=clamp(i*24-128,0,255)
-            SunBeatPAL[i*3+2]=clamp(i*24-256,0,255)
-        end
-    end,
-    draw=function(data)
-        local it=data.et
-        if(it%1>=0.95) then
-         for y=0,136 do 
-          for x=0,240 do
-           pix(x,y,((math.pi*math.atan(x-120,y-68))+t)%4+1)
-          end 
-         end 
-         circ(120,68,50+5*math.sin(t/150),15)
-        end
-    end,
-    bdr=function(l)
-        PAL_Switch(SunBeatPAL,0.05)
     end,
 }
 
@@ -1235,314 +271,6 @@ return {
 
 end
 
-rift_overlayjoydivision=function()
--- was: overlay index = 9
-
-local JD_ffts={}
-local JD_oldffts={}
-local JD_ft={}
-local JD_fi=0
-local JD_ot=0
-
-return {
-    id="joy_division",
-    boot=function()
-        for i=1,8 do
-            table.insert(JD_ffts,{})
-        end
-    end,
-    draw=function(data)
-        local it,ifft=data.ot,data.ot
-
-        if OControl~=0 and JD_ot%OControl == 0 then
-            JD_ft={}
-            for j=0,255 do
-                table.insert(JD_ft,FFTH[j])
-            end
-            JD_oldffts=JD_ffts
-            JD_ffts={}
-            table.insert(JD_ffts,JD_ft)
-
-            for i=1,7 do
-                table.insert(JD_ffts,JD_oldffts[i])
-            end
-        end
-        JD_ot = JD_ot + 1
-
-        rectb(46,4,146,110,15)
-
-        int=0
-        for i=1,#JD_ffts do
-            JD_ft=JD_ffts[i]
-            if #JD_ft > 0 then
-                for j=1,127 do
-                    k=(JD_ft[j*2]+JD_ft[j*2+1])*(j/255 + .05)
-                    k=k*400
-                    int=(int + k)/2
-                    pix(54+j,8+i*12-int,15-i/4)
-                end
-            end
-        end
-
-        print("Tic80 Division",54,116,15)
-    end,
-}
-
-end
-
-rift_overlaysnow=function()
--- was: overlay index = 5
-
-return {
-  id="snow",
-  boot=function()
-  end,
-  draw=function(data)
-    local it=data.ot
-    for i=0,OControl do
-      circ(rand(240),rand(136),rand(4),it)
-    end
-  end,
-}
-
-end
-
-rift_overlaystickerlens=function()
--- was: overlay index = 11
-
-return {
-  id="sticker_lens",
-  boot=function()
-  end,
-  draw=function(data)
-    local it,ifft,bass=data.ot,data.ot,data.bass
-    -- draw point data to spritesheet
-    -- first blank
-    --memset(0x4000,0,120*136)
-
-    size=100+40*bass
-    hs=size/2
-    TWp = TImages[clamp(TIimageID,1,#TImages)]
-    for i=1,#TWp do
-      p=TWp[i]
-
-      x=(p[1]-120)/OControl
-      y=(p[2]-68)/OControl
-      c=clamp(FFTH[p[5]//1]*50*(.05 + p[5]/10)+it,0,15)
-      a=p[4]
-      d=p[5]/OControl
-
-      b=bass/5
-      --focal=(d/(hs*it%2))^(b)
-      focal=1+sin(d/20+it/20)*(b+it%1/2)
-      d=d*focal--*(it%1+.5)
-
-      ix=d*sin(a)
-      iy=d*cos(a)
-
-      if d < size then
-        ox=ix+120
-        oy=iy+68
-        if ox >=0 and ox<240 and oy>=0 and oy<136 then
-          pix(ox,oy,c)
-        end
-      end
-    end
-  end,
-}
-
-end
-
-rift_overlaytextbounceup=function()
--- was: overlay index = 1
-
-return {
-  id="text_bounce_up",
-  boot=function()
-  end,
-  draw=function(data)
-    local it,ifft=data.ot,data.ot
-    
-    if ODivider ~= 0 then
-      tt=t/BT//ODivider
-      tx=abs(tt)%#Texts[TextID] + 1
-      y=140-160*(it%1)
-     else
-      tt=t/BT//1
-      tx=abs(tt)%#Texts[TextID] + 1
-      -- count how many line breaks
-      linecount=1
-      for i=1, #Texts[TextID][tx] do
-        if string.sub(Texts[TextID][tx],i,i) == "\n" then linecount=linecount+1 end
-      end
-      y=68 - (3+OControl)*3 *linecount
-     end
-     tc=clamp(MID*15,8,15)
-     tl=flength(Texts[TextID][tx],1,OControl)
-     fprint(Texts[TextID][tx],120-tl/2,y,1,1,15,OControl)
-    end,
-}
-
-end
-
-rift_codeglobals=function()
-m=math
-sin,cos,max,min=m.sin,m.cos,m.max,m.min
-abs,pi,rand,exp=m.abs,m.pi,m.random,m.exp
-tau=pi*2
-
-end
-
-rift_effectproxima=function()
--- was: effect index = 14
-
-PR_p={}
-PR_np=127
-PR_tc=0
-
-return {
-    id='proxima',
-    boot=function()
-        for i=0,PR_np do
-            PR_p[i]={x=rand(240.0),y=rand(136.0),sx=rand(10.0)-5,sy=rand(10.0)-5}
-        end
-    end,
-    draw=function(data)
-        local it=data.et
-        local n = 255//PR_np
-        
-        local q={}
-        for i=0,PR_np do
-            local v=PR_p[i]
-            v.x=(v.x+v.sx/5*sin(i/10+it)*it)%240
-            v.y=(v.y+v.sy/8*sin(i/11+it)*it)%136
-            q[i]=v
-        end
-        --table.sort(q, function (a,b) return a.x < b.x end)
-        for i=0,PR_np do
-            local v=q[i]
-            local fi=FFTH[i]*(.15+i/60) * EControl
-            pix(v.x,v.y,fi*500)
-            
-            for j=i,PR_np do
-                local w=q[j] -- why not q[j]?
-                local d=(v.x-w.x)^2 + (v.y-w.y)^2
-                d=d^.5
-                n=(i+j)/2
-                local fj=FFTH[j]*(.15+j/60) * EControl
-                ft = (fi + fj)
-                if d < ft * 100 and i ~= j then
-                    line(v.x,v.y,w.x,w.y,ft*100)
-                    for l=j,PR_np do
-                        local z=q[l] -- q?  
-                        d=(v.x-z.x)^2 + (v.y-z.y)^2
-                        d=d^.5
-                        local fl = FFTH[l]*(.15+l/60) * EControl
-                        local ft = fi + fj + fl
-                        if d < ft * 25 and l ~= j and l ~= i then
-                            tri(v.x,v.y,w.x,w.y,z.x,z.y,ft*100)
-                            goto continue
-                        end
-                    end
-                end
-            end
-            ::continue::
-        end
-    end,
-}
-
-end
-
-rift_effectbitnick=function()
--- was: effect index = 17
-return {
-    id='bitnick',
-    boot=function()
-    end,
-    draw=function(data)
-		math.randomseed(2)
-		local tt=(t/OControl)
-		for x=0,51 do
-			local w=math.random()*70+30
-			local h=math.random()*20+10
-			local posx=(math.random()*240+(tt/w*4)*x/20)%(240+w+x)-w
-			local posy=math.random()*(136+h)-h
-			local col=math.random()*2+math.cos(tt/2000)*2+5
-			
-			clip(posx,posy,w,h)
-			for i=posx,posx+w do
-				circ(i,posy+i//1%h,w/(col+16),col+i/300)
-			end
-			clip()
-		end
-	end,
-}
-
-end
-
-rift_overlaybobs=function()
--- was: overlay index = 8
-
-return {
-    id="bobs",
-    boot=function()
-    end,
-    draw=function(data)
-      local it=data.ot
-      for i=0,99 do
-        local j=i/12
-        local x=10*sin(pi*j+it)
-        local y=10*cos(pi*j+it)
-        local z=10*sin(pi*j)
-        local X=x*sin(it)-z*cos(it)
-        local Z=x*cos(it)+z*sin(it)
-        circ(120+X*Z,68+y*Z,Z,OControl*data.mid)
-      end
-    end,
-}
-
-end
-
-rift_overlayrevisiontop=function()
--- was: overlay index = 12
-
-return {
-    id="revision_top",
-    boot=function()
-    end,
-    draw=function(data)
-        local it,ifft=data.ot,data.ot
-    
-        rlp={}
-        ca = it * tau
-        for x=-10,10 do
-         for y=-10,10 do
-          --dy=y*.8
-          d = (x^2+y^2)^.5 * (1+it%1/10)
-          a = m.atan2(x,y) + ca
-          s = (16-OControl)-2*d+BASS*5--abs(x)-abs(y)
-          nx= d * sin(a)
-          ny= d * cos(a)
-          if s >= .5 then
-           table.insert(rlp,{nx,ny,s})
-          end
-         end
-        end
-       
-        for i=1,#rlp do
-         p=rlp[i]
-         circ(120+9.5*p[1],68+8.5*p[2],p[3],8)
-        end
-       
-        for i=1,#rlp do
-         p=rlp[i]
-         circ(120+10*p[1],68+9*p[2],p[3],12)
-        end    
-    end,
-}
-
-end
-
 rift_modifierpixjumpblur=function()
 -- Was: modifier index = 6
 
@@ -1611,29 +339,198 @@ return {
 
 end
 
-rift_effectvoltest=function()
--- was: effect index = 0
+rift_debugfakefft=function()
+if fft == nil then
+    -- Not great =^D
+    function fft(v)
+        return (0.5+(math.sin(v)^2)*.5)/v
+    end
+end
+
+end
+
+rift_effectattunnel=function()
+-- was: effect index = 4
 return {
-    id='vol_test',
+    id='at_tunnel',
     boot=function()
     end,
     draw=function(data)
-        for i=239,0,-1 do
-            for j=0,135 do
-                pix(i,j,(pix(i+1,j)))
+        it,ifft=data.et,data.mid
+        ta=ss((it*4)%4/4,0,1)
+        for j=1,20 do
+            n=3+j
+            d=(4*j-it%64)
+            if d~=0 then
+                d=99/d
+            end
+
+            if d<120 and d >5 then 
+                w=(ifft*2)*d/6
+                chroma=.01*(1+sin(ta))
+                cr=ss((it/4+2*j)%5,2,4)*tau+EControl*it/2
+                if j%2 == 0 then
+                    for i=1,n do
+                        if (it/4%8 < 4) then
+                            arc(120,68,w,d,cr + tau/n*i +j/10,pi/n,12)
+                        else
+                            arc(120,68,1,d*(1-chroma),cr + tau/n*i +j/10,pi/n,2)
+                            arc(120,68,1,d+w,cr + tau/n*i +j/10,pi/n,10)
+                            arc(120,68,w,d,cr + tau/n*i +j/10,pi/n,12)
+                        end
+                    end
+                else
+                    for i=1,n do
+                        if (it/4%6 < 3) then
+                            tangent(120,68,1,d-1,cr + tau/n*i +j/10,d,0)
+                            tangent(120,68,w,d,cr + tau/n*i +j/10,d,11+(j/2)%4)
+                        else
+                            tangent(120,68,1,d*(1-chroma),cr + tau/n*i +j/10,d,1)
+                            tangent(120,68,1,d*(1+chroma),cr + tau/n*i +j/10,d,9)
+                            tangent(120,68,w,d,cr + tau/n*i +j/10,d,11+(j/2)%4)
+                        end
+                    end
+                end
             end
         end
-        line(239,0,239,136,0)
-
-        print("TIME",0,20,3)
-        pix(239,20+data.t/1000,3)
-        print("TBEAT",0,50,6)
-        pix(239,60+data.bt,6)
-        print("TBASS",0,80,9)
-        pix(239,100+data.bass,9)
-        print("TBASSC",0,110,12)
-        pix(239,110+data.bassc/100,12)
     end,
+}
+
+end
+
+rift_effectfftcirc=function()
+-- was: effect index = 13
+local FC_osize=20
+
+return {
+  id='fft_circ',
+  boot=function()
+  end,
+  draw=function(data)
+    local it,ifft=data.et,data.bass
+    local size=FC_osize+ifft*2 + EControl
+  
+    local tt=it
+    for t=0,255 do
+     a=(t/255+tt)*tau
+     k=t//3
+     c=((FFTH[(k-1)%256]+FFTH[(k+1)%256])/2+FFTH[k])*600*((k/255)*1.5+.015)
+  
+     x=(size)*sin(a)
+     y=(size)*cos(a)
+     x1=(size+c/4*EControl)*sin(a)
+     y1=(size+c/4*EControl)*cos(a)
+     --pix(120+x,68+y,1+c)
+     line(120+x,68+y,120+x1,68+y1,1+min(14,c))
+    end
+  end,
+}
+
+end
+
+rift_overlayjoydivision=function()
+-- was: overlay index = 9
+
+local JD_ffts={}
+local JD_oldffts={}
+local JD_ft={}
+local JD_fi=0
+local JD_ot=0
+
+return {
+    id="joy_division",
+    boot=function()
+        for i=1,8 do
+            table.insert(JD_ffts,{})
+        end
+    end,
+    draw=function(data)
+        local it,ifft=data.ot,data.ot
+
+        if OControl~=0 and JD_ot%OControl == 0 then
+            JD_ft={}
+            for j=0,255 do
+                table.insert(JD_ft,FFTH[j])
+            end
+            JD_oldffts=JD_ffts
+            JD_ffts={}
+            table.insert(JD_ffts,JD_ft)
+
+            for i=1,7 do
+                table.insert(JD_ffts,JD_oldffts[i])
+            end
+        end
+        JD_ot = JD_ot + 1
+
+        rectb(46,4,146,110,15)
+
+        int=0
+        for i=1,#JD_ffts do
+            JD_ft=JD_ffts[i]
+            if #JD_ft > 0 then
+                for j=1,127 do
+                    k=(JD_ft[j*2]+JD_ft[j*2+1])*(j/255 + .05)
+                    k=k*400
+                    int=(int + k)/2
+                    pix(54+j,8+i*12-int,15-i/4)
+                end
+            end
+        end
+
+        print("Tic80 Division",54,116,15)
+    end,
+}
+
+end
+
+rift_overlaytextbounceup=function()
+-- was: overlay index = 1
+
+return {
+  id="text_bounce_up",
+  boot=function()
+  end,
+  draw=function(data)
+    local it,ifft=data.ot,data.ot
+    
+    if ODivider ~= 0 then
+      tt=t/BT//ODivider
+      tx=abs(tt)%#Texts[TextID] + 1
+      y=140-160*(it%1)
+     else
+      tt=t/BT//1
+      tx=abs(tt)%#Texts[TextID] + 1
+      -- count how many line breaks
+      linecount=1
+      for i=1, #Texts[TextID][tx] do
+        if string.sub(Texts[TextID][tx],i,i) == "\n" then linecount=linecount+1 end
+      end
+      y=68 - (3+OControl)*3 *linecount
+     end
+     tc=clamp(MID*15,8,15)
+     tl=flength(Texts[TextID][tx],1,OControl)
+     fprint(Texts[TextID][tx],120-tl/2,y,1,1,15,OControl)
+    end,
+}
+
+end
+
+rift_modifierlinescratch=function()
+-- Was: modifier index = 13
+
+return {
+    id='line_scratch',
+    draw=function(data)
+		local amount,mt,mc=data.amount,data.mt,data.mc
+
+		for a=0,46 do
+			local x=math.random(240)
+			local y=math.random(136)
+			local w=math.random(20)
+			line(x,y,x+w,y,pix(x,y))
+			line(x,y+1,x+w/2,y+1,pix(x,y))
+		end
+	end,
 }
 
 end
@@ -1913,6 +810,486 @@ function c64_BOOT()
 
 end
 
+rift_effectworms=function()
+-- was: effect index = 18
+return {
+    id='worms',
+    boot=function()
+    end,
+    draw=function(data)
+        local et=data.et
+        local abs,sin=math.abs,math.sin
+        for p=0,14,.01 do
+        circ(120+sin(p+et/3)*(p*6-8+sin(et)*20),
+            68+sin(p+et+1)*(p*3-8+sin(et)*10),
+            abs(sin(p+et)*p*2.5),
+            p*17%8)
+        end
+    end,
+}
+
+end
+
+rift_overlaylinecut=function()
+-- was: overlay index = 10
+
+return {
+    id="line_cut",
+    boot=function()
+    end,
+    draw=function(data)
+        local it,ifft=data.ot,data.ot
+
+        local s=10+OControl
+        local x=(it*s*2)%s*4
+
+        for sx=-136,240+s+136,s*4 do
+            for y=0,136+s,s do
+                local cx=sx-y+x
+                tri(cx,y-s,cx-s,y,cx,y+s,1)
+                tri(cx,y-s,cx+s,y,cx,y+s,1)
+            end
+        end
+    end,
+}
+
+end
+
+rift_overlayrevisiontop=function()
+-- was: overlay index = 12
+
+return {
+    id="revision_top",
+    boot=function()
+    end,
+    draw=function(data)
+        local it,ifft=data.ot,data.ot
+    
+        rlp={}
+        ca = it * tau
+        for x=-10,10 do
+         for y=-10,10 do
+          --dy=y*.8
+          d = (x^2+y^2)^.5 * (1+it%1/10)
+          a = m.atan2(x,y) + ca
+          s = (16-OControl)-2*d+BASS*5--abs(x)-abs(y)
+          nx= d * sin(a)
+          ny= d * cos(a)
+          if s >= .5 then
+           table.insert(rlp,{nx,ny,s})
+          end
+         end
+        end
+       
+        for i=1,#rlp do
+         p=rlp[i]
+         circ(120+9.5*p[1],68+8.5*p[2],p[3],8)
+        end
+       
+        for i=1,#rlp do
+         p=rlp[i]
+         circ(120+10*p[1],68+9*p[2],p[3],12)
+        end    
+    end,
+}
+
+end
+
+rift_overlaysinebobs=function()
+-- was: overlay index = 2
+
+return {
+    id="sinebobs",
+    boot=function()
+    end,
+    draw=function(data)
+		local it,ifft=data.ot,data.ot
+		local tt=time()+it*1000
+		for x=-9,9 do
+		   for y=-5,5 do
+			   circ(x*11+120, y*10+68,
+				   3*sin(tt/400+x/2-y/3*sin(tt/300+y/10))+3,
+				   13)
+			   
+			   circ(x*11+120, y*10+68,
+				   3*sin(tt/400+x/2-y/3*sin(tt/300+y/10)),
+				   12)
+		   end
+	   end
+	end,
+}
+
+end
+
+rift_overlaytextwarp=function()
+-- was: overlay index = 4
+local TWp={}
+local TWfirst = true
+
+function ScreenToPoints()
+  local p={}
+  for y=0,135 do 
+    for x=0,239 do
+     if pix(x,y) == 12 then 
+      if x < 80 then c = 6 
+      elseif x < 160 then c = 12
+      else c = 3
+      end
+      d=((x-120)^2+(y-68)^2)^.5
+      a=m.atan2(x-120,y-68)
+      nx=d*sin(a)
+      ny=d*cos(a)
+      
+      table.insert(p,{x,y,c,a,d})
+    end
+   end
+  end 
+  return p
+end
+
+return {
+  id='text_warp',
+  boot=function()
+    cls()
+    l=flength("GOTO80",3,4)
+    fprint("GOTO80",120-l/2,38,3,1,12,4)
+    TWp = ScreenToPoints()
+    table.insert(TImages,TWp)
+  
+    cls()
+    l=flength("LOVEBYTE",3,2)
+    fprint("LOVEBYTE",120-l/2,35,3,1,12,2)
+    l=flength("2024",3,2)
+    fprint("2024",120-l/2,70,3,1,12,2)
+    TWp = ScreenToPoints()
+    table.insert(TImages,TWp)
+  end,
+  draw=function(data)
+    local it,ifft=data.ot,data.ot
+
+    it=sin(it/4*tau)^2
+    TWp = TImages[clamp(TIimageID,1,#TImages)]
+    for i=1,#TWp do
+     pp=TWp[i]
+     b=pp[4]+2*pi*sin(it*pp[5]/100+MID)
+     w=pp[5]/2+10*sin(pp[5]/40*BASS)+(it/OControl)*pp[5]+HIGH
+     nx=w*sin(b)
+     ny=w*cos(b)
+     pix(120+nx,68+ny,15)
+    end
+  end,
+}
+
+end
+
+rift_modifierrothorz=function()
+-- Was: modifier index = 8
+
+return {
+  id='rot_horz',
+  draw=function(data)
+    local amount,mt,mc=data.amount,data.mt,data.mc
+
+    dir=1
+    local pixels = 0
+    if mc == 0 then
+      pixels = mt%5//1
+    else
+      if mc < 0  then
+        dir = -1
+      end
+      --pixels = abs((mc*mt)%120)
+      --pixels = (abs(mc)*mt)%120
+      pixels = (abs(mc)*(mt+1)//1)%120
+    end
+
+    if dir ==1 then
+      -- going right
+      for y=0,135 do
+        -- take the whole line
+        memcpy(0x8000,y*120, 120)
+
+        -- put it back in two sections
+        memcpy(y*120+pixels,0x8000, 120-pixels)
+        memcpy(y*120,0x8000+(120-pixels), pixels)
+      end
+    else
+      -- going left
+      for y=0,135 do
+        -- take the whole line
+        memcpy(0x8000,y*120, 120)
+
+        -- put it back in two sections
+        memcpy(y*120+(120-pixels),0x8000, pixels)
+        memcpy(y*120,0x8000+pixels, 120-pixels)
+      end
+    end
+  end,
+}
+
+end
+
+rift_effectsunbeat=function()
+-- was: effect index = 2
+
+local SunBeatPAL = {}
+
+return {
+    id='sun_beat',
+    boot=function()
+        for i=0,15 do
+            SunBeatPAL[i*3]=clamp(i*32,0,255)
+            SunBeatPAL[i*3+1]=clamp(i*24-128,0,255)
+            SunBeatPAL[i*3+2]=clamp(i*24-256,0,255)
+        end
+    end,
+    draw=function(data)
+        local it=data.et
+        if(it%1>=0.95) then
+         for y=0,136 do 
+          for x=0,240 do
+           pix(x,y,((math.pi*math.atan(x-120,y-68))+t)%4+1)
+          end 
+         end 
+         circ(120,68,50+5*math.sin(t/150),15)
+        end
+    end,
+    bdr=function(l)
+        PAL_Switch(SunBeatPAL,0.05)
+    end,
+}
+
+end
+
+rift_effectbitnick=function()
+-- was: effect index = 17
+return {
+    id='bitnick',
+    boot=function()
+    end,
+    draw=function(data)
+		math.randomseed(2)
+		local tt=(t/OControl)
+		for x=0,51 do
+			local w=math.random()*70+30
+			local h=math.random()*20+10
+			local posx=(math.random()*240+(tt/w*4)*x/20)%(240+w+x)-w
+			local posy=math.random()*(136+h)-h
+			local col=math.random()*2+math.cos(tt/2000)*2+5
+			
+			clip(posx,posy,w,h)
+			for i=posx,posx+w do
+				circ(i,posy+i//1%h,w/(col+16),col+i/300)
+			end
+			clip()
+		end
+	end,
+}
+
+end
+
+rift_overlaysmileyfaces=function()
+-- was: overlay index = 3
+
+local NumSmilyFaces = 30
+local SmilyFaces_xysr = {}
+
+return {
+    id="smiley_faces",
+    boot=function()
+        for i=1,NumSmilyFaces do
+            SmilyFaces_xysr[i]={rand(300),rand(200)-32,rand(20)+10,rand()*tau}
+        end
+        table.sort(SmilyFaces_xysr, function (a,b) return a[3]<b[3] end)
+    end,
+    draw=function(data)
+        nsf = clamp(OControl,1,NumSmilyFaces)
+        for i=1,nsf do
+         local sm=SmilyFaces_xysr[i]
+         x=(sm[1])%300 - 30
+         y=(sm[2]+FFTC[i]*2*i^0.8)%200 - 32
+         s=(sm[3])
+         a=sin(FFTC[i]*2)-tau/4
+       
+         ds = s/20
+         x1=9*sin(a)-7*cos(a)
+         y1=9*cos(a)+7*sin(a)
+         x2=-9*sin(a)-7*cos(a)
+         y2=-9*cos(a)+7*sin(a)
+         circ(x,y,s,(i%15)+1)
+         circ(x+x1*ds,y+y1*ds,4*ds,0)
+         circ(x+x2*ds,y+y2*ds,4*ds,0)
+         l=15*ds
+         for j=-l,l do
+          circ(x+12*ds*sin(j/l+a+tau/4),y+10*ds*cos(j/l+a+tau/4),1,0)
+         end
+        end
+    end,
+}
+
+end
+
+rift_overlaystickerlens=function()
+-- was: overlay index = 11
+
+return {
+  id="sticker_lens",
+  boot=function()
+  end,
+  draw=function(data)
+    local it,ifft,bass=data.ot,data.ot,data.bass
+    -- draw point data to spritesheet
+    -- first blank
+    --memset(0x4000,0,120*136)
+
+    size=100+40*bass
+    hs=size/2
+    TWp = TImages[clamp(TIimageID,1,#TImages)]
+    for i=1,#TWp do
+      p=TWp[i]
+
+      x=(p[1]-120)/OControl
+      y=(p[2]-68)/OControl
+      c=clamp(FFTH[p[5]//1]*50*(.05 + p[5]/10)+it,0,15)
+      a=p[4]
+      d=p[5]/OControl
+
+      b=bass/5
+      --focal=(d/(hs*it%2))^(b)
+      focal=1+sin(d/20+it/20)*(b+it%1/2)
+      d=d*focal--*(it%1+.5)
+
+      ix=d*sin(a)
+      iy=d*cos(a)
+
+      if d < size then
+        ox=ix+120
+        oy=iy+68
+        if ox >=0 and ox<240 and oy>=0 and oy<136 then
+          pix(ox,oy,c)
+        end
+      end
+    end
+  end,
+}
+
+end
+
+rift_codefont=function()
+local rle = "0800020ODODOHPDPHPHPHPHP4HPPHOHOHAHOHOHOHAHOHOHOHAHOP2HHAHOP2DHAHOPHOPOHHOPHP2HHOPHP2HHOHAHAHAHOHAHAHAHOPDPDHP3DPDHP3DPDHP2ODOPHOHAODOPHOHAODOPHOHAMBAOHOHAMBAOHOHAMBAOPHHAMBAOPDHAMBAOPHHAMPDAPDMHOPDAPHOP2DAP3HLDAHOHOHLDAHOHOHLDAHOHOHLDAHOHOHIDAHOHOP2HHAHOHOHOHAHOHOHOHAHOHOHOHAHOHOP5HOPHOP2HOPDMPPHA7HAHAHOHOHAHAHOHOHAHAHOHOHAHAHOHOPPHAPPHOPPHAOPHOOPHAMPHOA7MBAOHOHAMBAOHOHAMBAOHOHAMBAOHOHAPHPPHOP2HPPHOP2HPHHOOPA7HIDAHOHOHIDAHOHOHIDAHOHOHIDAHOHOHIDAHOPPHIDAHOPHHIDAHOODA7ODMHODMPPHOPPHOP8HOHOHOHAHOHOHOHAHOHOHOPDPPHOPHOHPHHOPDMP2BAHOHOPPBAHOHOPPBAHOHOIDAAHOHOIDAAHOHOIDAAHOHOIDAAHOHOIDAAHOHOHIDAHOH2IDAHOH2IDAHOH2IDAHOH2IDAHOH2IDAOH3IDAMDPHHIDAOHPHPPAAHA2PPAAHA2PPAAHA3OAAHA3OPDPDOHMPPHPHPHOHP4HPDAOHOHAPDHOPHAOHAHOHOAOHAHOHOAOHAHPHOAOHAPHHOPPHAPPHOPPHAONHOPHA7IDAAHOHOIDAAHOHOIDAAHOHOIDAAHOHOIDAAP3IDAAOPPHIDAAMPPDA7HLDAHOODHLDAHOMBHLDAHOMBHLDAHOMBPPDAHOMBOPDAHOMBMPBAHOMBA7HAOPHOHAHAPPHOHAHAPPHOHAHAHOHOHAP13OP2OPPHMPA8OAAMPA2OAAOPA2OAAOPA2OAAOA2MPOHPDMPOP3DOP5DPPHOHOOAHOHA4HAHAMBMBHAHAMBMBHAHA4HAPDPAPAHOPHPBPBHOP2BPBHOHOMBMBHOHA6HA6HA6HA6HAMPBAPDHAOPDAPHHAPPDAPPHAHLDAHOA31MHODMHMHOPPHOPOHP6HHOHOHOHAHOPPOAHOHOPPOAHOHOPHOAHOHOHAOAHOP3OAP3OPOAOPOPMPOAMPA6OHOMBMBPPHOMBMBPHHOMBMBPPHOMBMBHOHOMBMBHOHOMBMBHOHOMBMBHOA3MBAAHAHLDAHOHAHLDAHOHAHIDAHOHAHIDAHOPDHIDAHOPDHIDAHOODHIDAHOA7HOHOHOHAHOHOHOHAHOHOHOHAHOHOHOHAP5HAPHPHOPHAODPDMPHA2HAAOA7OPA5OHA5ODA43PBA5PBA5PA108HAAOA3HAAOA3HAAOA43HA6HA6HA6HA4MPPDHOHOOPPDHOHOP2DHOHOHAHAHOHOA31HIDAHOGOHIDAHOHOHIDAHOHOHIDAHOHOAAGAHA4HAHA4HAHA4HADA2PPHA4PPHA2MBPPHA2MBAOHA2PHA5IDA5IDA5IDA5MDA5MBA5MBA5MBAAPHAAOBPDHAHOHOOHHAHOHOMPHAHOHOAOHAHOHOP2HP5OHOPPHPHMHMPPDA7HIDAPPHOHLDAOHHOHLDAPPHOHLDAHOHOPPDAHOPPOPDAHOOPMPBAHOMPA6OMPHA2PHOHHA2PHPDHA2MBHA4MBPPHA4PPHA4PPHA14PHAAOA2PHAAOA6OA6PAHA2HAHAHA2HAHAHA2HAHADA76OPA5OHA5ODA167MHPBPHPHOPPDP6DP3HOIDAOAOHPIDAOAOHPIDMPMP2IDOHMHPPIDPDMPHOPPMP2HOPPOP2HOP5HOHAHAAOHOHAHAAOHOPDPDAP3HPHIHOPOP2MDMHMHA3OPOPA3P3A3HOHOA3HOHOA3PPHOHAPHOHPPHAPHP3HAPHPHIJDA2PPMJDA2PPMJDA3OP2A2MP3A2OHP2A2PDMJDA2HAMJDA2POIDHAAOPOIDHAAOHOIDHAAOHOIDHAAOPPIDP4HIDP2HODIDP2DA7MPAOHOMBAOAOHOMBAOAOHOMBAOAOHOMBAOP3MBAOPPOHMBAOPHMDMBA7HOOPHA2HOAOAAPHHOAOAAPHHOAOHAPHP3HA2PHPHHA2ODPDHA10PPMJDA2P4A2OP3A4P2A2MBMJDA2MBMJDA2MBMJBA10"
+-- font data {"A", sprite number, page?, num sprites x, y, width (px), height}
+fontd={	{0,0,1,2,8,16},{1,0,1,2,8,16},{2,0,1,2,8,16},{3,0,1,2,8,16},{4,0,1,2,8,16},{5,0,1,2,8,16},{6,0,1,2,8,16},{7,0,1,2,8,16},{8,0,1,2,7,16},{9,0,1,2,8,16},{10,0,1,2,8,16},{11,0,1,2,8,16},{12,0,2,2,10,16},{14,0,1,2,8,16},{15,0,1,2,8,16},
+		{128,0,1,2,8,16},{129,0,1,2,8,16},{130,0,1,2,8,16},{131,0,1,2,8,16},{132,0,2,2,9,16},{134,0,1,2,8,16},{135,0,1,2,8,16},{136,0,2,2,10,16},{138,0,1,2,8,16},{139,0,1,2,7,16},{140,0,1,2,8,16},{141,0,1,2,8,16},{142,0,1,2,8,16},{143,0,1,2,8,16},
+		{256,0,1,2,8,16},{257,0,1,2,8,16},{258,0,1,2,8,16},{259,0,1,3,8,19},{260,0,1,2,8,16},{261,0,1,2,5,16},{262,0,1,3,6,19},{263,0,1,2,8,16},{264,0,1,2,6,16},{265,0,2,2,10,16},{267,0,1,2,8,16},{268,0,1,2,8,16},{269,0,1,3,8,19},{270,0,1,3,8,19},{271,0,1,2,7,16},
+		{448,0,1,2,8,16},{449,0,1,2,7,16},{450,0,1,2,8,16},{451,0,1,2,8,16},{452,0,2,2,10,16},{454,0,1,2,8,16},{455,0,1,3,8,19},{456,0,1,2,8,16},{457,0,1,2,3,16},{458,0,1,2,3,16},{459,0,1,2,7,16},{460,0,1,2,3,16},{461,0,1,2,7,16},{462,0,1,2,3,16},{463,0,1,2,6,16},
+		{640,0,1,2,8,16},{641,0,1,2,6,16},{642,0,1,2,8,16},{643,0,1,2,8,16},{644,0,1,2,8,16},{645,0,1,2,8,16},{646,0,1,2,8,16},{647,0,1,2,8,16},{648,0,1,2,8,16},{649,0,1,2,8,16},{650,0,1,2,3,16},{651,0,1,2,7,16},{652,0,1,2,8,16},{653,0,2,2,12,16},{655,0,1,2,8,16}
+	}
+
+-- this could be useful for compression later
+font = {}
+chars="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!\'+,-./0123456789:=?# "
+
+-- the rle decoder
+function tomemrle(str)
+  local o=tonumber(str:sub(1,5),16) -- get (o)ffset
+  local w=tonumber(str:sub(6,7),16)*8-1 -- get (w)idth
+  local e=str:sub(8,str:len()) -- remove header to get (e)ncoded data
+  local d = "" -- (d)ecoded data
+  for m, c in e:gmatch("(%u+)([^%u]+)") do -- decode rle, (m)atch & (c)ounter
+    d = d .. m .. (m:sub(-1):rep(c))  
+  end
+  local y=0
+  for x = 1,#d,1 do -- write to mem
+    local c=string.byte(d:sub(x,x))-65 -- get (c)olor value
+    poke4(o+y,c) y=y+1
+    if y>w then y=0 o=o+1024 end
+  end
+end
+
+function font_init()
+	for i=1,#fontd do
+		font[string.sub(chars,i,i)] = fontd[i]
+	end
+end
+
+
+function flength(txt,kx,size)
+	kx = kx or 1
+  size = size or 1
+	pcx = 0
+	letter ={}
+	for i=1,string.len(txt) do
+		letter = font[string.sub(txt,i,i)]
+		-- update kerning
+		pcx = pcx + letter[5]*size + kx
+	end
+	return pcx
+end
+
+-- fprint ("text", x, y, [x kerning = 1],[y kerning = 1], [colour = 15])
+function fprint(txt,tx,ty,kx,ky,tc,size)
+	kx = kx or 1
+	ky = ky or 1
+	tc = tc or 10
+  size = size or 1
+	pcx = 0
+	pcy = 0
+	letter ={}
+	-- set to blit segment (8 = BG-1)
+	poke4(2*0x03ffc,8)
+	-- set colour
+	poke4(2*0x03FF0 + 1, tc)
+	-- print each letter
+	for i=1,string.len(txt) do
+		letter = font[string.sub(txt,i,i)]
+		spr(letter[1],tx+pcx,ty+pcy,0,size,0,0,letter[3],letter[4])
+
+		-- update kerning
+		pcx = pcx + letter[5]*size + kx
+	end
+end
+
+
+return function()
+    -- initialize
+    tomemrle(rle)
+    font_init()
+end
+
+end
+
+rift_effectcirclecolumn=function()
+-- was: effect index = 10
+local CC_p={}
+local CC_sz = 25
+
+return {
+  id='circle_column',
+  boot=function()
+  end,
+  draw=function(data)
+    local it=data.et
+    it=it*tau
+    CC_p={}
+    for i=1,CC_sz^2 do
+     y=i//(CC_sz/2)-CC_sz/2
+     a=(i%CC_sz)/CC_sz*tau
+     d=CC_sz+CC_sz/3*math.cos(y/5+it/4)+FFTH[clamp(i/10+5,0,255)//1]*(i/255)*500-- ifft
+     x=d*sin(a+it/7+sin(y/CC_sz))
+     z=d*cos(a+it/7+sin(y/CC_sz))
+     CC_p[i]={x=x,y=y,z=z}
+    end
+    table.sort(CC_p, function(a,b) return b.z > a.z end)
+    for i=1,#CC_p do
+     if CC_p[i].z > 15+EControl then
+      circ(120+CC_p[i].x*CC_p[i].z/9+20*sin(CC_p[i].y/5),48+CC_p[i].y*CC_p[i].z/5,CC_p[i].z/5,clamp(CC_p[i].z/2,0,15))
+     end
+    end
+  end,
+}
+
+end
+
 rift_effectbrokenegg=function()
 -- was: effect index = 11
 local BE_p={}
@@ -1949,28 +1326,496 @@ return {
 
 end
 
-rift_modifierpixzoom=function()
--- Was: modifier index = 2
+rift_effectparaflower=function()
+-- was: effect index = 12
+local PF_depth = 3
+local PF_t=0
+
 
 return {
-    id='pix_zoom',
+    id='para_flower',
+    boot=function()
+    end,
     draw=function(data)
-        local amount,mc=data.amount,data.mc
+        local it,ifft=data.et,data.bass
+        PF_t=PF_t+1
+        for y=0+(PF_t%4)//1,135,4 do 
+         for x=0,239 do
+          X=x-120
+          Y=y-68
+          a=math.atan(X,Y)
+          d=math.sqrt(X^2+Y^2)
+          pix(x,y,8+8*sin((5*ifft)*sin((PF_depth+EControl)*a+it*tau)+d/10+it))
+         end
+        end
+    end,
+}
 
-        local d=1+2*rand()
-        for i=1,amount do
-            x=240*rand()
-            y=136*rand()
-            a=math.atan(x-120,y-68)
+end
 
-            op=pix(x,y)-mc
-            if op >= 0 then
-                pix(x+d*(sin(a)+sin(t/300)),y+d*(cos(a)+sin(t/300)),op)
-            else
-                pix(x+d*sin(a),y+d*cos(a),0)
+rift_effectrevisionback=function()
+-- was effect index = 16
+
+local cubes ={}
+local cubeLines = {
+    {-1,-1,-1,1,-1,-1},
+    {-1,-1,-1,-1,1,-1},
+    {-1,-1,-1,-1,-1,1},
+
+    {1,-1,-1,1,1,-1},
+    {1,-1,-1,1,-1,1},
+
+    {-1,1,-1,-1,1,1},
+    {-1,1,-1,1,1,-1},
+
+    {1,1,-1,1,1,1},
+
+    {-1,1,1,1,1,1},
+    {-1,1,1,-1,-1,1},
+
+    {-1,-1,1,1,-1,1},
+    {1,1,1,1,-1,1},
+}
+
+return {
+    id='revision_back',
+    boot=function()
+        for i = 1,5 do
+            for j = 1,16 do
+        --      table.insert(cubes,{15*sin(j/16*tau+it+i/13),15*cos(j/16*tau+it+i/13),5+i*4})
+            end
+          end
+        --  cubes[1]={5,5,10}
+    end,
+    draw=function(data)
+        RB_cubes={}
+        for i = 1,5 do
+          for j = 1,16 do
+            table.insert(cubes,{(13+data.bass)*sin((j/16+data.et)*tau+i/15),(13+data.bass)*cos((j/16+data.et)*tau+i/15),10+i*4})
+          end
+        end
+        for i=1,#cubes do
+          for j=1,#cubeLines do
+            local ln=cubeLines[j]
+            
+            local x1=(ln[1]+cubes[i][1]) *99/(cubes[i][3]+ln[3])
+            local y1=(ln[2]+cubes[i][2])*99/(cubes[i][3]+ln[3])
+            local x2=(ln[4]+cubes[i][1])*99/(cubes[i][3]+ln[6])
+            local y2=(ln[5]+cubes[i][2]) *99/(cubes[i][3]+ln[6])
+            line(x1+120,y1+68,x2+120,y2+68,16-cubes[i][3]/2)
+          end
+        end
+    end,
+}
+
+end
+
+rift_overlaysnow=function()
+-- was: overlay index = 5
+
+return {
+  id="snow",
+  boot=function()
+  end,
+  draw=function(data)
+    local it=data.ot
+    for i=0,OControl do
+      circ(rand(240),rand(136),rand(4),it)
+    end
+  end,
+}
+
+end
+
+rift_codestate=function()
+function setEffect(id, config)
+    Effect = EffectsLookup[id]
+    ETimerMode = config.timerMode
+    EDivider = config.divider
+    EPalette = config.palette
+    EStutter = config.stutter
+    EModifier = config.modifier
+    EMControl = config.modControl
+    EMTimerMode = config.modTimerMode
+    EMDivider = config.modDivider
+    ECLS = config.cls
+  end
+  
+  function setOverlay(id, config)
+    Overlay = OverlaysLookup[id]
+    OTimerMode = config.timerMode
+    ODivider = config.divider
+    OControl = config.control
+    OPalette = config.palette
+    OStutter = config.stutter
+    OModifier = config.modifier
+    OCLS = config.cls
+  end
+  
+  SHORTCUTS={}
+  function setNumberShortcut(number, fn)
+    SHORTCUTS[number] = fn
+  end
+  
+  function triggerNumberShortcut(number)
+    if SHORTCUTS[number] ~= nil then
+      SHORTCUTS[number]()
+    end
+  end
+
+--[[
+    Something like this might be useful?
+EffectState={}
+OverlayState={}
+State={}
+
+function EffectState:new()
+    local o={
+        id=nil,
+        timerMode=nil,
+        divider=nil,
+        control=nil,
+        palette=nil,
+        modifier=nil,
+        modTimerMode=nil,
+        modDivider=nil,
+        stutter=nil,
+        cls=nil,
+    },
+
+    setmetatable(o,self)
+    self.__index=self
+    return o
+end
+
+function OverlayState:new()
+    local o={
+        id=nil,
+        timerMode=nil,
+        divider=nil,
+        control=nil,
+        palette=nil,
+        modifier=nil,
+--        modTimerMode=nil,
+--        modDivider=nil,
+        stutter=nil,
+        cls=nil,
+    },
+
+    setmetatable(o,self)
+    self.__index=self
+    return o
+end
+
+
+function State:new(effectState, overlayState)
+    local o={
+        effect=effectState,
+        overlay=overlayState,
+    }
+
+    setmetatable(o,self)
+    self.__index=self
+    return o
+end
+--]]
+
+end
+
+rift_effectvoltest=function()
+-- was: effect index = 0
+return {
+    id='vol_test',
+    boot=function()
+    end,
+    draw=function(data)
+        for i=239,0,-1 do
+            for j=0,135 do
+                pix(i,j,(pix(i+1,j)))
+            end
+        end
+        line(239,0,239,136,0)
+
+        print("TIME",0,20,3)
+        pix(239,20+data.t/1000,3)
+        print("TBEAT",0,50,6)
+        pix(239,60+data.bt,6)
+        print("TBASS",0,80,9)
+        pix(239,100+data.bass,9)
+        print("TBASSC",0,110,12)
+        pix(239,110+data.bassc/100,12)
+    end,
+}
+
+end
+
+rift_effecttwistfft=function()
+-- was: effect index = 1
+
+local TF_size=200
+return {
+    id='twist_fft',
+    boot=function()
+    end,
+    draw=function(data)
+        local it=data.et*10*EControl
+        -- lets do the twist again
+        for i=0,239 do
+            local x=(i-it//1)%240
+            local fhx = (FFTH[(x-1)%240]+FFTH[(x)%240]+FFTH[(x+1)%240])/3*(.9+x/60)
+            local a=sin(it/10)* x/80
+        
+            local d=TF_size*fhx+5+5*BASS
+        
+            local cy = 68+10*BASS*sin(i/110+ it/12)
+        
+            local y1=d*sin(a)
+            local y2=d*sin(a + tau/4)
+            local y3=d*sin(a + tau/2)
+            local y4=d*sin(a + tau*3/4)
+        
+            d=d/4
+        
+            if y1 < y2 then
+                line(i,cy+y1,i,cy+y2,clamp(d,0,15))
+            end
+            if y2 < y3 then
+                line(i,cy+y2,i,cy+y3,clamp(d+1,0,15))
+            end
+            if y3 < y4 then
+                line(i,cy+y3,i,cy+y4,clamp(d+2,0,15))
+            end
+            if y4 < y1 then
+                line(i,cy+y4,i,cy+y1,clamp(d+3,0,15))
             end
         end
     end,
+    bdr=function(l)
+        local lm=68-abs(68-l)
+        for i=0,47 do
+            poke(16320+i,clamp(sin(i)^2*i*lm/5.5,0,255))
+        end
+    end,
+}
+
+end
+
+rift_effecttunnelwall=function()
+-- was: effect index = 6
+return {
+  id='tunnel_wall',
+  boot=function()
+  end,
+  draw=function(data)
+    local it,ifft=data.et,data.mid
+    it=it/2
+   for x=0,239 do
+    for y=0,135 do
+      sx=x-120*sin(it)
+      sy=y-68 
+      r=99+50*sin(it/3) - EControl*2
+      s=sin(it)
+      c=cos(it)
+      X=(sx*s-sy*c)
+      Y=(sy*s+sx*c)
+      k=X%r-r/2
+      l=Y%r-r/2
+      a=math.atan2(k,l)
+      e=(k*k+l*l)^.5  
+      K=X//r 
+      L=Y//r 
+      ff = clamp(abs(K+L)//1 + 10,0,255)
+      ff = FFTH[ff]*.2+K
+      pix(x,y,((99/e)*2*sin(it*ff+K+L)-a*2.55)%(8)+K+L*4)
+    end
+   end
+  end,
+}
+
+end
+
+rift_effectproxima=function()
+-- was: effect index = 14
+
+PR_p={}
+PR_np=127
+PR_tc=0
+
+return {
+    id='proxima',
+    boot=function()
+        for i=0,PR_np do
+            PR_p[i]={x=rand(240.0),y=rand(136.0),sx=rand(10.0)-5,sy=rand(10.0)-5}
+        end
+    end,
+    draw=function(data)
+        local it=data.et
+        local n = 255//PR_np
+        
+        local q={}
+        for i=0,PR_np do
+            local v=PR_p[i]
+            v.x=(v.x+v.sx/5*sin(i/10+it)*it)%240
+            v.y=(v.y+v.sy/8*sin(i/11+it)*it)%136
+            q[i]=v
+        end
+        --table.sort(q, function (a,b) return a.x < b.x end)
+        for i=0,PR_np do
+            local v=q[i]
+            local fi=FFTH[i]*(.15+i/60) * EControl
+            pix(v.x,v.y,fi*500)
+            
+            for j=i,PR_np do
+                local w=q[j] -- why not q[j]?
+                local d=(v.x-w.x)^2 + (v.y-w.y)^2
+                d=d^.5
+                n=(i+j)/2
+                local fj=FFTH[j]*(.15+j/60) * EControl
+                ft = (fi + fj)
+                if d < ft * 100 and i ~= j then
+                    line(v.x,v.y,w.x,w.y,ft*100)
+                    for l=j,PR_np do
+                        local z=q[l] -- q?  
+                        d=(v.x-z.x)^2 + (v.y-z.y)^2
+                        d=d^.5
+                        local fl = FFTH[l]*(.15+l/60) * EControl
+                        local ft = fi + fj + fl
+                        if d < ft * 25 and l ~= j and l ~= i then
+                            tri(v.x,v.y,w.x,w.y,z.x,z.y,ft*100)
+                            goto continue
+                        end
+                    end
+                end
+            end
+            ::continue::
+        end
+    end,
+}
+
+end
+
+rift_effectlemons=function()
+-- Was effect index = 15
+
+local LE_points={}
+local LE_lines={}
+local LE_columns={}
+local LE_rd={}
+local LE_np=15
+local LE_nl=15
+local LE_nc=5
+return {
+  id='lemons',
+  boot=function()
+    for i=1,LE_nl do
+      local lp={}
+      for j=1,LE_np do
+        lp[j]=5*rand()
+      end
+      LE_rd[i]=lp
+      end
+  end,
+  draw=function(data)
+    local it=data.et
+    local h=0
+    local n=0
+  
+    numlem = clamp(LE_nc+EControl,1,20)
+  
+    local ccp={}
+    it=it*tau
+    for h=1,numlem do
+      local a = h/numlem * tau
+      ccp[h]={x=100*sin(a+it/7), y=0, z=30*cos(a+it/7), n=h}
+    end
+    table.sort(ccp, function (a,b) return a.z<b.z end)
+    
+    
+    for h=1,numlem do
+      LE_lines={}
+      fftl=FFTH
+      for i=1,LE_nl do
+      local lp={}
+      for j=1,LE_np do
+        local a = j/LE_np * tau
+        local p={x=(20+LE_rd[i][j]+fftl[i]*10)*sin(a+it)*sin(i/LE_nl*math.pi),
+                y=(i-(LE_nl/2))*4,
+                z=(20+LE_rd[i][j]+fftl[i]*10)*cos(a+it)*sin(i/LE_nl*math.pi)}
+        a = it/4+h
+        lp[j]={x=p.x*sin(a)-p.y*cos(a),
+              y=p.y*sin(a)+p.x*cos(a),
+              z=p.z}
+      end
+      LE_lines[i]=lp
+      end
+      LE_columns[h]=LE_lines
+    end 
+    
+    for k=1,numlem do
+      if ccp[k].z >-23 then
+      h=ccp[k].n
+      for i=1,LE_nl do
+        for j=1,LE_np-1 do
+        sp=LE_columns[h][i][j]
+        ep=LE_columns[h][i][j+1]
+        
+        if(sp.z+ep.z)>0 then
+          sz=sp.z-100+ccp[k].z
+          ez=ep.z-100+ccp[k].z
+          sx=120+sp.x*99/sz+ccp[k].x
+          sy=68+sp.y*99/sz+ccp[k].y
+          ex=120+ep.x*99/ez+ccp[k].x
+          ey=68+ep.y*99/ez+ccp[k].y
+          line(sx,sy,ex,ey,ez/8)
+        end
+        --pix(120+sp.x*99/sz,68+sp.y*99/sz,12)
+        end
+        sp=LE_columns[h][i][LE_np]
+        ep=LE_columns[h][i][1]
+        if(sp.z+ep.z)>0 then
+          sz=sp.z-100+ccp[k].z
+          ez=ep.z-100+ccp[k].z
+          sx=120+sp.x*99/sz+ccp[k].x
+          sy=68+sp.y*99/sz+ccp[k].y
+          ex=120+ep.x*99/ez+ccp[k].x
+          ey=68+ep.y*99/ez+ccp[k].y
+        line(sx,sy,ex,ey,ez/8)
+        end
+    --  line(minx,miny,maxx,maxy,1)
+      end
+      end
+    end
+  end,
+}
+
+
+end
+
+rift_overlaysmokecircles=function()
+-- was: overlay index = 6
+local SC_p={}
+local SC_np = 99
+
+return {
+  id="smoke_circles",
+  boot=function()
+    for i=0,SC_np do
+      SC_p[i]={x=4-8*rand(),y=4-8*rand(),z=20*rand()}
+    end
+  end,
+  draw=function(data)
+    local it,ifft=data.ot,data.ot
+    local tt=it*5
+    for i=0,SC_np do
+      local z=(SC_p[i].z+tt)%20
+      local x=SC_p[i].x
+      local y=SC_p[i].y
+      local t2=-(1-z/9)
+      local X=x*cos(t2)-y*sin(t2)
+      local Y=y*cos(t2)+x*sin(t2)
+      circ(120+X*z,68+Y*z,20-z,15-(z/1.5))
+    end  
+  end,
 }
 
 end
@@ -2004,6 +1849,256 @@ return {
 
 end
 
+rift_modifierrotvert=function()
+-- Was: modifier index = 7
+
+return {
+  id='rot_vert',
+  draw=function(data)
+    local amount,mt,mc=data.amount,data.mt,data.mc
+    dir=1
+    local lines = 0
+    if mc == 0 then
+      lines = mt%5//1
+    else
+      if mc < 0  then
+        dir = -1
+      end
+      --lines = abs(mc)*(mt%4+1)//1
+      lines = (abs(mc)*(mt+1)//1)%136
+    end
+  
+    if dir == 1 then
+      -- going down
+      memcpy(0x8000,(135-lines)*120,120*lines)
+      for y=135-lines,0,-1 do
+       memcpy((y+lines)*120,y*120,120)
+      end
+      memcpy(0,0x8000,120*lines)
+    elseif dir == -1 then
+      -- going up
+      memcpy(0x8000,0,120*lines)
+      for y=0,135-lines do
+        memcpy(y*120,(y+lines)*120,120)
+       end
+       memcpy((136-lines)*120,0x8000,120*lines)
+   
+    end  
+  end,
+}
+
+end
+
+rift_modifiersftvert=function()
+-- Was: modifier index = 9
+
+return {
+    id='sft_vert',
+    draw=function(data)
+        local amount,mt,mc=data.amount,data.mt,data.mc
+
+        dir=1
+        local lines = 0
+        if mc == 0 then
+            lines = mt%5//1
+        else
+            if mc < 0  then
+                dir = -1
+            end
+            --    lines = abs(mc)*(mt%4+1)//1
+            lines = (abs(mc)*(mt+1)//1)%136
+        end
+
+        if dir == 1 then
+            -- going down
+            for y=135-lines,0,-1 do
+                memcpy((y+lines)*120,y*120,120)
+            end
+            memset(0,0,120*lines)
+        elseif dir == -1 then
+            -- going up
+            for y=0,135-lines do
+                memcpy(y*120,(y+lines)*120,120)
+            end
+            memset((136-lines)*120,0,120*lines)
+        end
+    end,
+}
+
+end
+
+rift_modifiersfthorz=function()
+-- Was: modifier index = 10
+
+return {
+    id='sft_horz',
+    draw=function(data)
+      local amount,mt,mc=data.amount,data.mt,data.mc
+
+        dir=1
+        local pixels = 0
+        if mc == 0 then
+            pixels = mt%5//1
+        else
+            if mc < 0  then
+                dir = -1
+            end
+            --pixels = abs((mc*mt)%120)
+            --pixels = (abs(mc)+(mt*2))%120
+            pixels = (abs(mc)*(mt+1)//1)%120
+        end
+
+        if dir ==1 then
+            -- going right
+            for y=0,135 do
+                -- take the whole line
+                memcpy(0x8000,y*120, 120)
+
+                -- put it back in two sections
+                memcpy(y*120+pixels,0x8000, 120-pixels)
+                memset(y*120,0, pixels)
+            end
+        else
+            -- going left
+            for y=0,135 do
+                -- take the whole line
+                memcpy(0x8000,y*120, 120)
+
+                -- put it back in two sections
+                memset(y*120+(120-pixels),0, pixels)
+                memcpy(y*120,0x8000+pixels, 120-pixels)
+            end
+        end
+    end,
+}
+
+end
+
+rift_effectswirltunnel=function()
+-- was: effect index = 8
+return {
+	id='swirl_tunnel',
+	boot=function()
+	end,
+	draw=function(data)
+		local it,ifft=data.et,data.bass
+		it=it/10
+		k=sin(it*tau)*99
+		l=sin(it*tau*2)*49
+		for i=0,32639 do
+			x=i%240-k-120
+			y=i/240-l-68
+			u=m.atan2(y,x)
+			d=(x*x+y*y)^.5
+			v=99/d
+			 c=sin(v+(u+sin(v)*sin(ifft/4)*tau)+t/1000)+1
+			poke4(i,clamp(c*8-c*((138-d)/138),0,15))
+		end
+	end,
+}
+
+end
+
+rift_overlaybobs=function()
+-- was: overlay index = 8
+
+return {
+    id="bobs",
+    boot=function()
+    end,
+    draw=function(data)
+      local it=data.ot
+      for i=0,99 do
+        local j=i/12
+        local x=10*sin(pi*j+it)
+        local y=10*cos(pi*j+it)
+        local z=10*sin(pi*j)
+        local X=x*sin(it)-z*cos(it)
+        local Z=x*cos(it)+z*sin(it)
+        circ(120+X*Z,68+y*Z,Z,OControl*data.mid)
+      end
+    end,
+}
+
+end
+
+rift_overlayspiral=function()
+-- was: overlay index = 7
+
+return {
+    id="spiral",
+    boot=function()
+    end,
+    draw=function(data)
+        local it,ifft=data.ot,data.ot
+        local tt=it*30
+        for i=0,200 do
+            local j=(i/10+tt)%120
+            local i2=i/20
+            i2=i2*i2
+            local z=j+i2
+            local X=sin(j)*z
+            local Y=cos(j)*z
+            circ(120+X,68+Y,z/10-OControl*2,clamp(15*j/120,0,15))
+        end
+    end,
+}
+
+end
+
+rift_modifierpixnoise=function()
+-- Was: modifier index = 1
+
+return {
+    id='pix_noise',
+    draw=function(data)
+      local amount,mc=data.amount,data.mc
+
+        for i=0,amount do
+            x=rand(240)-1
+            y=rand(136)-1
+            pix(x,y,clamp(pix(x,y)-mc,0,15))
+        end
+    end,
+}
+
+end
+
+rift_modifierpixmotionblur=function()
+-- Was: modifier index = 5
+
+local PMBsize = 20
+return {
+    id='pix_motion_blur',
+    draw=function(data)
+        local amount,mt,mc=data.amount,data.mt,data.mc
+
+        local size=PMBsize+(mt)%5
+        local limit=50 + mc
+        for i=0,amount/4 do
+            d=2+size+rand(limit)
+            a=rand()*tau
+            x=d*sin(a)
+            y=d*cos(a)
+            if x >= -119 and x <= 118 and y >=-67 and y <= 66 then
+                pix(120+x,68+y,clamp(((pix(120+x,68+y)+pix(120+x-1,68+y-1)+pix(120+x+1,68+y-1)+pix(120+x-1,68+y+1)+pix(120+x+1,68+y+1))/4.8),0,15))
+            end
+        end
+
+        for i=0,amount do
+            d=size+rand(limit)
+            a=rand()*tau
+            x=d*sin(a)
+            y=d*cos(a)
+            if x >= -120 and x <= 119 and y >=-68 and y <= 67 then
+                pix(120+x,68+y,pix(120+(d-1)*sin(a),68+(d-1)*cos(a)))
+            end
+        end
+    end,
+}
+
+end
+
 -- title:  goto80 lovebyte2024
 -- author: mantratronic + ps
 -- desc:   vj80
@@ -2025,6 +2120,7 @@ Texts={
 }
 
 rift_codeglobals()
+rift_codestate()
 rift_debugfakefft()
 FontBoot=rift_codefont()
 
@@ -2050,24 +2146,6 @@ Effects={
   rift_effectbitnick(),
   rift_effectworms(),
 }
-
-EffectsLookup={}
-OverlaysLookup={}
-ModifiersLookup={}
-
-function MakeLookups()
-  for i,effect in ipairs(Effects) do
-    EffectsLookup[effect.id]=i
-  end
-
-  for i,overlay in ipairs(Overlays) do
-    OverlaysLookup[overlay.id]=i
-  end
-
-  for i,modifier in ipairs(Modifiers) do
-    ModifiersLookup[modifier.id]=i
-  end
-end
 
 -- overlays follow the template: {id='', boot=function(), draw=function(), bdr=function()}
 Overlays = {
@@ -2099,6 +2177,24 @@ Modifiers={
   rift_modifierpostsquares(),
   rift_modifierlinescratch(),
 }
+
+EffectsLookup={}
+OverlaysLookup={}
+ModifiersLookup={}
+
+function MakeLookups()
+  for i,effect in ipairs(Effects) do
+    EffectsLookup[effect.id]=i
+  end
+
+  for i,overlay in ipairs(Overlays) do
+    OverlaysLookup[overlay.id]=i
+  end
+
+  for i,modifier in ipairs(Modifiers) do
+    ModifiersLookup[modifier.id]=i
+  end
+end
 
 NumModes=8
 NumPalettes=13
@@ -3017,9 +3113,7 @@ function KEY_CHECK()
  --if keyp(51) == true then
  -- exit()
  --end
- 
 end
-
 
 function BDR(l)
  vbank(0)
@@ -3050,10 +3144,32 @@ function BOOT()
   MakeLookups()
 
   GigSetup.boot()
+  TicRun=TICstartup
 end
 
 function TIC()
-	
+  TicRun()
+end
+
+function TICstartup()
+  cls()
+  print("VJ80",105,0,12)
+  if keyp(48) then
+    TicRun=TICvj
+  end
+  for i,effect in ipairs(Effects) do
+    print(effect.id,0,8+i*6,13)
+  end
+  for i,overlay in ipairs(Overlays) do
+    print(overlay.id,80,8+i*6,13)
+  end
+  for i,modifier in ipairs(Modifiers) do
+    print(modifier.id,160,8+i*6,13)
+  end
+  print("Space to start", 80,128,12)
+end
+
+function TICvj()
  -- remove mouse pointer but doesnt
  poke(0x3ffb,4)
 	
@@ -3216,40 +3332,6 @@ elseif OMTimerMode == THIGH then
 
 end
 
-function setEffect(id, config)
-  Effect = EffectsLookup[id]
-  ETimerMode = config.timerMode
-  EDivider = config.divider
-  EPalette = config.palette
-  EStutter = config.stutter
-  EModifier = config.modifier
-  EMControl = config.modControl
-  EMTimerMode = config.modTimerMode
-  EMDivider = config.modDivider
-  ECLS = config.cls
-end
-
-function setOverlay(id, config)
-  Overlay = OverlaysLookup[id]
-  OTimerMode = config.timerMode
-  ODivider = config.divider
-  OControl = config.control
-  OPalette = config.palette
-  OStutter = config.stutter
-  OModifier = config.modifier
-  OCLS = config.cls
-end
-
-SHORTCUTS={}
-function setNumberShortcut(number, fn)
-  SHORTCUTS[number] = fn
-end
-
-function triggerNumberShortcut(number)
-  if SHORTCUTS[number] ~= nil then
-    SHORTCUTS[number]()
-  end
-end
 
 -- <TILES2>
 -- 000:000000000000000000000000000000000cffffff0cffffff0cffffff0cffffff

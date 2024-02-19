@@ -2,7 +2,7 @@
 local FC_osize=20
 
 return {
-  id='xxxx',
+  id='fft_circ',
   boot=function()
   end,
   draw=function(data)

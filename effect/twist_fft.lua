@@ -1,0 +1,47 @@
+-- was: effect index = 1
+
+local TF_size=200
+return {
+    id='twist_fft',
+    boot=function()
+    end,
+    draw=function(data)
+        it=it*10*EControl
+        -- lets do the twist again
+        for i=0,239 do
+            local x=(i-it//1)%240
+            local fhx = (FFTH[(x-1)%240]+FFTH[(x)%240]+FFTH[(x+1)%240])/3*(.9+x/60)
+            local a=sin(it/10)* x/80
+        
+            local d=TF_size*fhx+5+5*BASS
+        
+            local cy = 68+10*BASS*sin(i/110+ it/12)
+        
+            local y1=d*sin(a)
+            local y2=d*sin(a + tau/4)
+            local y3=d*sin(a + tau/2)
+            local y4=d*sin(a + tau*3/4)
+        
+            d=d/4
+        
+            if y1 < y2 then
+            line(i,cy+y1,i,cy+y2,mm(d,0,15))
+            end
+            if y2 < y3 then
+            line(i,cy+y2,i,cy+y3,mm(d+1,0,15))
+            end
+            if y3 < y4 then
+            line(i,cy+y3,i,cy+y4,mm(d+2,0,15))
+            end
+            if y4 < y1 then
+            line(i,cy+y4,i,cy+y1,mm(d+3,0,15))
+            end
+        end
+    end,
+    bdr=function(l)
+        local lm=68-abs(68-l)
+        for i=0,47 do
+            poke(16320+i,mm(sin(i)^2*i*lm/5.5,0,255))
+        end
+    end,
+}

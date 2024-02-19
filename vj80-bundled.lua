@@ -1,11 +1,880 @@
+-- Assembled by the RiFT bundler
+
+rift_effecttwistfft=function()
+-- was: effect index = 1
+
+local TF_size=200
+return {
+    id='twist_fft',
+    boot=function()
+    end,
+    draw=function(data)
+        it=it*10*EControl
+        -- lets do the twist again
+        for i=0,239 do
+            local x=(i-it//1)%240
+            local fhx = (FFTH[(x-1)%240]+FFTH[(x)%240]+FFTH[(x+1)%240])/3*(.9+x/60)
+            local a=sin(it/10)* x/80
+        
+            local d=TF_size*fhx+5+5*BASS
+        
+            local cy = 68+10*BASS*sin(i/110+ it/12)
+        
+            local y1=d*sin(a)
+            local y2=d*sin(a + tau/4)
+            local y3=d*sin(a + tau/2)
+            local y4=d*sin(a + tau*3/4)
+        
+            d=d/4
+        
+            if y1 < y2 then
+            line(i,cy+y1,i,cy+y2,mm(d,0,15))
+            end
+            if y2 < y3 then
+            line(i,cy+y2,i,cy+y3,mm(d+1,0,15))
+            end
+            if y3 < y4 then
+            line(i,cy+y3,i,cy+y4,mm(d+2,0,15))
+            end
+            if y4 < y1 then
+            line(i,cy+y4,i,cy+y1,mm(d+3,0,15))
+            end
+        end
+    end,
+    bdr=function(l)
+        local lm=68-abs(68-l)
+        for i=0,47 do
+            poke(16320+i,mm(sin(i)^2*i*lm/5.5,0,255))
+        end
+    end,
+}
+
+end
+
+rift_effectswirltunnel=function()
+--[[
+SwirlTunnel = 8
+
+function SwirlTunnel_DRAW(it,ifft)
+  it=it/10
+  k=sin(it*tau)*99
+  l=sin(it*tau*2)*49
+  for i=0,32639 do
+	  x=i%240-k-120
+	  y=i/240-l-68
+	  u=m.atan2(y,x)
+	  d=(x*x+y*y)^.5
+	  v=99/d
+	   c=sin(v+(u+sin(v)*sin(ifft/4)*tau)+t/1000)+1
+	  poke4(i,mm(c*8-c*((138-d)/138),0,15))
+  end
+end
+--]]
+
+end
+
+rift_effectbrokenegg=function()
+--[[
+BrokenEgg = 11
+BE_p={}
+BE_sz=25
+BE_depth=5
+
+function BrokenEgg_DRAW(it,ifft)
+ BE_p={}
+ it=it*tau*(EControl+.5)
+ for i=1,BE_sz^2 do
+  y=i//(BE_sz/2)-BE_sz/2 + FFTH[mm((i/10)%256,0,255)//1]*100*i/255
+  a=(i%BE_sz)/BE_sz*tau
+  d=BE_sz/2*sin(it/BE_depth)+BE_sz*sin(y/BE_sz)
+  x=d*sin(a+it/13)
+  z=d*cos(a+it/13)
+  a2=it/11
+  BE_p[i]={x=x*cos(a2)-y*sin(a2),y=y*cos(a2)+x*sin(a2),z=z}
+ end
+ for i=2,#BE_p do
+  line(120+BE_p[i].x*BE_p[i].z/9+20*sin(BE_p[i].y/5),
+       58+BE_p[i].y*BE_p[i].z/9,
+       120+BE_p[i-1].x*BE_p[i-1].z/9+20*sin(BE_p[i-1].y/5),
+       58+BE_p[i-1].y*BE_p[i-1].z/9,
+       mm((abs(BE_p[i-1].z)+abs(BE_p[i].z))/2,0,15))
+ end
+end
+--]]
+
+end
+
+rift_effectproxima=function()
+-- was: effect index = 14
+
+PR_p={}
+PR_np=127
+PR_tc=0
+
+return {
+    id='proxima',
+    boot=function()
+        for i=0,PR_np do
+            PR_p[i]={x=rand(240.0),y=rand(136.0),sx=rand(10.0)-5,sy=rand(10.0)-5}
+        end
+    end,
+    draw=function(data)
+    local it=data.et
+    local n = 255//PR_np
+    
+    local q={}
+    for i=0,PR_np do
+        local v=PR_p[i]
+        v.x=(v.x+v.sx/5*sin(i/10+it)*it)%240
+        v.y=(v.y+v.sy/8*sin(i/11+it)*it)%136
+        q[i]=v
+    end
+    --table.sort(q, function (a,b) return a.x < b.x end)
+    for i=0,PR_np do
+        local v=q[i]
+        local fi=FFTH[i]*(.15+i/60) * EControl
+        pix(v.x,v.y,fi*500)
+        
+        for j=i,PR_np do
+        local w=q[j] -- why not q[j]?
+        local d=(v.x-w.x)^2 + (v.y-w.y)^2
+        d=d^.5
+        n=(i+j)/2
+        local fj=FFTH[j]*(.15+j/60) * EControl
+        ft = (fi + fj)
+        if d < ft * 100 and i ~= j then
+        line(v.x,v.y,w.x,w.y,ft*100)
+        for l=j,PR_np do
+            local z=q[l] -- q?  
+        d=(v.x-z.x)^2 + (v.y-z.y)^2
+        d=d^.5
+        local fl = FFTH[l]*(.15+l/60) * EControl
+        local ft = fi + fj + fl
+        if d < ft * 25 and l ~= j and l ~= i then
+            tri(v.x,v.y,w.x,w.y,z.x,z.y,ft*100)
+            goto continue
+        end
+        end
+        end
+        end
+        ::continue::
+    end
+end,
+}
+
+end
+
+rift_effectfftcirc=function()
+FFTCirc = 13
+FC_osize=20
+
+function FFTCirc_DRAW(it,ifft)
+  size=FC_osize+ifft*2 + EControl
+
+  tt=it
+  for t=0,255 do
+   a=(t/255+tt)*tau
+   k=t//3
+   c=((FFTH[(k-1)%256]+FFTH[(k+1)%256])/2+FFTH[k])*600*((k/255)*1.5+.015)
+
+   x=(size)*sin(a)
+   y=(size)*cos(a)
+   x1=(size+c/4*EControl)*sin(a)
+   y1=(size+c/4*EControl)*cos(a)
+   --pix(120+x,68+y,1+c)
+   line(120+x,68+y,120+x1,68+y1,1+min(14,c))
+  end
+end
+
+end
+
+rift_effectbitnick=function()
+--[[
+Bitnick = 17
+
+function Bitnick_DRAW(it,ifft)
+   math.randomseed(2)
+   local tt=(t/OControl)
+   for x=0,51 do
+				local w=math.random()*70+30
+				local h=math.random()*20+10
+				local posx=(math.random()*240+(tt/w*4)*x/20)%(240+w+x)-w
+				local posy=math.random()*(136+h)-h
+				local col=math.random()*2+math.cos(tt/2000)*2+5
+				
+				clip(posx,posy,w,h)
+				for i=posx,posx+w do
+						circ(i,posy+i//1%h,w/(col+16),col+i/300)
+				end
+				clip()
+			end
+end
+
+--]]
+
+end
+
+rift_overlaysmileyfaces=function()
+-- was: overlay index = 3
+
+local NumSmilyFaces = 30
+local SmilyFaces_xysr = {}
+
+return {
+    id="smiley_faces",
+    boot=function()
+        for i=1,NumSmilyFaces do
+            SmilyFaces_xysr[i]={rand(300),rand(200)-32,rand(20)+10,rand()*tau}
+        end
+        table.sort(SmilyFaces_xysr, function (a,b) return a[3]<b[3] end)
+    end,
+    draw=function(data)
+        nsf = mm(OControl,1,NumSmilyFaces)
+        for i=1,nsf do
+         local sm=SmilyFaces_xysr[i]
+         x=(sm[1])%300 - 30
+         y=(sm[2]+FFTC[i]*2*i^0.8)%200 - 32
+         s=(sm[3])
+         a=sin(FFTC[i]*2)-tau/4
+       
+         ds = s/20
+         x1=9*sin(a)-7*cos(a)
+         y1=9*cos(a)+7*sin(a)
+         x2=-9*sin(a)-7*cos(a)
+         y2=-9*cos(a)+7*sin(a)
+         circ(x,y,s,(i%15)+1)
+         circ(x+x1*ds,y+y1*ds,4*ds,0)
+         circ(x+x2*ds,y+y2*ds,4*ds,0)
+         l=15*ds
+         for j=-l,l do
+          circ(x+12*ds*sin(j/l+a+tau/4),y+10*ds*cos(j/l+a+tau/4),1,0)
+         end
+        end
+    end,
+}
+
+end
+
+rift_effectchladni=function()
+--[[
+    Chladni = 9
+ChN=2000
+ChNP=3
+ChV=0.5
+ChPV=-.2
+Chd=1
+ChPX={}
+ChPY={}
+ChT=0 
+ChTT=0
+ChPTX={}
+ChPTY={}
+Chfreq=.75
+ChNPKD = 15
+
+function ChResetPoints(it)
+ for i=1,ChNP do
+  ChPTX[i]=120-ChNPKD/2+ChNPKD*i/3+30*sin(it/20+ i/ChNP * 2 * pi)
+  ChPTY[i]=68-ChNPKD/2+ChNPKD*i/3+26*cos(it/20+i/ChNP * 2 * pi)
+ end
+end
+
+function Chladni_BOOT()
+   ChResetPoints(0)
+   for i=1,ChN do
+    ChPX[i] = rand(240);
+    ChPY[i] = rand(136);
+   end
+end
+
+function Chladni_DRAW(it,ifft)
+  ChT=it--ChT+.2
+  ChTT=(it*10)//1--ChTT+1
+  ChResetPoints(it)
+  
+  if ChTT%100 == 0 then
+   ChNP = 3 + EControl*rand()
+   Chfreq = .3 + rand()
+   ChNPKD = 10 + 30*rand()
+   Chladni_BOOT()
+  end
+ 
+  for i=1,ChN do
+   R=0
+   D=0
+   C=0
+   for j=1,ChNP do
+    sx = ChPTX[j]
+    sy = ChPTY[j]
+    
+    L=math.sqrt((ChPX[i]-sx)^2 + (ChPY[i]-sy)^2)
+    C=C + sin(tau*Chfreq*(ChT-(L/ChV))/60)
+ 
+    L=math.sqrt((ChPX[i]+d-sx)^2 + (ChPY[i]-sy)^2)
+    R=R + sin(tau*Chfreq*(ChT-(L/ChV))/60)
+ 
+    L=math.sqrt((ChPX[i]-sx)^2 + (ChPY[i]+Chd-sy)^2)
+    D=D + sin(tau*Chfreq*(ChT-(L/ChV))/60)
+   end
+   C=math.abs(C)
+   R=math.abs(R)
+   D=math.abs(D)
+  
+   circ(ChPX[i],ChPY[i],4-C*2,(1.5-C)*10)
+   
+   L=math.sqrt((R-C)^2 + (D-C)^2)
+   
+   ChPX[i]=ChPX[i] + (ChPV * (R-C)/L)
+   ChPY[i]=ChPY[i] + (ChPV * (D-C)/L)
+   
+   if ChPX[i] < 0 or ChPX[i] > 240 or ChPY[i] < 0 or ChPY[i] > 136 or C <0.0025 then
+    ChPX[i] = rand(240);
+    ChPY[i] = rand(136);
+   end 
+  end
+  
+  for i=1,ChNP do
+   line(ChPTX[i],ChPTY[i]-2,ChPTX[i],ChPTY[i]+2,15)
+   line(ChPTX[i]-2,ChPTY[i],ChPTX[i]+2,ChPTY[i],15)
+   --circ(ChPTX[i],ChPTY[i],4,15)
+  end
+end
+--]]
+
+end
+
+rift_effectcirclecolumn=function()
+--[[
+CircleColumn = 10
+
+CC_p={}
+CC_sz = 25
+
+function CircleColumn_DRAW(it,ifft)
+  it=it*tau
+  CC_p={}
+  for i=1,CC_sz^2 do
+   y=i//(CC_sz/2)-CC_sz/2
+   a=(i%CC_sz)/CC_sz*tau
+   d=CC_sz+CC_sz/3*math.cos(y/5+it/4)+FFTH[mm(i/10+5,0,255)//1]*(i/255)*500-- ifft
+   x=d*sin(a+it/7+sin(y/CC_sz))
+   z=d*cos(a+it/7+sin(y/CC_sz))
+   CC_p[i]={x=x,y=y,z=z}
+  end
+  table.sort(CC_p, function(a,b) return b.z > a.z end)
+  for i=1,#CC_p do
+   if CC_p[i].z > 15+EControl then
+    circ(120+CC_p[i].x*CC_p[i].z/9+20*sin(CC_p[i].y/5),48+CC_p[i].y*CC_p[i].z/5,CC_p[i].z/5,mm(CC_p[i].z/2,0,15))
+   end
+  end
+end
+--]]
+
+end
+
+rift_effectparaflower=function()
+--[[
+ParaFlower = 12
+
+PF_depth = 3
+PF_t=0
+function ParaFlower_DRAW(it,ifft)
+ PF_t=PF_t+1
+ for y=0+(PF_t%4)//1,135,4 do 
+  for x=0,239 do
+   X=x-120
+   Y=y-68
+   a=math.atan(X,Y)
+   d=math.sqrt(X^2+Y^2)
+   pix(x,y,8+8*sin((5*ifft)*sin((PF_depth+EControl)*a+it*tau)+d/10+it))
+  end
+ end
+end
+--]]
+
+end
+
+rift_effectlemons=function()
+-- Was effect index = 15
+
+LE_points={}
+LE_lines={}
+LE_columns={}
+LE_rd={}
+LE_np=15
+LE_nl=15
+LE_nc=5
+return {
+  id='lemons',
+  boot=function()
+    for i=1,LE_nl do
+      local lp={}
+      for j=1,LE_np do
+        lp[j]=5*rand()
+      end
+      LE_rd[i]=lp
+      end
+  end,
+  draw=function(data)
+    local it=data.et
+    local h=0
+    local n=0
+  
+    numlem = mm(LE_nc+EControl,1,20)
+  
+    local ccp={}
+    it=it*tau
+    for h=1,numlem do
+      local a = h/numlem * tau
+      ccp[h]={x=100*sin(a+it/7), y=0, z=30*cos(a+it/7), n=h}
+    end
+    table.sort(ccp, function (a,b) return a.z<b.z end)
+    
+    
+    for h=1,numlem do
+      LE_lines={}
+      fftl=FFTH
+      for i=1,LE_nl do
+      local lp={}
+      for j=1,LE_np do
+        local a = j/LE_np * tau
+        local p={x=(20+LE_rd[i][j]+fftl[i]*10)*sin(a+it)*sin(i/LE_nl*math.pi),
+                y=(i-(LE_nl/2))*4,
+                z=(20+LE_rd[i][j]+fftl[i]*10)*cos(a+it)*sin(i/LE_nl*math.pi)}
+        a = it/4+h
+        lp[j]={x=p.x*sin(a)-p.y*cos(a),
+              y=p.y*sin(a)+p.x*cos(a),
+              z=p.z}
+      end
+      LE_lines[i]=lp
+      end
+      LE_columns[h]=LE_lines
+    end 
+    
+    for k=1,numlem do
+      if ccp[k].z >-23 then
+      h=ccp[k].n
+      for i=1,LE_nl do
+        for j=1,LE_np-1 do
+        sp=LE_columns[h][i][j]
+        ep=LE_columns[h][i][j+1]
+        
+        if(sp.z+ep.z)>0 then
+          sz=sp.z-100+ccp[k].z
+          ez=ep.z-100+ccp[k].z
+          sx=120+sp.x*99/sz+ccp[k].x
+          sy=68+sp.y*99/sz+ccp[k].y
+          ex=120+ep.x*99/ez+ccp[k].x
+          ey=68+ep.y*99/ez+ccp[k].y
+          line(sx,sy,ex,ey,ez/8)
+        end
+        --pix(120+sp.x*99/sz,68+sp.y*99/sz,12)
+        end
+        sp=LE_columns[h][i][LE_np]
+        ep=LE_columns[h][i][1]
+        if(sp.z+ep.z)>0 then
+          sz=sp.z-100+ccp[k].z
+          ez=ep.z-100+ccp[k].z
+          sx=120+sp.x*99/sz+ccp[k].x
+          sy=68+sp.y*99/sz+ccp[k].y
+          ex=120+ep.x*99/ez+ccp[k].x
+          ey=68+ep.y*99/ez+ccp[k].y
+        line(sx,sy,ex,ey,ez/8)
+        end
+    --  line(minx,miny,maxx,maxy,1)
+      end
+      end
+    end
+  end,
+}
+
+
+end
+
+rift_effectvoltest=function()
+-- was: effect index = 0
+return {
+    id='vol_test',
+    boot=function()
+    end,
+    draw=function(data)
+        for i=239,0,-1 do
+            for j=0,135 do
+                pix(i,j,(pix(i+1,j)))
+            end
+        end
+        line(239,0,239,136,0)
+
+        print("TIME",0,20,3)
+        pix(239,20+data.t/1000,3)
+        print("TBEAT",0,50,6)
+        pix(239,60+data.bt,6)
+        print("TBASS",0,80,9)
+        pix(239,100+data.bass,9)
+        print("TBASSC",0,110,12)
+        pix(239,110+data.bassc/100,12)
+    end,
+}
+
+end
+
+rift_effectsunbeat=function()
+SunBeat = 2
+SunBeatPAL = {}
+
+function SunBeat_BOOT()
+ for i=0,15 do
+  SunBeatPAL[i*3]=mm(i*32,0,255)
+  SunBeatPAL[i*3+1]=mm(i*24-128,0,255)
+  SunBeatPAL[i*3+2]=mm(i*24-256,0,255)
+ end
+end
+
+function SunBeat_BDR(l)
+ --if l~=0 then return end
+ PAL_Switch(SunBeatPAL,0.05)
+end
+
+function SunBeat_DRAW(it,ifft)
+ if(it%1>=0.95) then
+  for y=0,136 do 
+   for x=0,240 do
+    pix(x,y,((math.pi*math.atan(x-120,y-68))+t)%4+1)
+   end 
+  end 
+  circ(120,68,50+5*math.sin(t/150),15)
+ end
+end
+
+end
+
+rift_effectfujitwist=function()
+function FujiTwist_BDR(l)
+    ftt=BASSC/100
+    grader=sin(ftt*11/5+l/30)+1
+    gradeg=sin(ftt*11/3+l/30)+1
+    gradeb=sin(ftt*11/2+l/30)+1
+    for i=0,15 do
+     poke(0x3fc0+i*3,  mm(i*16*(grader),0,255))
+     poke(0x3fc0+i*3+1,mm(i*16*(gradeg),0,255))
+     poke(0x3fc0+i*3+2,mm(i*16*(gradeb),0,255))
+    end
+  end
+  
+  -- TODO: separate by lines for faster draw
+  function FujiTwist_DRAW(it,ifft)
+   bnc=sin(ifft)*10
+   frames = OldLogos[OL_ID]
+   for y=1,Fuji_height do
+    twist=Fuji_numframes*(1+it+BASS*EControl*cos(y/Fuji_height))/2
+    dl=frames[twist//1%Fuji_numframes+1]
+    for i=1,#dl do
+     ln=dl[i]
+     if ln[2] == y then  
+      line(120+ln[1],ln[2]+bnc,120+ln[3],ln[4]+bnc,ln[5])
+     end
+    end
+   end
+  end
+  
+  FujiTwist = 3
+Fuji_lines = {}
+Fuji_drawlines = {}
+Fuji_frames = {}
+Fuji_width=16
+Fuji_height=120
+Fuji_numframes=240
+OldLogos={}
+OL_ID=1
+
+function FujiTwist_BOOT()
+ for y=1,Fuji_height do
+  bend= 1.5*Fuji_width*m.exp((y/Fuji_height)^2)--+w/5
+   
+  local k={cx=-bend,cy=y+(136-Fuji_height)/2,r=-Fuji_width/2}
+  local l={cx=0,cy=y+(136-Fuji_height)/2,r=-Fuji_width/2}
+  local o={cx=bend,cy=y+(136-Fuji_height)/2,r=-Fuji_width/2}
+  table.insert(Fuji_lines,k)
+  table.insert(Fuji_lines,l)
+  table.insert(Fuji_lines,o)
+ end
+   
+ for j=1,Fuji_numframes do
+  Fuji_drawlines={}
+  a=j/Fuji_numframes *tau
+  for i=1,#Fuji_lines do
+   ln=Fuji_lines[i]
+   cx=ln.cx
+   cy=ln.cy
+   x=ln.r
+     
+   a1=sin(a)
+   a2=sin(a+tau/4)
+   a3=sin(a+tau/2)
+   a4=sin(a+tau/4*3)
+    
+   ay=cx*sin(-a)
+   az=cx*cos(-a)
+    
+   x1=x*a1+ay
+   x2=x*a2+ay
+   x3=x*a3+ay
+   x4=x*a4+ay
+    
+   if (x1<x2) then
+    c=(1+(a1+a2)/2)*8+2
+    table.insert(Fuji_drawlines,{x1,cy,x2,cy,c,az})
+   end
+   if (x2<x3) then
+    c=(1-((a2+a3)/(2)))*16
+    c=(1+(a2+a3)/2)*8+2
+    table.insert(Fuji_drawlines,{x2,cy,x3,cy,c,az})
+   end
+   if (x3<x4) then
+    c=(1+(a3+a4)/2)*8+2
+    table.insert(Fuji_drawlines,{x3,cy,x4,cy,c,az})
+   end
+   if (x4<x1) then
+    c=(1+(a4+a1)/2)*8+2
+    table.insert(Fuji_drawlines,{x4,cy,x1,cy,c,az})
+   end
+  end
+  table.sort(Fuji_drawlines, function (a,b) return a[6] < b[6] end)
+  Fuji_frames[j]=Fuji_drawlines
+ end
+
+ table.insert(OldLogos,Fuji_frames)
+end
+
+end
+
+rift_effecttunnelwall=function()
+--[[
+TunnelWall = 6
+
+function TunnelWall_DRAW(it,ifft)
+  it=it/2
+ for x=0,239 do
+  for y=0,135 do
+    sx=x-120*sin(it)
+    sy=y-68 
+    r=99+50*sin(it/3) - EControl*2
+    s=sin(it)
+    c=cos(it)
+    X=(sx*s-sy*c)
+    Y=(sy*s+sx*c)
+    k=X%r-r/2
+    l=Y%r-r/2
+    a=math.atan2(k,l)
+    e=(k*k+l*l)^.5  
+    K=X//r 
+    L=Y//r 
+    ff = mm(abs(K+L)//1 + 10,0,255)
+    ff = FFTH[ff]*.2+K
+    pix(x,y,((99/e)*2*sin(it*ff+K+L)-a*2.55)%(8)+K+L*4)
+  end
+ end
+end
+--]]
+
+end
+
+rift_effectrevisionback=function()
+-- was effect index = 16
+
+local cubes ={}
+local cubeLines = {
+    {-1,-1,-1,1,-1,-1},
+    {-1,-1,-1,-1,1,-1},
+    {-1,-1,-1,-1,-1,1},
+
+    {1,-1,-1,1,1,-1},
+    {1,-1,-1,1,-1,1},
+
+    {-1,1,-1,-1,1,1},
+    {-1,1,-1,1,1,-1},
+
+    {1,1,-1,1,1,1},
+
+    {-1,1,1,1,1,1},
+    {-1,1,1,-1,-1,1},
+
+    {-1,-1,1,1,-1,1},
+    {1,1,1,1,-1,1},
+}
+
+return {
+    id='revision_back',
+    boot=function()
+        for i = 1,5 do
+            for j = 1,16 do
+        --      table.insert(cubes,{15*sin(j/16*tau+it+i/13),15*cos(j/16*tau+it+i/13),5+i*4})
+            end
+          end
+        --  cubes[1]={5,5,10}
+    end,
+    draw=function(data)
+        RB_cubes={}
+        for i = 1,5 do
+          for j = 1,16 do
+            table.insert(cubes,{(13+data.bass)*sin((j/16+data.et)*tau+i/15),(13+data.bass)*cos((j/16+data.et)*tau+i/15),10+i*4})
+          end
+        end
+        for i=1,#cubes do
+          for j=1,#cubeLines do
+            local ln=cubeLines[j]
+            
+            local x1=(ln[1]+cubes[i][1]) *99/(cubes[i][3]+ln[3])
+            local y1=(ln[2]+cubes[i][2])*99/(cubes[i][3]+ln[3])
+            local x2=(ln[4]+cubes[i][1])*99/(cubes[i][3]+ln[6])
+            local y2=(ln[5]+cubes[i][2]) *99/(cubes[i][3]+ln[6])
+            line(x1+120,y1+68,x2+120,y2+68,16-cubes[i][3]/2)
+          end
+        end
+    end,
+}
+
+end
+
+rift_effectworms=function()
+-- was: effect index = 18
+return {
+    id='worms',
+    boot=function()
+    end,
+    draw=function(data)
+        local et=data.et
+        local abs,sin=math.abs,math.sin
+        for p=0,14,.01 do
+        circ(120+sin(p+et/3)*(p*6-8+sin(et)*20),
+            68+sin(p+et+1)*(p*3-8+sin(et)*10),
+            abs(sin(p+et)*p*2.5),
+            p*17%8)
+        end
+    end,
+}
+
+end
+
+rift_debugfakefft=function()
+if fft == nil then
+    -- Not great =^D
+    function fft(v)
+        return (0.5+(math.sin(v)^2)*.5)/v
+    end
+end
+
+end
+
+rift_effectattunnel=function()
+--[[
+    ATTunnel = 4
+
+function ATTunnel_BOOT()
+end
+
+function ATTunnel_DRAW(it,ifft)
+ ta=ss((it*4)%4/4,0,1)
+ for j=1,20 do
+  n=3+j
+  d=(4*j-it%64)
+  if d~=0 then d=99/d end
+  if d<120 and d >5 then 
+   w=(ifft*2)*d/6
+   chroma=.01*(1+sin(ta))
+   cr=ss((it/4+2*j)%5,2,4)*tau+EControl*it/2
+   if j%2 == 0 then
+    for i=1,n do
+     if (it/4%8 < 4) then
+      arc(120,68,w,d,cr + tau/n*i +j/10,pi/n,12)
+     else
+      arc(120,68,1,d*(1-chroma),cr + tau/n*i +j/10,pi/n,2)
+      arc(120,68,1,d+w,cr + tau/n*i +j/10,pi/n,10)
+      arc(120,68,w,d,cr + tau/n*i +j/10,pi/n,12)
+     end
+    end
+   else
+    for i=1,n do
+     if (it/4%6 < 3) then
+      tangent(120,68,1,d-1,cr + tau/n*i +j/10,d,0)
+      tangent(120,68,w,d,cr + tau/n*i +j/10,d,11+(j/2)%4)
+     else
+      tangent(120,68,1,d*(1-chroma),cr + tau/n*i +j/10,d,1)
+      tangent(120,68,1,d*(1+chroma),cr + tau/n*i +j/10,d,9)
+      tangent(120,68,w,d,cr + tau/n*i +j/10,d,11+(j/2)%4)
+     end
+    end
+   end
+  end
+ end
+end
+--]]
+
+end
+
+rift_effectquup=function()
+--[[
+    Quup = 5
+
+function Quup_DRAW(it,ifft)
+ tt=it/8 * EControl
+ P=3+tt//5%5
+ Q=P/2
+ I=tt/15%1
+ for i=1,20 do
+  for j=0,P-1,1 do
+   r=tt+pi*j/Q-i*sin(tt/50)
+   n=120+(i+I)*9*sin(r)
+   o=68+(i+I)*9*cos(r)
+   r=tt+pi*(j+1)/Q-i*sin(tt/50)
+   line(n,o,120+(i+I)*9*sin(r),68+(i+I)*9*cos(r),i+1)
+   l=i-1
+   r=tt+pi*j/Q-l*sin(tt/50)
+   if i>1 then 
+    k=(l+I)*9 
+   else 
+    k=l*9 
+   end
+   line(n,o,120+k*math.sin(r),68+k*cos(r),i+1)
+  end
+ end
+end
+--]]
+
+end
+
+rift_effectcloudtunnel=function()
+--[[
+    CloudTunnel = 7
+function CloudTunnel_BOOT()
+end
+
+function CloudTunnel_DRAW(it,ifft)
+ for i=0,32639 do
+  x=i%240-120
+  y=i//240-68
+  s=sin(it)
+  c=cos(it)
+  k=(x*s-y*c)%40-20
+  l=(y*s+x*c)%40-20
+  d=(x*x+y*y)^.5
+  a=math.atan2(y,x)
+  e=(k*k+l*l)^.5
+  c=((99/d)*(e/30+sin(it)+ ifft)-a*2.55 )%8+EControl
+  poke4(i,c)
+ end
+end
+--]]
+
+end
+
 -- title:  goto80 lovebyte2024
 -- author: mantratronic + ps
 -- desc:   vj80
 -- script: lua
 
-package.path=package.path..";C:\\Users\\micro\\AppData\\Roaming\\com.nesbox.tic\\TIC-80\\mantratronic-vj-80\\?.lua"	-- jtruk
 
-require("debug/fakefft")
+rift_debugfakefft()
 
 X = 7
 function X_BOOT()
@@ -37,27 +906,27 @@ VolTest_DRAW(t,t)
  --]]
 
 Effects={
-  require("effect/vol_test"),
-  require("effect/twist_fft"),
+  rift_effectvoltest(),
+  rift_effecttwistfft(),
   --[[
-		require("effect/sun_beat"),
-		require("effect/fuji_twist"),
-		require("effect/at_tunnel"),
-		require("effect/quup"),
-		require("effect/tunnel_wall"),
-		require("effect/cloud_tunnel"),
-		require("effect/swirl_tunnel"),
-		require("effect/chladni"),
-		require("effect/circle_column"),
-		require("effect/broken_egg"),
-		require("effect/para_flower"),
-		require("effect/fft_circ"),
+		rift_effectsunbeat(),
+		rift_effectfujitwist(),
+		rift_effectattunnel(),
+		rift_effectquup(),
+		rift_effecttunnelwall(),
+		rift_effectcloudtunnel(),
+		rift_effectswirltunnel(),
+		rift_effectchladni(),
+		rift_effectcirclecolumn(),
+		rift_effectbrokenegg(),
+		rift_effectparaflower(),
+		rift_effectfftcirc(),
 --]]
-  require("effect/proxima"),
-  require("effect/lemons"),
-  require("effect/revision_back"),
-----		require("effect/bitnick"),
-  require("effect/worms"),
+  rift_effectproxima(),
+  rift_effectlemons(),
+  rift_effectrevisionback(),
+----		rift_effectbitnick(),
+  rift_effectworms(),
 }
 
 --NumEffects=16
@@ -2167,7 +3036,7 @@ end
 
 
 Overlays = {
-  require("overlay/smiley_faces"),
+  rift_overlaysmileyfaces(),
   --[[
 	TextBounceUp,
 	--SunSatOrbit,

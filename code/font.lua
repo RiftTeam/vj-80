@@ -34,6 +34,44 @@ function font_init()
 	end
 end
 
+
+function flength(txt,kx,size)
+	kx = kx or 1
+  size = size or 1
+	pcx = 0
+	letter ={}
+	for i=1,string.len(txt) do
+		letter = font[string.sub(txt,i,i)]
+		-- update kerning
+		pcx = pcx + letter[5]*size + kx
+	end
+	return pcx
+end
+
+-- fprint ("text", x, y, [x kerning = 1],[y kerning = 1], [colour = 15])
+function fprint(txt,tx,ty,kx,ky,tc,size)
+	kx = kx or 1
+	ky = ky or 1
+	tc = tc or 10
+  size = size or 1
+	pcx = 0
+	pcy = 0
+	letter ={}
+	-- set to blit segment (8 = BG-1)
+	poke4(2*0x03ffc,8)
+	-- set colour
+	poke4(2*0x03FF0 + 1, tc)
+	-- print each letter
+	for i=1,string.len(txt) do
+		letter = font[string.sub(txt,i,i)]
+		spr(letter[1],tx+pcx,ty+pcy,0,size,0,0,letter[3],letter[4])
+
+		-- update kerning
+		pcx = pcx + letter[5]*size + kx
+	end
+end
+
+
 return function()
     -- initialize
     tomemrle(rle)

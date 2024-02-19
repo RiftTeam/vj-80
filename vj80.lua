@@ -5,7 +5,22 @@
 
 package.path=package.path..";C:\\Users\\micro\\AppData\\Roaming\\com.nesbox.tic\\TIC-80\\mantratronic-vj-80\\?.lua"	-- jtruk
 
+local GigSetup=require("gig/20240210-lovebyte-ps-goto80")
+
+Texts={
+  {"LOVEBYTE","2024","+ + +","GOTO80","+ + +"},
+  {"ACID","DANCE","ROBOT","NINJA"},
+  {"LOVE","LIFE","LIVE","LEFT","LOUD","LINE"},
+  {"MATH","SINE","CIRC","LINE","CLS","RECT"},
+  {"MUNCH","---"},
+  {"I","DONT","KNOW"},
+  {"SHALALA","---"},
+  {"HARDCORE","FAMILY"},
+  {"BREAK","BEAT","DANCE","HIT","HOP","SHOUT","SCREAM","JUMP"}
+}
+
 require("code/globals")
+require("code/state")
 require("debug/fakefft")
 FontBoot=require("code/font")
 
@@ -32,42 +47,38 @@ Effects={
   require("effect/worms"),
 }
 
---[[
-  TextBounceUp_DRAW(OT,OT)
-  SineBobs_DRAW(OT,OT)
-  --SunSatOrbit_DRAW(OT,BASS)
-  SmilyFaces_DRAW(OT,OT)
-  TextWarp_DRAW(OT,OT)
-  Snow_DRAW(OT,OT)
-  SmokeCircles_DRAW(OT,OT)
-  Spiral_DRAW(OT,OT)
-  Bobs_DRAW(OT,OT)
-  JoyDivision_DRAW(OT,OT)
-  LineCut_DRAW(OT,OT)
-  StickerLens_DRAW(OT,OT)
-  RevisionTop_DRAW(OT,OT)
- --]]
+EffectsLookup={}
+OverlaysLookup={}
+ModifiersLookup={}
+
+function MakeLookups()
+  for i,effect in ipairs(Effects) do
+    EffectsLookup[effect.id]=i
+  end
+
+  for i,overlay in ipairs(Overlays) do
+    OverlaysLookup[overlay.id]=i
+  end
+
+  for i,modifier in ipairs(Modifiers) do
+    ModifiersLookup[modifier.id]=i
+  end
+end
 
 -- overlays follow the template: {id='', boot=function(), draw=function(), bdr=function()}
 Overlays = {
+  require("overlay/bobs"),
+  require("overlay/joy_division"),
+  require("overlay/line_cut"),
+  require("overlay/revision_top"),
+  require("overlay/sinebobs"),
   require("overlay/smiley_faces"),
-  --[[
-	TextBounceUp,
-	--SunSatOrbit,
-	SineBobs,
-	SmilyFaces,
-	TextWarp,
-	Snow,
-	SmokeCircles,
-	Spiral,
-	Bobs,
-	JoyDivision,
-	LineCut,
-	StickerLens
---	RevisionTop,
---	RevisionLogo,
---	MadtixxLogo
---]]
+  require("overlay/smoke_circles"),
+  require("overlay/snow"),
+  require("overlay/spiral"),
+  require("overlay/sticker_lens"),
+  require("overlay/text_bounce_up"),
+  require("overlay/text_warp"),
 }
 
 Modifiers={
@@ -128,44 +139,6 @@ function printlogo(x,y,kx,ky,col)
   end
  end
 end
-
-function flength(txt,kx,size)
-	kx = kx or 1
-  size = size or 1
-	pcx = 0
-	letter ={}
-	for i=1,string.len(txt) do
-		letter = font[string.sub(txt,i,i)]
-		-- update kerning
-		pcx = pcx + letter[5]*size + kx
-	end
-	return pcx
-end
-
--- fprint ("text", x, y, [x kerning = 1],[y kerning = 1], [colour = 15])
-function fprint(txt,tx,ty,kx,ky,tc,size)
-	kx = kx or 1
-	ky = ky or 1
-	tc = tc or 10
-  size = size or 1
-	pcx = 0
-	pcy = 0
-	letter ={}
-	-- set to blit segment (8 = BG-1)
-	poke4(2*0x03ffc,8)
-	-- set colour
-	poke4(2*0x03FF0 + 1, tc)
-	-- print each letter
-	for i=1,string.len(txt) do
-		letter = font[string.sub(txt,i,i)]
-		spr(letter[1],tx+pcx,ty+pcy,0,size,0,0,letter[3],letter[4])
-
-		-- update kerning
-		pcx = pcx + letter[5]*size + kx
-	end
-end
-
-
 
 -- FFT setup
 
@@ -231,17 +204,6 @@ function ModifierHandler(COrder,IOrder,mod, MT,MC)
   end
 end
 
-Texts={
-  {"LOVEBYTE","2024","+ + +","GOTO80","+ + +"},
-  {"ACID","DANCE","ROBOT","NINJA"},
-  {"LOVE","LIFE","LIVE","LEFT","LOUD","LINE"},
-  {"MATH","SINE","CIRC","LINE","CLS","RECT"},
-  {"MUNCH","---"},
-  {"I","DONT","KNOW"},
-  {"SHALALA","---"},
-  {"HARDCORE","FAMILY"},
-  {"BREAK","BEAT","DANCE","HIT","HOP","SHOUT","SCREAM","JUMP"}
-}
 TImages={}
 
 -- TestSheet
@@ -607,6 +569,7 @@ function BEATTIME_BOOT()
  BTC=0
 end
 
+
 function KEY_CHECK()
  -- 1-26: A-Z
  -- 27-36: 0-9
@@ -679,238 +642,14 @@ function KEY_CHECK()
     "\nOCLS = " .. tostring(OCLS)
 ) 
   end
- 
-  -- set screens, 1-
-  if keyp(28) == true then
-    Effect = 2
-				ETimerMode = 3
-				EDivider = -6
-				EPalette = 2
-				EModifier = 0
-				EMControl = 1
-				EMTimerMode = 1
-				EMDivider = 1
-				EStutter = 0
-				ECLS = false
-				Overlay = 6
-				OTimerMode = 1
-				ODivider = 1
-				OControl = 2
-				OPalette = 13
-				OModifier = 1
-				OStutter = 0
-				OCLS = false
-   end
 
-   if keyp(29) == true then
-				Effect = 15
-				ETimerMode = 1
-				EDivider = 1
-				EPalette = 5
-				EModifier = 5
-				EMControl = 1
-				EMTimerMode = 1
-				EMDivider = 1
-				EStutter = 0
-				ECLS = true
-				Overlay = 4
-				OTimerMode = 4
-				ODivider = 6
-				OControl = 13
-				OPalette = 7
-				OModifier = 5
-				OStutter = 0
-				OCLS = true
-   end
 
-   if keyp(30) == true then
-    Effect = 1
-				ETimerMode = 1
-				EDivider = 1
-				EPalette = 7
-				EModifier = 6
-				EMControl = 1
-				EMTimerMode = 1
-				EMDivider = 1
-				EStutter = 0
-				ECLS = false
-				Overlay = 1
-				OTimerMode = 1
-				ODivider = 1
-				OControl = 2
-				OPalette = 5
-				OModifier = 7
-				OStutter = 0
-				OCLS = true
-   end
-
-   if keyp(31) == true then
-    Effect = 5
-				ETimerMode = 1
-				EDivider = 1
-				EPalette = 2
-				EModifier = 11
-				EMControl = 33
-				EMTimerMode = 4
-				EMDivider = 1
-				EStutter = 0
-				ECLS = false
-				Overlay = 8
-				OTimerMode = 1
-				ODivider = 1
-				OControl = 6
-				OPalette = 6
-				OModifier = 11
-				OStutter = 0
-				OCLS = false
-   end
-   
-   if keyp(31) == true then
-	   Effect = 16
-				ETimerMode = 5
-				EDivider = 6
-				EPalette = 1
-				EModifier = 3
-				EMControl = 1
-				EMTimerMode = 1
-				EMDivider = 1
-				EStutter = 0
-				ECLS = false
-				Overlay = 10
-				OTimerMode = 8
-				ODivider = 0
-				OControl = 4
-				OPalette = 13
-				OModifier = 1
-				OStutter = 0
-				OCLS = true
-   end
-   
-   if keyp(32) == true then
-	   Effect = 4
-				ETimerMode = 1
-				EDivider = 1
-				EPalette = 0
-				EModifier = 13
-				EMControl = 1
-				EMTimerMode = 1
-				EMDivider = 1
-				EStutter = 0
-				ECLS = false
-				Overlay = 7
-				OTimerMode = 2
-				ODivider = 6
-				OControl = 3
-				OPalette = 10
-				OModifier = 13
-				OStutter = 0
-				OCLS = false
-   end
-   
-   if keyp(33) == true then
-	   Effect = 18
-				ETimerMode = 2
-				EDivider = 5
-				EPalette = 1
-				EModifier = 12
-				EMControl = 1
-				EMTimerMode = 1
-				EMDivider = 1
-				EStutter = 0
-				ECLS = true
-				Overlay = 10
-				OTimerMode = 1
-				ODivider = 1
-				OControl = 1
-				OPalette = 11
-				OModifier = 2
-				OStutter = 0
-				OCLS = true
-   end
-
-   if keyp(34) == true then
-	   Effect = 5
-				ETimerMode = 2
-				EDivider = 1
-				EPalette = 11
-				EModifier = 11
-				EMControl = 1
-				EMTimerMode = 1
-				EMDivider = 1
-				EStutter = 0
-				ECLS = false
-				Overlay = 3
-				OTimerMode = 1
-				ODivider = 1
-				OControl = 15
-				OPalette = 7
-				OModifier = 2
-				OStutter = 0
-				OCLS = true
-			end
-
-   if keyp(35) == true then
-				Effect = 17
-				ETimerMode = 1
-				EDivider = 1
-				EPalette = 1
-				EModifier = 12
-				EMControl = 1
-				EMTimerMode = 1
-				EMDivider = 1
-				EStutter = 0
-				ECLS = false
-				Overlay = 2
-				OTimerMode = 3
-				ODivider = 5
-				OControl = 1
-				OPalette = 9
-				OModifier = 6
-				OStutter = 0
-				OCLS = true
-			end
-			
-			if keyp(36) == true then
-				Effect = 4
-				ETimerMode = 5
-				EDivider = 3
-				EPalette = 4
-				EModifier = 13
-				EMControl = 1
-				EMTimerMode = 1
-				EMDivider = 1
-				EStutter = 0
-				ECLS = true
-				Overlay = 8
-				OTimerMode = 1
-				ODivider = 1
-				OControl = 1
-				OPalette = 13
-				OModifier = 12
-				OStutter = 0
-				OCLS = false
-			end
-			
-			if keyp(37) == true then			
-				Effect = 18
-				ETimerMode = 1
-				EDivider = 1
-				EPalette = 7
-				EModifier = 7
-				EMControl = 0
-				EMTimerMode = 3
-				EMDivider = 0
-				EStutter = 0
-				ECLS = false
-				Overlay = 11
-				OTimerMode = 3
-				ODivider = 1
-				OControl = 1
-				OPalette = 5
-				OModifier = 13
-				OStutter = 0
-				OCLS = true
-			end
+  -- #TODO: sure there's better :)
+  for keycode=27,36 do
+    if keyp(keycode) then
+      triggerNumberShortcut(keycode-27)
+    end
+  end
 
  -- left: increase 3d logo
   if keyp(60) then
@@ -921,8 +660,9 @@ function KEY_CHECK()
   if keyp(61) then
    OL_ID = OL_ID - 1
   end
-  
-  OL_ID = clamp(OL_ID%(#OldLogos+1),1,#OldLogos)
+
+  -- #TODO: put this back in...
+--  OL_ID = clamp(OL_ID%(#OldLogos+1),1,#OldLogos)
 
   -- home: FFTH_length up by 1
   if keyp(56) then
@@ -1302,6 +1042,10 @@ function BOOT()
       overlay.boot()
     end
   end
+
+  MakeLookups()
+
+  GigSetup.boot()
 end
 
 function TIC()
@@ -1446,8 +1190,8 @@ elseif OMTimerMode == THIGH then
  ModifierHandler(OOrder,0,OModifier, OMT,OMControl)
 
  if Overlay>0 then
-  local Ov = Overlays[Overlay]
-  Ov.draw({ot=OT})
+  local overlay = Overlays[Overlay]
+  overlay.draw({ot=OT, t=t, mid=MID, bass=BASS})
  end
 
  ModifierHandler(OOrder,1,OModifier, OMT,OMControl)
@@ -1467,6 +1211,7 @@ elseif OMTimerMode == THIGH then
  end
 
 end
+
 
 -- <TILES2>
 -- 000:000000000000000000000000000000000cffffff0cffffff0cffffff0cffffff

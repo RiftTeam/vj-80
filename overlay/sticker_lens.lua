@@ -1,40 +1,42 @@
---[[
-StickerLens = 11
-function StickerLens_BOOT()
-end
- 
-function StickerLens_DRAW(it,ifft)
-  -- draw point data to spritesheet
-  -- first blank
-  --memset(0x4000,0,120*136)
+-- was: overlay index = 11
 
-  size=100+40*BASS
-  hs=size/2
-  TWp = TImages[clamp(TIimageID,1,#TImages)]
-  for i=1,#TWp do
-   p=TWp[i]
+return {
+  id="sticker_lens",
+  boot=function()
+  end,
+  draw=function(data)
+    local it,ifft,bass=data.ot,data.ot,data.bass
+    -- draw point data to spritesheet
+    -- first blank
+    --memset(0x4000,0,120*136)
 
-   x=(p[1]-120)/OControl
-   y=(p[2]-68)/OControl
-   c=clamp(FFTH[p[5]//1]*50*(.05 + p[5]/10)+it,0,15)
-   a=p[4]
-   d=p[5]/OControl
+    size=100+40*bass
+    hs=size/2
+    TWp = TImages[clamp(TIimageID,1,#TImages)]
+    for i=1,#TWp do
+      p=TWp[i]
 
-   b=BASS/5
-   --focal=(d/(hs*it%2))^(b)
-   focal=1+sin(d/20+it/20)*(b+it%1/2)
-   d=d*focal--*(it%1+.5)
+      x=(p[1]-120)/OControl
+      y=(p[2]-68)/OControl
+      c=clamp(FFTH[p[5]//1]*50*(.05 + p[5]/10)+it,0,15)
+      a=p[4]
+      d=p[5]/OControl
 
-   ix=d*sin(a)
-   iy=d*cos(a)
+      b=bass/5
+      --focal=(d/(hs*it%2))^(b)
+      focal=1+sin(d/20+it/20)*(b+it%1/2)
+      d=d*focal--*(it%1+.5)
 
-   if d < size then
-    ox=ix+120
-    oy=iy+68
-    if ox >=0 and ox<240 and oy>=0 and oy<136 then
-     pix(ox,oy,c)
+      ix=d*sin(a)
+      iy=d*cos(a)
+
+      if d < size then
+        ox=ix+120
+        oy=iy+68
+        if ox >=0 and ox<240 and oy>=0 and oy<136 then
+          pix(ox,oy,c)
+        end
+      end
     end
-  end
- end
-end
---]]
+  end,
+}

@@ -1,23 +1,7 @@
--- title:  mt's vj rig
--- author: mantratronic
--- desc:   collection of effects made for the monday night tic80 jams on twitch.tv/fieldfxdemo
+-- title:  goto80 lovebyte2024
+-- author: mantratronic + ps
+-- desc:   vj80
 -- script: lua
-
-
--- in
---[[
-logo={"  `___//  __//_ __//___//_---//___;---//__;--\\\\__.",
-"  /  //--Y     \\   _/   _/        Y       Y      |",
-" /       |  // |   _/   _/   /    |   a   |   // |",
-"/   //   |     |  |/|  |/|  // // |   /   |  //  |",
-"\\--//____/-//-_/\\-/  \\-/ |-//_//_mtr-//--|/-//___|"}
-
-if (beat/4%4 > 1) then ta = 0 else ta = s(pi*ta) end
- println(44-ta*24,58-ta*1.5,3+ta,3+ta,0+beat*2)
-
---]]
---[[
---]]
 
 
 
@@ -28,9 +12,9 @@ end
 function X_DRAW(it,ifft)
 end
 
-NumEffects=16
-NumOverlays=14
-NumModifiers=11
+--NumEffects=16
+--NumOverlays=14
+--NumModifiers=11
 NumModes=8
 NumPalettes=13
 
@@ -584,16 +568,14 @@ function SwirlTunnel_DRAW(it,ifft)
   k=sin(it*tau)*99
   l=sin(it*tau*2)*49
   for i=0,32639 do
-  x=i%240-k-120
-  y=i/240-l-68
-  u=m.atan2(y,x)
-  d=(x*x+y*y)^.5
-  v=99/d
- --  c=sin(v+sin((u+sin(v)*sin(it/9)*2)*tau)+it)
-  c=sin(v+(u+sin(v)*sin(ifft/4)*tau)+t/1000)+1
-  poke4(i,mm(c*8-c*((138-d)/138),0,15))
+	  x=i%240-k-120
+	  y=i/240-l-68
+	  u=m.atan2(y,x)
+	  d=(x*x+y*y)^.5
+	  v=99/d
+	   c=sin(v+(u+sin(v)*sin(ifft/4)*tau)+t/1000)+1
+	  poke4(i,mm(c*8-c*((138-d)/138),0,15))
   end
-  --circ(k+120,l+68,9+5*sin(it/9),EControl)
 end
 
 CloudTunnel = 7
@@ -1054,7 +1036,8 @@ end
 
 OOrder = 0
 EOrder = 0
-function ModifierHandler(COrder,IOrder,Mod, MT,MC)
+function ModifierHandler(COrder,IOrder,mod, MT,MC)
+		local Mod = Modifiers[mod]
   if COrder == IOrder then
     if Mod == 0 then
     elseif Mod == PIXNoise then
@@ -1079,8 +1062,11 @@ function ModifierHandler(COrder,IOrder,Mod, MT,MC)
       SFTHorz_DRAW(1000*HIGH,MT,MC)
     elseif Mod == POSTSquares then
       POSTSquares_DRAW(1000*HIGH,MT,MC)
+    elseif Mod == EvilpaulGlitch then
+      EvilpaulGlitch_DRAW(1000*HIGH,MT,MC)
+				elseif Mod == LineScratch then
+      LineScratch_DRAW(1000*HIGH,MT,MC)
     end
-    else
   end
 end
 
@@ -1360,12 +1346,62 @@ function POSTSquares_DRAW(amount,mt,mc)
   end
  end
 end
---[[
- --]]
 
-Texts={{"GOOD","TO BE","BACK IN","THE EWERK",""},
-      {"MANTRATRONIC","+ + +","MADTIXX","2023"},
-      {"MAD","MY","DAY!"}}
+EvilpaulGlitch = 12
+function EvilpaulGlitch_DRAW(amount,mt,mc)
+	 math.randomseed(t//60)
+  for i = 0, math.random(0, 2) do
+     local x1 = math.random(0, 240)
+     local x2 = math.random(0, 240)
+     local w = math.random(5, 30)
+     local m = math.random(0, 1)
+     if m == 0 then
+      for x = 0, w do
+       for y = 0, 136 do
+        local c = pix(x1 + x, y)
+        pix(x2 + x, y, c)
+       end
+      end
+     elseif m == 1 then
+      for y = 0, 136 do
+       local c = pix(x1, y)
+       for x = 0, w do
+        pix(x2 + x, y, c)
+       end
+      end
+     elseif m == 2 then
+      for y = 0, 136 do
+       for x = 0, w do
+     		 pix(x2 + x, y, math.random(0, 1))
+       end
+      end
+     end
+		 end	
+end
+
+LineScratch = 13
+function LineScratch_DRAW(amount,mt,mc)
+	for a=0,46 do
+		local x=math.random(240)
+		local y=math.random(136)
+		local w=math.random(20)
+		line(x,y,x+w,y,pix(x,y))
+		line(x,y+1,x+w/2,y+1,pix(x,y))
+	end
+end
+
+
+Texts={
+						{"LOVEBYTE","2024","+ + +","GOTO80","+ + +"},
+      {"ACID","DANCE","ROBOT","NINJA"},
+      {"LOVE","LIFE","LIVE","LEFT","LOUD","LINE"},
+      {"MATH","SINE","CIRC","LINE","CLS","RECT"},
+      {"MUNCH","---"},
+      {"I","DONT","KNOW"},
+      {"SHALALA","---"},
+      {"HARDCORE","FAMILY"},
+      {"BREAK","BEAT","DANCE","HIT","HOP","SHOUT","SCREAM","JUMP"}
+      }
 TImages={}
 
 -- Overlays
@@ -1387,29 +1423,24 @@ function TextBounceUp_DRAW(it,ifft)
   y=68 - (3+OControl)*3 *linecount
  end
  tc=mm(MID*15,8,15)
- -- tl=print(Texts[TextID][tx],0,-100,15,false,3+OControl)
  tl=flength(Texts[TextID][tx],1,OControl)
- -- print(Texts[TextID][tx],120-tl/2,y,tc,false,3+OControl)
  fprint(Texts[TextID][tx],120-tl/2,y,1,1,15,OControl)
 end
 
-SunSatOrbit = 2
-function SunSatOrbit_DRAW(it,ifft)
-  c=mm(ifft*6,0,15)
-  t1=(it/1000)%1
-  if t1 < .5 then
-   t1=(t1-.25)*tau
-   circ(120+500*sin(t1),68+20*cos(t1),10,c)
-  else
-   t1=(t1+.25)*math.pi*2
-   sx=120+500*sin(t1)
-   sy=68+20*cos(t1)
-   print(" ___ ",0+sx,0+sy,c,true)
-   print("  |  ",0+sx,4+sy,c,true)
-   print("##=##",0+sx,8+sy,c,true)
-   print("  |  ",0+sx,12+sy,c,true)
-   print(" ___ ",0+sx,13+sy,c,true)
-  end 
+SineBobs = 2
+function SineBobs_DRAW(it,ifft)
+	local tt=time()+it*1000
+ for x=-9,9 do
+		for y=-5,5 do
+			circ(x*11+120, y*10+68,
+				3*sin(tt/400+x/2-y/3*sin(tt/300+y/10))+3,
+				13)
+			
+			circ(x*11+120, y*10+68,
+				3*sin(tt/400+x/2-y/3*sin(tt/300+y/10)),
+				12)
+		end
+	end
 end
 
 SmilyFaces = 3
@@ -1473,86 +1504,16 @@ end
 
 function TextWarp_BOOT()
   cls()
-  --[[
-  l=print("1 WEEK",-100,-100,12,false,5)
-  print("1 WEEK",120-l/2,10,12,false,5)
-
-  l=flength("1 WEEK",1,3)
-  fprint("1 WEEK",120-l/2,0,1,1,12,3)
-  
-  l=print("TO",-100,-100,12,false,5)
-  print("TO",120-l/2,40,12,false,5)
-  
-  l=print("REVISION",-100,-100,12,false,5)
-  print("REVISION",120-l/2,70,12,false,5)
-  
-  l=print("HYPE!!!!",-100,-100,12,false,5)
-  print("HYPE!!!!",120-l/2,100,12,false,5)
-  
-  l=print("fuck fuck fuck fuck",200,230,12,false,1)
-  print("fuck fuck fuck fuck",120-l/2,130,12,false,1)
-
-  TWp = ScreenToPoints()
-  table.insert(TImages,TWp)
-  --]]
-
-  cls()
-  l=flength("MADTIXX",3,4)
-  fprint("MADTIXX",120-l/2,38,3,1,12,4)
-  
+  l=flength("GOTO80",3,4)
+  fprint("GOTO80",120-l/2,38,3,1,12,4)
   TWp = ScreenToPoints()
   table.insert(TImages,TWp)
 
   cls()
-  --l=print("MAN",-100,-100,12,true,5)
-  --print("MAN",120-l/2,10,12,true,5)
-  --l=print("TRA",-100,-100,12,true,5)
-  --print("TRA",120-l/2,40,12,true,5)
-  --l=print("TRO",-100,-100,12,true,5)
-  --print("TRO",120-l/2,70,12,true,5)
-  
-  --l=print("NIC",-100,-100,12,true,5)
-  --print("NIC",120-l/2,100,12,true,5)
-  
-  l=flength("MAN",3,2)
-  fprint("MAN",120-l/2,0,3,1,12,2)
-  l=flength("TRA",3,2)
-  fprint("TRA",120-l/2,35,3,1,12,2)
-  l=flength("TRO",3,2)
-  fprint("TRO",120-l/2,70,3,1,12,2)
-  l=flength("NIC",3,2)
-  fprint("NIC",120-l/2,105,3,1,12,2)
-
-  
-  
-  TWp = ScreenToPoints()
-  table.insert(TImages,TWp)
-
-  cls()
-  --l=print("RiFT",-100,-100,12,true,9)
-  --print("RiFT",120-l/2,40,12,true,9)
-  l=flength("RiFT",3,4)
-  fprint("RiFT",120-l/2,38,3,1,12,4)
-  
-  TWp = ScreenToPoints()
-  table.insert(TImages,TWp)
-
-  cls()
-  --l=print("ALL",-100,-100,12,true,5)
-  --print("ALL",120-l/2,20,12,true,5)
-  --l=print("CODECS",-100,-100,12,true,5)
-  --print("CODECS",120-l/2,50,12,true,5)
-  --l=print("MUST DIE",-100,-100,12,true,5)
-  --print("MUST DIE",120-l/2,80,12,true,5)
-
-  l=flength("ALL",3,3)
-  fprint("ALL",120-l/2,0,3,1,12,3)
-  l=flength("CODECS",3,3)
-  fprint("CODECS",120-l/2,45,3,1,12,3)
-  l=flength("MUST DIE",3,3)
-  fprint("MUST DIE",120-l/2,90,3,1,12,3)
-
-
+  l=flength("LOVEBYTE",3,2)
+  fprint("LOVEBYTE",120-l/2,35,3,1,12,2)
+  l=flength("2024",3,2)
+  fprint("2024",120-l/2,70,3,1,12,2)
   TWp = ScreenToPoints()
   table.insert(TImages,TWp)
 end
@@ -1566,7 +1527,7 @@ function TextWarp_DRAW(it,ifft)
   w=pp[5]/2+10*sin(pp[5]/40*BASS)+(it/OControl)*pp[5]+HIGH
   nx=w*sin(b)
   ny=w*cos(b)
-  pix(120+nx,68+ny,15)-- pp[3])
+  pix(120+nx,68+ny,15)
  end
 end
 
@@ -1589,14 +1550,14 @@ function SmokeCircles_BOOT()
 end
 
 function SmokeCircles_DRAW(it,ifft)
-  it=it*5
+  local tt=it*5
   for i=0,SC_np do
-    z=(SC_p[i].z+it)%20
-    x=SC_p[i].x
-    y=SC_p[i].y
-    t2=-(1-z/9)
-    X=x*cos(t2)-y*sin(t2)
-    Y=y*cos(t2)+x*sin(t2)
+    local z=(SC_p[i].z+tt)%20
+    local x=SC_p[i].x
+    local y=SC_p[i].y
+    local t2=-(1-z/9)
+    local X=x*cos(t2)-y*sin(t2)
+    local Y=y*cos(t2)+x*sin(t2)
     circ(120+X*z,68+Y*z,20-z,15-(z/1.5))
   end
 end
@@ -1604,14 +1565,14 @@ end
 Spiral = 7
 
 function Spiral_DRAW(it,ifft)
- it=it*30
+ local tt=it*30
  for i=0,200 do
-  j=(i/10+it)%120
-  i2=i/20
+  local j=(i/10+tt)%120
+  local i2=i/20
   i2=i2*i2
-  z=j+i2
-  X=sin(j)*z
-  Y=cos(j)*z
+  local z=j+i2
+  local X=sin(j)*z
+  local Y=cos(j)*z
   circ(120+X,68+Y,z/10-OControl*2,mm(15*j/120,0,15))
  end
 end
@@ -1619,12 +1580,12 @@ end
 Bobs = 8
 function Bobs_DRAW(it,ifft)
   for i=0,99 do
-    j=i/12
-    x=10*sin(pi*j+it)
-    y=10*cos(pi*j+it)
-    z=10*sin(pi*j)
-    X=x*sin(it)-z*cos(it)
-    Z=x*cos(it)+z*sin(it)
+    local j=i/12
+    local x=10*sin(pi*j+it)
+    local y=10*cos(pi*j+it)
+    local z=10*sin(pi*j)
+    local X=x*sin(it)-z*cos(it)
+    local Z=x*cos(it)+z*sin(it)
     circ(120+X*Z,68+y*Z,Z,OControl*MID)
   end
 end
@@ -1678,26 +1639,15 @@ end
 LineCut = 10
 
 function LineCut_DRAW(it,ifft)
-	s=10+OControl
-	x=(it*s*2)%s*4
-  --n=
+	local s=10+OControl
+	local x=(it*s*2)%s*4
 
 	for sx=-136,240+s+136,s*4 do
     for y=0,136+s,s do
-    
-     cx=sx-y+x
-      
-      tri(cx,y-s,cx-s,y,cx,y+s,1)
-      tri(cx,y-s,cx+s,y,cx,y+s,1)
-      --[[
-      tri(cx,y-s/3,cx-s/2,y,cx,y+s/3,3)
-      tri(cx,y-s/3,cx+s/2,y,cx,y+s/3,3)
-      tri(cx,y-s/4,cx-s/3,y,cx,y+s/4,5)
-      tri(cx,y-s/4,cx+s/3,y,cx,y+s/4,5)
-      tri(cx,y-s/5,cx-s/4,y,cx,y+s/5,7)
-      tri(cx,y-s/5,cx+s/4,y,cx,y+s/5,7)
-      --]]
-  end
+     local cx=sx-y+x
+     tri(cx,y-s,cx-s,y,cx,y+s,1)
+     tri(cx,y-s,cx+s,y,cx,y+s,1)
+    end
  end
 end
 
@@ -1735,45 +1685,9 @@ function StickerLens_DRAW(it,ifft)
     oy=iy+68
     if ox >=0 and ox<240 and oy>=0 and oy<136 then
      pix(ox,oy,c)
-     --     poke4(ox+oy*240,c)
     end
   end
-
-   -- poke4(0x4000+p[1] + p[2]*240,p[3])
-  end
-
-  --[[
-  focal=1 -- +.5*BASS
- 
-  size=80+40*BASS
-  hs=size/2
-  for x=0,size do
-   px=x-hs
-   for y=0,size do
-    py=y-hs//1
-    
-    a=math.atan2(px,py)
-    d=(px^2+py^2)^.5
-    
-    focal=(d/hs)^(FFTH[1])
-    d=d*focal --*(it%1+.5)
-    ix=d*sin(a)+40
-    iy=d*cos(a)--+40
-    
-    if d < hs then
-     col=peek4(0x8000+ix+iy//1*240)
-    else
-     col = 0
-    end
-    
-    ox=px+120
-    oy=py+68
-    if ox >0 and ox<240 and oy>0 and oy<136 then
-     poke4(ox+oy*240,col)
-    end
-   end
-  end
-  --]]
+ end
 end
 
 RevisionTop = 12
@@ -1804,78 +1718,37 @@ function RevisionTop_DRAW(it,ifft)
   circ(120+10*p[1],68+9*p[2],p[3],12)
  end
 end
- 
-RevisionLogo = 13
-function RevisionLogo_DRAW(it,ifft)
-  cx=120
-  cy=68
-  t1=it*tau
-  t2=it*tau
-  t3=it*tau
-  c=OControl
-  w=6+BASS
-  r1=w*10
-  r2=w*6
-  r3=w*2
-  arc(cx,cy,w,r1-w,0 +t1,2*math.pi,c)
-  arc(cx,cy,2*w,r1-2*w,math.pi/90 +t1,math.pi/8,c)
-  arc(cx,cy,2*w,r1-2*w,math.pi/4 +t1,math.pi/20,c)
-  arc(cx,cy,2*w,r1-2*w,math.pi/2.2 +t1,math.pi/14,c)
-  arc(cx,cy,2*w,r1-w,math.pi/1.5 +t1,math.pi/3,c)
-  arc(cx,cy,2*w,r1-2*w,math.pi/1.2 +t1,math.pi/20,c)
-  arc(cx,cy,2*w,r1-2*w,math.pi/0.95 +t1,math.pi/10,c)
-  arc(cx,cy,2*w,r1-2*w,-math.pi/2.7 +t1,math.pi/3,c)
-  arc(cx,cy,2*w,r1-w,-math.pi/4.5 +t1,math.pi/20,c)
-  
-  arc(cx,cy,w,r2-w,0 +t2,2*math.pi,c)
-  arc(cx,cy,2*w,r2-2*w,math.pi/3.5 +t2,math.pi/1.6,c)
-  arc(cx,cy,3*w,r2-3*w,math.pi/5 +t2,math.pi/5,c)
-  arc(cx,cy,2*w,r2-2*w,math.pi/1.08 +t2,math.pi/2.1,c)
-  arc(cx,cy,3*w,r2-3*w,math.pi/1.15 +t2,math.pi/5,c)
-  arc(cx,cy,2*w,r2-2*w,math.pi/3.5 +t2,math.pi/1.6,c)
-  arc(cx,cy,3*w,r2-3*w,math.pi/5 +t2,math.pi/5,c)
-  arc(cx,cy,2*w,r2-2*w,-math.pi/1.7 +t2,math.pi/3,c)
-  arc(cx,cy,3*w,r2-3*w,-math.pi/1.7 +t2,math.pi/15,c)
-  
-  arc(cx,cy,w,r3-w,0 +t3,2*math.pi,c)
-  arc(cx,cy,2*w,r3-w,-math.pi/4.5 +t3,math.pi/3,c)
+
+Bitnick = 17
+
+function Bitnick_DRAW(it,ifft)
+   math.randomseed(2)
+   local tt=(t/OControl)
+   for x=0,51 do
+				local w=math.random()*70+30
+				local h=math.random()*20+10
+				local posx=(math.random()*240+(tt/w*4)*x/20)%(240+w+x)-w
+				local posy=math.random()*(136+h)-h
+				local col=math.random()*2+math.cos(tt/2000)*2+5
+				
+				clip(posx,posy,w,h)
+				for i=posx,posx+w do
+						circ(i,posy+i//1%h,w/(col+16),col+i/300)
+				end
+				clip()
+			end
 end
 
-MadtixxLogo = 14
-ML_first=true
-ML_points={}
-function MadtixxLogo_DRAW(it,ifft)
-  if ML_first then
-    cls()
+Worms = 18
 
-    -- sync into bank 2
-    sync(1,2)
-
-  	-- set to blit segment (8 = BG-1)
-   	poke4(2*0x03ffc,8)
-	  -- set colour
-	  poke4(2*0x03FF0 + 1, 12)
-
-    -- put it on screen 
-    spr(0,0,34,-1,1,0,0,30,10)
-
-    -- save it
-    ML_points = ScreenToPoints()
-
-    ML_first = false
-  else
-    sync(1,0)
-
-    for i=1,#ML_points do
-      pp=ML_points[i]
-      b=pp[4]--+2*pi*sin(it*pp[5]/100+MID)
-      w=pp[5]/2+10*sin(pp[5]/40*BASS)+(it/OControl)*pp[5]+HIGH
-      nx=w*sin(b)
-      ny=w*cos(b)
-      pix(120+nx,68+ny,15)-- pp[3])
-     end
-    
-  end
+function Worms_DRAW(it,ifft)
+	local tt=it
+ for p=0,14,.01 do
+	 circ(120+math.sin(p+tt/3)*(p*6-8+math.sin(tt)*20),
+		 				68+math.sin(p+tt+1)*(p*3-8+math.sin(tt)*10),
+			 			math.abs(math.sin(p+tt)*p*2.5),
+				 		p*17%8)
+	end
 end
 
 -- TestSheet
@@ -1894,7 +1767,7 @@ function TestSheet_DRAW(it,ifft)
  end
 end
 
-VolTest = 6
+VolTest = 0
 
 function VolTest_DRAW(it,ifft)
  for i=239,0,-1 do
@@ -2240,7 +2113,7 @@ TMIDC=6
 THIGH=7
 THIGHC=8
 
-DEBUG=false
+DEBUG=true
 
 -- Beat timing
 BT=10 -- beat time in ms
@@ -2285,7 +2158,16 @@ function KEY_CHECK()
     ECLS=true
    end
 
-  -- z: effect mod
+  -- a: overlay
+  if keyp(1) == true then
+   Overlay = 1
+   OControl = 1
+   OTimerMode=0
+   ODivider=1
+   OPalette = 0
+  end
+  
+  -- z: overlay modifier
   if keyp(26) == true then
     OModifier=0
     OMControl = 1
@@ -2295,109 +2177,264 @@ function KEY_CHECK()
     OCLS=true
   end
 
-  -- a: overlay
-  if keyp(1) == true then
-   Overlay = 1
-   OControl = 1
-   OTimerMode=0
-   ODivider=1
-   OPalette = 0
-  end
    
   return
  end
 
  -- shift
  if key(64) then
+ 	if keyp(51) then
+  	trace("\nEffect = " .. Effects[Effect] ..
+   	"\nETimerMode = " .. ETimerMode ..
+    "\nEDivider = " .. EDivider ..
+    "\nEPalette = " .. EPalette ..
+    "\nEModifier = " .. EModifier ..
+    "\nEMControl = " .. EMControl ..
+    "\nEMTimerMode = " .. EMTimerMode ..
+    "\nEMDivider = " .. EMDivider ..
+    "\nEStutter = " .. EStutter ..
+    "\nECLS = " .. tostring(ECLS) ..
+				"\nOverlay = " .. Overlays[Overlay] ..
+				"\nOTimerMode = " .. OTimerMode ..
+    "\nODivider = " .. ODivider ..
+				"\nOControl = " .. OControl ..
+				"\nOPalette = " .. OPalette ..
+				"\nOModifier = " .. OModifier ..
+				"\nOStutter = " .. OStutter ..
+				"\nOCLS = " .. tostring(OCLS) ) 
+  end
+ 
   -- set screens, 1-
   if keyp(28) == true then
-    Effect = RevisionBack
-    ETimerMode = 1
-    EDivider = 3
-    EPalette = Reddish
-    EModifier=0
-    EMControl = 1
-    EMTimerMode=0
-    EMDivider=1
-    EStutter=0
-    ECLS=true
-
-    Overlay = RevisionTop
-    OTimerMode = 1
-    ODivider = 4
-    OControl = 7
-    OPalette = Sweetie16
-    OModifier = 0
-    OStutter=0
-    OCLS=true
+    Effect = 2
+				ETimerMode = 3
+				EDivider = -6
+				EPalette = 2
+				EModifier = 0
+				EMControl = 1
+				EMTimerMode = 1
+				EMDivider = 1
+				EStutter = 0
+				ECLS = false
+				Overlay = 6
+				OTimerMode = 1
+				ODivider = 1
+				OControl = 2
+				OPalette = 13
+				OModifier = 1
+				OStutter = 0
+				OCLS = false
    end
 
    if keyp(29) == true then
-    Effect = ATTunnel
-    ETimerMode = 4
-    EDivider = 2
-    EPalette = UKR
-    EModifier=ROTVert
-    EMControl = 1
-    EMTimerMode=0
-    EMDivider=1
-    EStutter=0
-    ECLS=false
-
-    Overlay = MadtixxLogo
-    OTimerMode = 3
-    ODivider = 4
-    OPalette = Dutch
-    OModifier = 2
-    OStutter=0
-    OCLS=true
+				Effect = 15
+				ETimerMode = 1
+				EDivider = 1
+				EPalette = 5
+				EModifier = 5
+				EMControl = 1
+				EMTimerMode = 1
+				EMDivider = 1
+				EStutter = 0
+				ECLS = true
+				Overlay = 4
+				OTimerMode = 4
+				ODivider = 6
+				OControl = 13
+				OPalette = 7
+				OModifier = 5
+				OStutter = 0
+				OCLS = true
    end
 
    if keyp(30) == true then
-    Effect = Proxima
-    ETimerMode = 5 
-    EDivider = 2
-    EPalette = OverBrown
-    EModifier=0
-    EMControl = 1
-    EMTimerMode=0
-    EMDivider=1
-    EStutter=0
-    ECLS=true
-
-    Overlay = SmilyFaces
-    OTimerMode = 3
-    ODivider = 4
-    OPalette = Dutch
-    OModifier = 3
-    OMControl = 10
-    OStutter=0
-    OCLS=false
+    Effect = 1
+				ETimerMode = 1
+				EDivider = 1
+				EPalette = 7
+				EModifier = 6
+				EMControl = 1
+				EMTimerMode = 1
+				EMDivider = 1
+				EStutter = 0
+				ECLS = false
+				Overlay = 1
+				OTimerMode = 1
+				ODivider = 1
+				OControl = 2
+				OPalette = 5
+				OModifier = 7
+				OStutter = 0
+				OCLS = true
    end
 
    if keyp(31) == true then
-    Effect = FujiTwist
-    EControl=1
-    ETimerMode = 4 
-    EDivider = 2
-    EPalette = 10
-    EModifier=4
-    EMControl = -2
-    EMTimerMode=1
-    EMDivider=1
-    EStutter=0
-    EOrder = 1
-    ECLS=true
-
-    Overlay = 0
-    OTimerMode = 3
-    ODivider = 4
-    OPalette = 4
-    OModifier = 3
-    OMControl = 10
-    OStutter=0
-    OCLS=true
+    Effect = 5
+				ETimerMode = 1
+				EDivider = 1
+				EPalette = 2
+				EModifier = 11
+				EMControl = 33
+				EMTimerMode = 4
+				EMDivider = 1
+				EStutter = 0
+				ECLS = false
+				Overlay = 8
+				OTimerMode = 1
+				ODivider = 1
+				OControl = 6
+				OPalette = 6
+				OModifier = 11
+				OStutter = 0
+				OCLS = false
    end
+   
+   if keyp(31) == true then
+	   Effect = 16
+				ETimerMode = 5
+				EDivider = 6
+				EPalette = 1
+				EModifier = 3
+				EMControl = 1
+				EMTimerMode = 1
+				EMDivider = 1
+				EStutter = 0
+				ECLS = false
+				Overlay = 10
+				OTimerMode = 8
+				ODivider = 0
+				OControl = 4
+				OPalette = 13
+				OModifier = 1
+				OStutter = 0
+				OCLS = true
+   end
+   
+   if keyp(32) == true then
+	   Effect = 4
+				ETimerMode = 1
+				EDivider = 1
+				EPalette = 0
+				EModifier = 13
+				EMControl = 1
+				EMTimerMode = 1
+				EMDivider = 1
+				EStutter = 0
+				ECLS = false
+				Overlay = 7
+				OTimerMode = 2
+				ODivider = 6
+				OControl = 3
+				OPalette = 10
+				OModifier = 13
+				OStutter = 0
+				OCLS = false
+   end
+   
+   if keyp(33) == true then
+	   Effect = 18
+				ETimerMode = 2
+				EDivider = 5
+				EPalette = 1
+				EModifier = 12
+				EMControl = 1
+				EMTimerMode = 1
+				EMDivider = 1
+				EStutter = 0
+				ECLS = true
+				Overlay = 10
+				OTimerMode = 1
+				ODivider = 1
+				OControl = 1
+				OPalette = 11
+				OModifier = 2
+				OStutter = 0
+				OCLS = true
+   end
+
+   if keyp(34) == true then
+	   Effect = 5
+				ETimerMode = 2
+				EDivider = 1
+				EPalette = 11
+				EModifier = 11
+				EMControl = 1
+				EMTimerMode = 1
+				EMDivider = 1
+				EStutter = 0
+				ECLS = false
+				Overlay = 3
+				OTimerMode = 1
+				ODivider = 1
+				OControl = 15
+				OPalette = 7
+				OModifier = 2
+				OStutter = 0
+				OCLS = true
+			end
+
+   if keyp(35) == true then
+				Effect = 17
+				ETimerMode = 1
+				EDivider = 1
+				EPalette = 1
+				EModifier = 12
+				EMControl = 1
+				EMTimerMode = 1
+				EMDivider = 1
+				EStutter = 0
+				ECLS = false
+				Overlay = 2
+				OTimerMode = 3
+				ODivider = 5
+				OControl = 1
+				OPalette = 9
+				OModifier = 6
+				OStutter = 0
+				OCLS = true
+			end
+			
+			if keyp(36) == true then
+				Effect = 4
+				ETimerMode = 5
+				EDivider = 3
+				EPalette = 4
+				EModifier = 13
+				EMControl = 1
+				EMTimerMode = 1
+				EMDivider = 1
+				EStutter = 0
+				ECLS = true
+				Overlay = 8
+				OTimerMode = 1
+				ODivider = 1
+				OControl = 1
+				OPalette = 13
+				OModifier = 12
+				OStutter = 0
+				OCLS = false
+			end
+			
+			if keyp(37) == true then			
+				Effect = 18
+				ETimerMode = 1
+				EDivider = 1
+				EPalette = 7
+				EModifier = 7
+				EMControl = 0
+				EMTimerMode = 3
+				EMDivider = 0
+				EStutter = 0
+				ECLS = false
+				Overlay = 11
+				OTimerMode = 3
+				ODivider = 1
+				OControl = 1
+				OPalette = 5
+				OModifier = 13
+				OStutter = 0
+				OCLS = true
+			end
 
  -- left: increase 3d logo
   if keyp(60) then
@@ -2480,17 +2517,19 @@ function KEY_CHECK()
 
  TIimageID = mm(TIimageID%(#TImages+1),1,#TImages)
 
- -- left: increase text image
+ -- left: decrease text image
  if keyp(60) then
-  TextID = TextID + 1
+  TextID = TextID - 1
+  if TextID < 1 then TextID = #Texts end
  end
   
- -- right: decrease text image
+ -- right: increase text image
  if keyp(61) then
   TextID = TextID + 1
+  if TextID > #Texts then TextID = 1 end
  end
   
- TextID = mm(TextID%(#Texts+1),1,#Texts)
+ --TextID = mm(TextID%(#Texts+1),1,#Texts)
   
  -- insert: effect cls switch
  if keyp(53) == true then
@@ -2513,14 +2552,16 @@ function KEY_CHECK()
  -- q: effect down
  if keyp(17) == true then
   Effect = Effect - 1
+  if Effect < 1 then Effect = #Effects end
  end
 
  -- w: effect up
  if keyp(23) == true then
   Effect = Effect + 1
+  if Effect > #Effects then Effect = 1 end
  end
  
- Effect = mm(Effect%(NumEffects+1),0,NumEffects)
+ --Effect = mm(Effect%(#Effects+1),0,#Effects)
 
  -- TODO: key instead of keyp? limit?
  -- e: effect control down
@@ -2571,14 +2612,16 @@ function KEY_CHECK()
  -- 1: effect modifier down
  if keyp(28) == true then
   EModifier = EModifier - 1
+  if EModifier < 1 then EModifier = #Modifiers end
  end
 
  -- 2: effect modifier up
  if keyp(29) == true then
   EModifier = EModifier + 1
+  if EModifier > #Modifiers then EModifier = 1 end
  end
  
- EModifier = mm(EModifier%(NumModifiers+1),0,NumModifiers)
+ --EModifier = mm(EModifier%(NumModifiers+1),0,NumModifiers)
  
  -- 3: effect modifier control down
  if keyp(30) == true then
@@ -2616,14 +2659,16 @@ function KEY_CHECK()
  -- z: overlay modifier down
  if keyp(26) == true then
   OModifier = OModifier - 1
+  if OModifier < 1 then OModifier = #Modifiers end
  end
 
  -- x: overlay modifier up
  if keyp(24) == true then
   OModifier = OModifier + 1
+  if OModifier > #Modifiers then OModifier = 1 end
  end
  
- OModifier = mm(OModifier%(NumModifiers+1),0,NumModifiers)
+ --OModifier = mm(OModifier%(NumModifiers+1),0,NumModifiers)
 
  -- c: overlay modifier control down
  if keyp(3) == true then
@@ -2661,14 +2706,16 @@ function KEY_CHECK()
  -- a: overlay down
  if keyp(1) == true then
   Overlay = Overlay - 1
+  if Overlay < 1 then Overlay = #Overlays end
  end
 
  -- s: overlay up
  if keyp(19) == true then
   Overlay = Overlay + 1
+  if Overlay > #Overlays then Overlay = 1 end
  end
  
- Overlay = mm(Overlay%(NumOverlays+1),0,NumOverlays)
+ --Overlay = mm(Overlay%(NumOverlays+1),0,NumOverlays)
   
  -- TODO: key instead of keyp? limit?
  -- d: overlay control down
@@ -2735,9 +2782,10 @@ function KEY_CHECK()
  end
  
  
-
- -- slash: debug switch
- if keyp(47) == true then
+ -- backslash: debug switch
+ if keyp(41) == true then
+  cls()
+  
   if DEBUG == true then 
    DEBUG = false
   else
@@ -2746,9 +2794,9 @@ function KEY_CHECK()
  end
 
  -- backspace: exit
- if keyp(51) == true then
-  exit()
- end
+ --if keyp(51) == true then
+ -- exit()
+ --end
  
 end
 
@@ -2781,13 +2829,73 @@ function BOOT()
  Proxima_BOOT()
  Lemons_BOOT()
  RevisionBack_BOOT()
+ --Bitnick_BOOT()
 end
 
-function TIC()t=time()
- vbank(0)
+Effects={
+--		VolTest,
+		TwistFFT,
+		SunBeat,
+		FujiTwist,
+		ATTunnel,
+		Quup,
+		TunnelWall,
+		CloudTunnel,
+		SwirlTunnel,
+		Chladni,
+		CircleColumn,
+		BrokenEgg,
+		ParaFlower,
+		FFTCirc,
+		Proxima,
+		Lemons,
+		RevisionBack,
+		Bitnick,
+		Worms
+}
 
- -- should remove mouse pointer but doesnt
+Overlays = {
+	TextBounceUp,
+	--SunSatOrbit,
+	SineBobs,
+	SmilyFaces,
+	TextWarp,
+	Snow,
+	SmokeCircles,
+	Spiral,
+	Bobs,
+	JoyDivision,
+	LineCut,
+	StickerLens
+--	RevisionTop,
+--	RevisionLogo,
+--	MadtixxLogo
+}
+
+Modifiers={
+	PIXNoise,
+	PIXZoom,
+	GridDim,
+	POSTCirc,
+	PIXMotionBlur,
+	PIXJumpBlur,
+	ROTVert,
+	ROTHorz,
+	SFTVert,
+	SFTHorz,
+	POSTSquares,
+	EvilpaulGlitch,
+	LineScratch
+}
+
+function TIC()
+	
+ -- remove mouse pointer but doesnt
  poke(0x3ffb,4)
+	
+	t=time()
+ 
+ vbank(0)
 
  bt=((t-LBT))/(BT)
  
@@ -2817,15 +2925,15 @@ function TIC()t=time()
   ET=BASS*5/(2^ed)
  elseif ETimerMode == TBASSC then
   ET=BASSC/50/(2^ed)
-elseif ETimerMode == TMID then
+ elseif ETimerMode == TMID then
   ET=MID*8/(2^ed)
  elseif ETimerMode == TMIDC then
   ET=MIDC/40/(2^ed)
-elseif ETimerMode == THIGH then
+ elseif ETimerMode == THIGH then
   ET=HIGH*5/(2^ed)
  elseif ETimerMode == THIGHC then
   ET=HIGHC/100/(2^ed)
-else
+ else
   ET=0
  end
  if EDivider < 0 then
@@ -2859,40 +2967,45 @@ elseif EMTimerMode == THIGH then
  
  ModifierHandler(EOrder,0,EModifier, EMT,EMControl)
 
- if Effect == 0 then
+	local ef = Effects[Effect]
+ if ef == VolTest then
   VolTest_DRAW(t,t)
- elseif Effect == TwistFFT then
+ elseif ef == TwistFFT then
   TwistFFT_DRAW(ET,0)
- elseif Effect == SunBeat then
+ elseif ef == SunBeat then
   SunBeat_DRAW(ET,0)
- elseif Effect == FujiTwist then
+ elseif ef == FujiTwist then
   FujiTwist_DRAW(ET,MID)
- elseif Effect == ATTunnel then
+ elseif ef == ATTunnel then
   ATTunnel_DRAW(ET,MID)
- elseif Effect == Quup then
+ elseif ef == Quup then
   Quup_DRAW(ET,MID)
- elseif Effect == TunnelWall then
+ elseif ef == TunnelWall then
   TunnelWall_DRAW(ET,MID)
- elseif Effect == CloudTunnel then
+ elseif ef == CloudTunnel then
   CloudTunnel_DRAW(ET,MID)
- elseif Effect == SwirlTunnel then
+ elseif ef == SwirlTunnel then
   SwirlTunnel_DRAW(ET,BASS)
- elseif Effect == Chladni then
+ elseif ef == Chladni then
   Chladni_DRAW(ET,BASS)
- elseif Effect == CircleColumn then
+ elseif ef == CircleColumn then
   CircleColumn_DRAW(ET,BASS)
- elseif Effect == BrokenEgg then
+ elseif ef == BrokenEgg then
   BrokenEgg_DRAW(ET,BASS)
- elseif Effect == ParaFlower then
+ elseif ef == ParaFlower then
   ParaFlower_DRAW(ET,BASS)
- elseif Effect == FFTCirc then
+ elseif ef == FFTCirc then
   FFTCirc_DRAW(ET,BASS)
- elseif Effect == Proxima then
+ elseif ef == Proxima then
   Proxima_DRAW(ET,BASS)
- elseif Effect == Lemons then
+ elseif ef == Lemons then
   Lemons_DRAW(ET,BASS)
- elseif Effect == RevisionBack then
+ elseif ef == RevisionBack then
   RevisionBack_DRAW(ET,BASS)
+ elseif ef == Bitnick then
+  Bitnick_DRAW(ET,BASS)
+	elseif ef == Worms then
+  Worms_DRAW(ET,BASS)
  end
  
  ModifierHandler(EOrder,1,EModifier, EMT,EMControl)
@@ -2954,70 +3067,50 @@ elseif OMTimerMode == THIGH then
 
  ModifierHandler(OOrder,0,OModifier, OMT,OMControl)
 
- if Overlay == 0 then
- elseif Overlay == TextBounceUp then
+	local Ov = Overlays[Overlay]
+ if Ov == TextBounceUp then
   TextBounceUp_DRAW(OT,OT)
- elseif Overlay == SunSatOrbit then
-  SunSatOrbit_DRAW(OT,OT)
- elseif Overlay == SmilyFaces then
+ elseif Ov == SineBobs then
+  SineBobs_DRAW(OT,OT)
+  --SunSatOrbit_DRAW(OT,BASS)
+ elseif Ov == SmilyFaces then
   SmilyFaces_DRAW(OT,OT)
- elseif Overlay == TextWarp then
+ elseif Ov == TextWarp then
   TextWarp_DRAW(OT,OT)
- elseif Overlay == Snow then
+ elseif Ov == Snow then
   Snow_DRAW(OT,OT)
- elseif Overlay == SmokeCircles then
+ elseif Ov == SmokeCircles then
   SmokeCircles_DRAW(OT,OT)
- elseif Overlay == Spiral then
+ elseif Ov == Spiral then
   Spiral_DRAW(OT,OT)
- elseif Overlay == Bobs then
+ elseif Ov == Bobs then
   Bobs_DRAW(OT,OT)
- elseif Overlay == JoyDivision then
+ elseif Ov == JoyDivision then
   JoyDivision_DRAW(OT,OT)
- elseif Overlay == LineCut then
+ elseif Ov == LineCut then
   LineCut_DRAW(OT,OT)
- elseif Overlay == StickerLens then
+ elseif Ov == StickerLens then
   StickerLens_DRAW(OT,OT)
- elseif Overlay == RevisionTop then
+ elseif Ov == RevisionTop then
   RevisionTop_DRAW(OT,OT)
- elseif Overlay == RevisionLogo then
-  RevisionLogo_DRAW(OT,OT)
- elseif Overlay == MadtixxLogo then
-  MadtixxLogo_DRAW(OT,OT)
  end
  ModifierHandler(OOrder,1,OModifier, OMT,OMControl)
 
- if DEBUG == true then
+ --[[if DEBUG == true then
   print("Effect: "..Effect.."|Ctrl: "..EControl.."|Timer: "..ETimerMode.."|Sped: "..EDivider.."|Pal: "..EPalette,0,100,12)
   print("EModifier: "..EModifier.."|Ctrl: "..EMControl.."|Timer: "..EMTimerMode.."|Sped: "..EMDivider.."|ET:"..ET,0,108,12)
   print("Overlay: "..Overlay.."|Ctrl: "..OControl.."|Timer: "..OTimerMode.."|Sped: "..ODivider.."|Pal: "..OPalette,0,116,12)
   print("OModifier: "..OModifier.."|Ctrl: "..OMControl.."|Timer: "..OMTimerMode.."|Sped: "..OMDivider,0,124,12)
+ end--]]
+ 
+ if DEBUG == true then
+  print(EModifier.."|"..EMControl.."|"..EMTimerMode.."|"..EMDivider,0,100,12)
+  print(Effect.."|"..EControl.."|"..ETimerMode.."|"..EDivider,0,108,12)
+  print(Overlay.."|"..OControl.."|"..OTimerMode.."|"..ODivider,0,116,12)
+  print(OModifier.."|"..OMControl.."|"..OMTimerMode.."|"..OMDivider,0,124,12)
  end
-end
 
---[[
- if(it%423==77) then
-  print("LOVE",40,20,15,false,7)
-  print("BYTE",50,80,15,false,7)
 end
-if(t%423==218) then
-print("RIFT",50,20,15,false,7)
-print("TLC",60,80,15,false,7)
-end
-if(t%423==359) then
-print("#BUZZ",20,20,15,false,7)
-print("<3ALL",20,80,15,false,7)
-end
---]]
-
--- <WAVES>
--- 000:00000000ffffffff00000000ffffffff
--- 001:0123456789abcdeffedcba9876543210
--- 002:0123456789abcdef0123456789abcdef
--- </WAVES>
-
--- <PALETTE>
--- 000:1a1c2c5d275db13e53ef7d57ffcd75a7f07038b76425717929366f3b5dc941a6f673eff7f4f4f494b0c2566c86333c57
--- </PALETTE>
 
 -- <TILES2>
 -- 000:000000000000000000000000000000000cffffff0cffffff0cffffff0cffffff
@@ -3101,4 +3194,14 @@ end
 -- 150:ffffffffffffffffffffffffffffffff00000000000000000000000000000000
 -- 151:fff10000fff10000fff10000fff1000000000000000000000000000000000000
 -- </TILES2>
+
+-- <WAVES>
+-- 000:00000000ffffffff00000000ffffffff
+-- 001:0123456789abcdeffedcba9876543210
+-- 002:0123456789abcdef0123456789abcdef
+-- </WAVES>
+
+-- <PALETTE>
+-- 000:1a1c2c5d275db13e53ef7d57ffcd75a7f07038b76425717929366f3b5dc941a6f673eff7f4f4f494b0c2566c86333c57
+-- </PALETTE>
 

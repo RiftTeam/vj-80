@@ -2,19 +2,17 @@
 
 return {
     id='sft_vert',
-    draw=function(data)
-        local amount,mt,mc=data.amount,data.mt,data.mc
-
+    draw=function(amount, control, params, t)
         dir=1
         local lines = 0
-        if mc == 0 then
-            lines = mt%5//1
+        if control == 0 then
+            lines = t%5//1
         else
-            if mc < 0  then
+            if control < 0  then
                 dir = -1
             end
-            --    lines = abs(mc)*(mt%4+1)//1
-            lines = (abs(mc)*(mt+1)//1)%136
+            --    lines = abs(control)*(t%4+1)//1
+            lines = (abs(control)*(t+1)//1)%136
         end
 
         if dir == 1 then

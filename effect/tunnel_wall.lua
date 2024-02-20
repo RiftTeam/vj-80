@@ -1,30 +1,25 @@
 -- was: effect index = 6
 return {
-  id='tunnel_wall',
-  boot=function()
-  end,
-  draw=function(data)
-    local it,ifft=data.et,data.mid
-    it=it/2
-   for x=0,239 do
-    for y=0,135 do
-      sx=x-120*sin(it)
-      sy=y-68 
-      r=99+50*sin(it/3) - EControl*2
-      s=sin(it)
-      c=cos(it)
-      X=(sx*s-sy*c)
-      Y=(sy*s+sx*c)
-      k=X%r-r/2
-      l=Y%r-r/2
-      a=math.atan2(k,l)
-      e=(k*k+l*l)^.5  
-      K=X//r 
-      L=Y//r 
-      ff = clamp(abs(K+L)//1 + 10,0,255)
-      ff = FFTH[ff]*.2+K
-      pix(x,y,((99/e)*2*sin(it*ff+K+L)-a*2.55)%(8)+K+L*4)
-    end
-   end
-  end,
+	id='tunnel_wall',
+	boot=function()
+	end,
+
+	draw=function(control, params, t)
+		t=t/2
+		local ffth=params.ffth
+		for x=0,239 do
+			for y=0,135 do
+				local sx,sy=x-120*sin(t),y-68 
+				local r=99+50*sin(t/3) - control*2
+				local s,c=sin(t),cos(t)
+				local X,Y=(sx*s-sy*c),(sy*s+sx*c)
+				local k,l=X%r-r/2, Y%r-r/2
+				local a=atan2(k,l)
+				local e=(k*k+l*l)^.5  
+				local K,L=X//r,Y//r 
+				local ff = clamp(abs(K+L)//1 + 10,0,255) *.2 + K
+				pix(x,y,((99/e)*2*sin(t*ff+K+L)-a*2.55)%(8)+K+L*4)
+			end
+		end
+	end,
 }

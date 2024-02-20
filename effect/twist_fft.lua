@@ -5,17 +5,20 @@ return {
     id='twist_fft',
     boot=function()
     end,
-    draw=function(data)
-        local it=data.et*10*EControl
+
+	draw=function(control, params, t)
+        local it=t*10*control
+		local ffth=params.ffth
+		local bass=params.bass
         -- lets do the twist again
         for i=0,239 do
             local x=(i-it//1)%240
-            local fhx = (FFTH[(x-1)%240]+FFTH[(x)%240]+FFTH[(x+1)%240])/3*(.9+x/60)
+            local fhx = (ffth[(x-1)%240]+ffth[(x)%240]+ffth[(x+1)%240])/3*(.9+x/60)
             local a=sin(it/10)* x/80
         
-            local d=TF_size*fhx+5+5*BASS
+            local d=TF_size*fhx+5+5*bass
         
-            local cy = 68+10*BASS*sin(i/110+ it/12)
+            local cy = 68+10*bass*sin(i/110+ it/12)
         
             local y1=d*sin(a)
             local y2=d*sin(a + tau/4)

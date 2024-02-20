@@ -2,18 +2,15 @@
 
 return {
     id='pix_zoom',
-    draw=function(data)
-        local amount,mc=data.amount,data.mc
-
+    draw=function(amount, control, params, t)
         local d=1+2*rand()
         for i=1,amount do
-            x=240*rand()
-            y=136*rand()
-            a=math.atan(x-120,y-68)
+            local x,y = 240*rand(),136*rand()
+            local a=atan2(x-120,y-68)
 
-            op=pix(x,y)-mc
+            local op=pix(x,y)-control
             if op >= 0 then
-                pix(x+d*(sin(a)+sin(t/300)),y+d*(cos(a)+sin(t/300)),op)
+                pix(x+d*(sin(a)+sin(t/300)),y+d*(cos(a)+sin(t/300)), op)
             else
                 pix(x+d*sin(a),y+d*cos(a),0)
             end

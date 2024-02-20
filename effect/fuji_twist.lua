@@ -1,5 +1,7 @@
 -- was: effect index = 3
 
+-- #TODO: Patch this in :)
+
 local Fuji_lines = {}
 local Fuji_drawlines = {}
 local Fuji_frames = {}
@@ -69,8 +71,9 @@ return {
     
      table.insert(OldLogos,Fuji_frames)
   end,
-  draw=function(data)
--- TODO: separate by lines for faster draw
+
+  draw=function(control, params, t)
+	-- TODO: separate by lines for faster draw
     local it,ifft=data.et,data.mid
     bnc=sin(ifft)*10
     frames = OldLogos[OL_ID]

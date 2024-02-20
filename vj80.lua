@@ -7,138 +7,98 @@ package.path=package.path..";C:\\Users\\micro\\AppData\\Roaming\\com.nesbox.tic\
 
 local GigSetup=require("gig/20240210-lovebyte-ps-goto80")
 
-Texts={
-  {"LOVEBYTE","2024","+ + +","GOTO80","+ + +"},
-  {"ACID","DANCE","ROBOT","NINJA"},
-  {"LOVE","LIFE","LIVE","LEFT","LOUD","LINE"},
-  {"MATH","SINE","CIRC","LINE","CLS","RECT"},
-  {"MUNCH","---"},
-  {"I","DONT","KNOW"},
-  {"SHALALA","---"},
-  {"HARDCORE","FAMILY"},
-  {"BREAK","BEAT","DANCE","HIT","HOP","SHOUT","SCREAM","JUMP"}
-}
-
+require("code/math")
+require("code/draw")
 require("code/globals")
 require("code/state")
 require("debug/fakefft")
 FontBoot=require("code/font")
 
+Texts={
+	{"HIGH", "RAPID", "VOTE!"},
+	{"FUNNY", "NICE", "CODE"},
+	{"COOL", "KRAZY", "GFX"},
+}
+
 -- effects follow the template: {boot=function(), draw=function(), bdr=function()}
 Effects={
-  require("effect/vol_test"),
-  require("effect/twist_fft"),
-  require("effect/sun_beat"),
---  require("effect/fuji_twist"),
-  require("effect/at_tunnel"),
-  require("effect/quup"),
-  require("effect/tunnel_wall"),
-  require("effect/cloud_tunnel"),
-  require("effect/swirl_tunnel"),
-  require("effect/chladni"),
-  require("effect/circle_column"),
-  require("effect/broken_egg"),
-  require("effect/para_flower"),
-  require("effect/fft_circ"),
-  require("effect/proxima"),
-  require("effect/lemons"),
-  require("effect/revision_back"),
-  require("effect/bitnick"),
-  require("effect/worms"),
+	require("effect/vol_test"),
+	require("effect/twist_fft"),
+	require("effect/sun_beat"),
+	--  require("effect/fuji_twist"),
+	require("effect/at_tunnel"),
+	require("effect/quup"),
+	require("effect/tunnel_wall"),
+	require("effect/cloud_tunnel"),
+	require("effect/swirl_tunnel"),
+	require("effect/chladni"),
+	require("effect/circle_column"),
+	require("effect/broken_egg"),
+	require("effect/para_flower"),
+	require("effect/fft_circ"),
+	require("effect/proxima"),
+	require("effect/lemons"),
+	require("effect/revision_back"),
+	require("effect/bitnick"),
+	require("effect/worms"),
 }
 
 -- overlays follow the template: {id='', boot=function(), draw=function(), bdr=function()}
 Overlays = {
-  require("overlay/bobs"),
-  require("overlay/joy_division"),
-  require("overlay/line_cut"),
-  require("overlay/revision_top"),
-  require("overlay/sinebobs"),
-  require("overlay/smiley_faces"),
-  require("overlay/smoke_circles"),
-  require("overlay/snow"),
-  require("overlay/spiral"),
-  require("overlay/sticker_lens"),
-  require("overlay/text_bounce_up"),
-  require("overlay/text_warp"),
+	require("overlay/bobs"),
+	require("overlay/joy_division"),
+	require("overlay/line_cut"),
+	require("overlay/revision_top"),
+	require("overlay/sinebobs"),
+	require("overlay/smiley_faces"),
+	require("overlay/smoke_circles"),
+	require("overlay/snow"),
+	require("overlay/spiral"),
+	require("overlay/sticker_lens"),
+	require("overlay/text_bounce_up"),
+	require("overlay/text_warp"),
 }
 
 Modifiers={
-  require("modifier/pix_noise"),
-  require("modifier/pix_zoom"),
-  require("modifier/grid_dim"),
-  require("modifier/post_circ"),
-  require("modifier/pix_motion_blur"),
-  require("modifier/pix_jump_blur"),
-  require("modifier/rot_vert"),
-  require("modifier/rot_horz"),
-  require("modifier/sft_vert"),
-  require("modifier/sft_horz"),
-  require("modifier/post_squares"),
-  require("modifier/line_scratch"),
+	require("modifier/pix_noise"),
+	require("modifier/pix_zoom"),
+	require("modifier/grid_dim"),
+	require("modifier/post_circ"),
+	require("modifier/pix_motion_blur"),
+	require("modifier/pix_jump_blur"),
+	require("modifier/rot_vert"),
+	require("modifier/rot_horz"),
+	require("modifier/sft_vert"),
+	require("modifier/sft_horz"),
+	require("modifier/post_squares"),
+	require("modifier/line_scratch"),
 }
+
+Palettes = {
+	require("palette/sweetie_16"),
+	require("palette/blue_orange"),
+	require("palette/reddish"),
+--	require("palette/pastels"),
+--	require("palette/dutch"),
+	require("palette/blue_grey_sine"),
+	require("palette/grey_scale"),
+--	require("palette/dimmed"),
+	require("palette/over_brown"),
+--	require("palette/slow_white"),
+--	require("palette/inverted"),
+	require("palette/ukr"),
+	require("palette/trans"),
+	require("palette/eire"),
+}
+
+
+local TicFn = nil
 
 EffectsLookup={}
 OverlaysLookup={}
 ModifiersLookup={}
 
-function MakeLookups()
-  for i,effect in ipairs(Effects) do
-    EffectsLookup[effect.id]=i
-  end
-
-  for i,overlay in ipairs(Overlays) do
-    OverlaysLookup[overlay.id]=i
-  end
-
-  for i,modifier in ipairs(Modifiers) do
-    ModifiersLookup[modifier.id]=i
-  end
-end
-
-NumModes=8
 NumPalettes=13
-
--- Utils
-
-function clamp(x,a,b)
- return max(a,min(b,x))
-end
-
-function ss(x,e1,e2)
- y=clamp(x,e1,e2)
- st=(y-e1)/(e2-e1)
- return st*st*(3-2*st)
-end
-
-function arc(x,y,w,r,ca,wa,col)
- for i=ca-wa/2,ca+wa/2,.1/r do
-  si=sin(i)
-  ci=cos(i)
-  line(x+r*si,y+r*ci,x+(r+w)*si,y+(r+w)*ci,col)
- end
-end
-  
-function tangent(x,y,w,r,ca,l,col)
- cx=r*sin(ca)
- cy=r*cos(ca)
- wx=(r+w)*sin(ca)
- wy=(r+w)*cos(ca)
- tx=l*sin(ca-pi/2)
- ty=l*cos(ca-pi/2)
- for i=-l,l,.5 do
-  line(x+cx+tx*i/l,y+cy+ty*i/l,x+wx+tx*i/l,y+wy+ty*i/l,col)
- end
-end
-
-function printlogo(x,y,kx,ky,col)
- for i=1,5 do
-  l=string.len(logo[i])
-  for ch=1,l do
-   print(string.sub(logo[i],ch,ch),x+(ch-1)*kx,y+(i-1)*ky,col+i,true,1,true)
-  end
- end
-end
 
 -- FFT setup
 
@@ -157,51 +117,101 @@ HIGHC=0
 FFT_Mult=10
 
 function FFT_BOOT()
- for i=0,255 do
-  FFTH[i]=0
-  FFTC[i]=0
- end
+	for i=0,255 do
+		FFTH[i]=0
+		FFTC[i]=0
+	end
 end
 
 function FFT_FILL()
- for i=0,239 do
-  f=fft(i)*Loudness
-  FFTH[i]=f/FFTH_length + FFTH[i]*((FFTH_length-1)/FFTH_length)
-  FFTC[i]=FFTC[i]+f
- end
- 
- BASS = 0
- for i=0,BASSDIV do
-  BASS = BASS + FFTH[i]
- end
- BASSC=BASSC+BASS
+	for i=0,239 do
+		local f=fft(i)*Loudness
+		FFTH[i]=f/FFTH_length + FFTH[i]*((FFTH_length-1)/FFTH_length)
+		FFTC[i]=FFTC[i]+f
+	end
 
- MID=0
- for i=BASSDIV+1,HIGHDIV do
-  MID = MID + FFTH[i]
- end
- MIDC=MIDC+MID
- --mid = mid/1.1
+	BASS = 0
+	for i=0,BASSDIV do
+		BASS = BASS + FFTH[i]
+	end
+	BASSC=BASSC+BASS
 
- HIGH=0
- for i=HIGHDIV+1,255 do
-  HIGH = HIGH + FFTH[i]
- end
- HIGHC=HIGHC+HIGH
- --high=high/4
+	MID=0
+	for i=BASSDIV+1,HIGHDIV do
+		MID = MID + FFTH[i]
+	end
+	MIDC=MIDC+MID
+	--mid = mid/1.1
+
+	HIGH=0
+	for i=HIGHDIV+1,255 do
+		HIGH = HIGH + FFTH[i]
+	end
+	HIGHC=HIGHC+HIGH
+	--high=high/4
 end
 
--- Modifiers
+-- Keyboard Control
+
+Effect=1
+Overlay=0
+EModifier=0
+OModifier=0
+Loudness=1
+ECLS=true
+OCLS=true
 
 OOrder = 0
 EOrder = 0
-function ModifierHandler(COrder,IOrder,mod, MT,MC)
-	local modifier = Modifiers[mod]
-  if COrder == IOrder then
-    if modifier ~= nil then
-      modifier.draw({amount=1000*HIGH, mt=MT, mc=MC})
-    end
-  end
+
+EControl = 1
+OControl = 1
+EPalette = 0
+OPalette = 0
+
+EMControl = 1
+OMControl = 1
+
+-- ie, beat, BASS, pos/neg
+ETimerMode=1
+OTimerMode=1
+EDivider=1
+ODivider=1
+ETimer=0
+OTimer=0
+
+EMT=0
+OMT=0
+EMTimerMode=1
+OMTimerMode=1
+EMDivider=1
+OMDivider=1
+
+-- stutter on beat
+EStutter = 0
+OStutter = 0
+
+-- Time Modes
+TM_NONE=0
+TM_TIME=1
+TM_BEAT=2
+TM_BASS=3
+TM_BASSC=4
+TM_MID=5
+TM_MIDC=6
+TM_HIGH=7
+TM_HIGHC=8
+TM_MAX = TM_HIGHC
+
+DEBUG=true
+
+-- Modifiers
+
+function ModifierHandler(iModifier, control, params, t)
+	local modifier = Modifiers[iModifier]
+	if modifier ~= nil then
+		modifier.draw(1000*HIGH, control, params, t)
+	end
 end
 
 TImages={}
@@ -209,8 +219,8 @@ TImages={}
 -- TestSheet
 TestSheetPAL={}
 function TestSheet_BOOT()
- TestSheetPAL=PAL_make3(0,0,0,255,30,0,255,255,255)
- --TestSheetPAL=PAL_make2(0,0,0,255,255,255)
+ TestSheetPAL=makePalette3(0,0,0,255,30,0,255,255,255)
+ --TestSheetPAL=makePalette2(0,0,0,255,255,255)
 end
 function TestSheet_BDR(l)
  PAL_Switch(TestSheetPAL,0.1)
@@ -229,81 +239,7 @@ PAL_STATE=0 -- 1: changing, 0: static, -1:perline
 PAL_MOD=0 -- 0: done
 PAL_CURRENT=0
 
-function PAL_make2(r1,g1,b1,r2,g2,b2)
- local pal={}
- for i=0,15 do
-  pal[i*3]   = clamp(r1*abs(15-i)/15 + r2*abs(i)/15,0,255)
-  pal[i*3+1] = clamp(g1*abs(15-i)/15 + g2*abs(i)/15,0,255)
-  pal[i*3+2] = clamp(b1*abs(15-i)/15 + b2*abs(i)/15,0,255)
- end
- return pal
-end
-
-function PAL_make3(r1,g1,b1,r2,g2,b2,r3,g3,b3)
- local pal={}
- for i=0,7 do
-  pal[i*3]   = clamp(r1*abs(7-i)/7 + r2*abs(i)/7,0,255)
-  pal[i*3+1] = clamp(g1*abs(7-i)/7 + g2*abs(i)/7,0,255)
-  pal[i*3+2] = clamp(b1*abs(7-i)/7 + b2*abs(i)/7,0,255)
- end
- for i=1,8 do
-  pal[21+i*3]   = clamp(r2*abs(8-i)/8 + r3*abs(i)/8,0,255)
-  pal[21+i*3+1] = clamp(g2*abs(8-i)/8 + g3*abs(i)/8,0,255)
-  pal[21+i*3+2] = clamp(b2*abs(8-i)/8 + b3*abs(i)/8,0,255)
- end
- return pal
-end
-
-Sweetie16=0
-Sweetie16PAL={}
-
-OverBrown = 1
-OverBrownPAL={}
-
-Reddish=2
-ReddishPAL={}
-
-BlueGreySine=3
-BlueGreySinePAL={}
-
-GreyScale = 4
-GreyScalePAL = {}
-
-UKR=11
-UKRPAL = {}
-
-Trans=12
-TransPAL = {}
-
-Eire=13
-EirePAL = {}
-
 function PAL_BOOT()
-  for i=0,47 do
-    Sweetie16PAL[i]=peek(0x3fc0+i)
-
-    BlueOrangePAL[i]=clamp(sin(i)^2*i,0,255)
-
-    BlueGreySinePAL[i]=sin(i/15)*255
-
-    GreyScalePAL[i]=i*5.6
-  end
-
-  for i=0,15 do
-    ReddishPAL[i*3]=clamp(i*32,0,255)
-    ReddishPAL[i*3+1]=clamp(i*24-128,0,255)
-    ReddishPAL[i*3+2]=clamp(i*24-256,0,255)
-
-    OverBrownPAL[i*3]=math.min(255,20+i*32)
-    OverBrownPAL[i*3+1]=math.min(255,10+i*24)
-    OverBrownPAL[i*3+2]=i*17
-    
-  end
-
-  UKRPAL = PAL_make3(0,0,0,0x00,0x5b,0xbb,0xff,0xd5,0x00)
-  TransPAL = PAL_make3(0x55,0xcd,0xfc,255,255,255,0xf7,0xa8,0xb8)
-  EirePAL = PAL_make3(0x00,0x9a,0x44,255,255,255,0xff,0x82,0x00)
-
   OLDPALE = Sweetie16PAL
   OLDPALO = Sweetie16PAL
 end
@@ -392,9 +328,9 @@ function PAL_Rotate3(it,l)
  for i=0,15 do
   r=i*(8+8*(sin(tau/6*5+it+l/100)))
   poke(0x3fc0+i*3,clamp(r,0,255))
-  g=i*(8+8*(math.sin(it+l/100)))
+  g=i*(8+8*(sin(it+l/100)))
   poke(0x3fc0+i*3+1,clamp(g,0,255))
-  b=i*(8+8*(math.cos(it+l/100)))
+  b=i*(8+8*(cos(it+l/100)))
   poke(0x3fc0+i*3+2,clamp(b,0,255))
  end
 end    
@@ -411,9 +347,9 @@ function PAL_SlowWhite(it)
   poke(0x3fc0+i*3+2,(i/7*(tc)) )
  end
  for i=8,15 do
-  poke(0x3fc0+i*3,math.min(255,(15-i)/7*ta + (i-7)/8*255) )
-  poke(0x3fc0+i*3+1,math.min(255,(15-i)/7*tb + (i-7)/8*255) )
-  poke(0x3fc0+i*3+2,math.min(255,(15-i)/7*tc + (i-7)/8*255) )
+  poke(0x3fc0+i*3,min(255,(15-i)/7*ta + (i-7)/8*255) )
+  poke(0x3fc0+i*3+1,min(255,(15-i)/7*tb + (i-7)/8*255) )
+  poke(0x3fc0+i*3+2,min(255,(15-i)/7*tc + (i-7)/8*255) )
  end
 end
 
@@ -425,12 +361,12 @@ function PAL_Rotate4(it,l)
  gradeb=sin(it*1/11+l/150)+1
  for i=0,15 do
   poke(0x3fc0+i*3, 255-(8+4*grader)*i)
-  poke(0x3fc0+i*3+1, math.max(0,math.min(255,255-(8+4*gradeg)*i)))
-  poke(0x3fc0+i*3+2, math.max(0,math.min(255,255-(8+4*gradeb)*i)))
+  poke(0x3fc0+i*3+1, max(0,min(255,255-(8+4*gradeg)*i)))
+  poke(0x3fc0+i*3+2, max(0,min(255,255-(8+4*gradeb)*i)))
  end
 end
 
-function PAL_Handle(np,l,b)
+function PAL_Handle(np,l,b,t)
  if np == Sweetie16 and l == 0 then
   if b == 0 then 
    PAL_currente = Sweetie16
@@ -502,54 +438,6 @@ function PAL_Handle(np,l,b)
  end
 end
 
--- Keyboard Control
-Effect=1
-Overlay=0
-EModifier=0
-OModifier=0
-Loudness=1
-ECLS=true
-OCLS=true
-
-EControl = 1
-OControl = 1
-EPalette = 0
-OPalette = 0
-
-EMControl = 1
-OMControl = 1
-
--- ie, beat, BASS, pos/neg
-ETimerMode=1
-OTimerMode=1
-EDivider=1
-ODivider=1
-ETimer=0
-OTimer=0
-
-EMT=0
-OMT=0
-EMTimerMode=1
-OMTimerMode=1
-EMDivider=1
-OMDivider=1
-
--- stutter on beat
-EStutter = 0
-OStutter = 0
-
--- Tmodes
-TNONE=0
-TTIME=1
-TBEAT=2
-TBASS=3
-TBASSC=4
-TMID=5
-TMIDC=6
-THIGH=7
-THIGHC=8
-
-DEBUG=true
 
 -- Beat timing
 BT=10 -- beat time in ms
@@ -800,7 +688,7 @@ function KEY_CHECK()
   ETimerMode = ETimerMode + 1
  end
 
- ETimerMode = clamp(ETimerMode,0,NumModes)
+ ETimerMode = clamp(ETimerMode,0,TM_MAX)
 
  -- u: effect divider down
  if keyp(21) == true then
@@ -823,7 +711,7 @@ function KEY_CHECK()
   EPalette = EPalette + 1
  end 
 
- EPalette = clamp(EPalette%(NumPalettes+1),0,NumPalettes)
+ EPalette = clamp(EPalette%(#Palettes+1),0,#Palettes)
  
  -- 1: effect modifier down
  if keyp(28) == true then
@@ -859,7 +747,7 @@ function KEY_CHECK()
   EMTimerMode = EMTimerMode + 1
  end
 
- EMTimerMode = clamp(EMTimerMode,0,NumModes)
+ EMTimerMode = clamp(EMTimerMode,0,TM_MAX)
 
  -- 7: effect modifier divider down
  if keyp(34) == true then
@@ -906,7 +794,7 @@ function KEY_CHECK()
   OMTimerMode = OMTimerMode + 1
  end
   
- OMTimerMode = clamp(OMTimerMode,0,NumModes)
+ OMTimerMode = clamp(OMTimerMode,0,TM_MAX)
   
  -- m: overlay modifier divider down
  if keyp(13) == true then
@@ -954,7 +842,7 @@ function KEY_CHECK()
   OTimerMode = OTimerMode + 1
  end
 
- OTimerMode = clamp(OTimerMode,0,NumModes)
+ OTimerMode = clamp(OTimerMode,0,TM_MAX)
 
  -- j: overlay divider down
  if keyp(10) == true then
@@ -977,7 +865,7 @@ function KEY_CHECK()
   OPalette = OPalette + 1
  end 
 
- OPalette = clamp(OPalette%(NumPalettes+1),0,NumPalettes)
+OPalette = clamp(OPalette%(#Palettes+1),0,#Palettes)
 
  -- delete: overlay cls switch
  if keyp(52) == true then
@@ -1016,205 +904,144 @@ function KEY_CHECK()
 end
 
 function BDR(l)
- vbank(0)
- PAL_Handle(EPalette,l,0)
+	vbank(0)
+	PAL_Handle(EPalette,l,0,T)
 
- vbank(1)
- PAL_Handle(OPalette,l,1)
+	vbank(1)
+	PAL_Handle(OPalette,l,1,T)
 end
 
 function BOOT()
-  FFT_BOOT()
-  BEATTIME_BOOT()
-  PAL_BOOT()
-  FontBoot()
+	FFT_BOOT()
+	BEATTIME_BOOT()
+	PAL_BOOT()
+	FontBoot()
 
-  for _,effect in ipairs(Effects) do
-    if effect.boot then
-      effect.boot()
-    end
-  end
+	for _,effect in ipairs(Effects) do
+		if effect.boot then
+			effect.boot()
+		end
+	end
 
-  for _,overlay in ipairs(Overlays) do
-    if overlay.boot then
-      overlay.boot()
-    end
-  end
+	for _,overlay in ipairs(Overlays) do
+		if overlay.boot then
+			overlay.boot()
+		end
+	end
 
-  MakeLookups()
+	setAvailableEffectsAll()
+	setAvailableOverlaysAll()
+	setAvailableModifiersAll()
 
-  GigSetup.boot()
-  TicRun=TICstartup
-end
+	-- We can override avaliable effects, overlays, and modifiers
+	-- And also set up our number shortcuts
+	GigSetup.boot()
 
-function TIC()
-  TicRun()
+	TicFn = TICstartup
 end
 
 function TICstartup()
-  cls()
-  print("VJ80",105,0,12)
-  if keyp(48) then
-    TicRun=TICvj
-  end
-  for i,effect in ipairs(Effects) do
-    print(effect.id,0,8+i*6,13)
-  end
-  for i,overlay in ipairs(Overlays) do
-    print(overlay.id,80,8+i*6,13)
-  end
-  for i,modifier in ipairs(Modifiers) do
-    print(modifier.id,160,8+i*6,13)
-  end
-  print("Space to start", 80,128,12)
+	cls()
+	print("VJ80",105,0,12)
+
+	if keyp(48) then
+		TicFn = TICvj
+	end
+
+	for i,effect in ipairs(Effects) do
+		print(effect.id,0,8+i*6,13)
+	end
+
+	for i,overlay in ipairs(Overlays) do
+		print(overlay.id,60,8+i*6,13)
+	end
+
+	for i,modifier in ipairs(Modifiers) do
+		print(modifier.id,120,8+i*6,13)
+	end
+
+	for i,palette in ipairs(Palettes) do
+		print(palette.id,180,8+i*6,13)
+	end
+
+	print("Space to start", 80,128,12)
 end
 
+T=0
 function TICvj()
- -- remove mouse pointer but doesnt
- poke(0x3ffb,4)
+	poke(0x3ffb,4)	-- remove mouse pointer but doesn't
 	
-	t=time()
+	T=time()
  
- vbank(0)
+ 	vbank(0)
 
- bt=((t-LBT))/(BT)
+	local bt=((T-LBT))/(BT)
+	if EStutter == 1 and SBT ~= bt//1 then
+		if ECLS == true then ECLS = false else ECLS = true end
+	end
+
+	if OStutter == 1 and SBT ~= bt//1 then
+		if OCLS == true then OCLS = false else OCLS = true end
+	end
+
+	SBT = bt//1
+
+	if ECLS then 
+		cls()
+	end
+
+	FFT_FILL()
+	KEY_CHECK()
+
+	local params = {
+		t=T,
+		bt=bt,
+		bass=BASS,
+		bassc=BASSC,
+		mid=MID,
+		midc=MIDC,
+		high=HIGH,
+		highc=HIGHC,
+		fftc=FFTC,
+		ffth=FFTH,
+
+		oDivider=ODivider,	-- Used for one overlay - should it stay? #TODO
+	}
+	local et = getT(ETimerMode, EDivider, params)	-- effect timer
+ 	local emt = getT(EMTimerMode, EMDivider, params) -- effect modifier timer
+	local ot = getT(OTimerMode, ODivider, params) -- overlay timer
+	local omt = getT(OMTimerMode, OMDivider, params) -- overlay modifier timer
  
- if EStutter == 1 and SBT ~= bt//1 then
-  if ECLS == true then ECLS = false else ECLS = true end
- end
- if OStutter == 1 and SBT ~= bt//1 then
-  if OCLS == true then OCLS = false else OCLS = true end
- end
- SBT = bt//1
+	if EOrder == 0 then
+		ModifierHandler(EModifier, EMControl, params, emt)
+	end
 
- if ECLS then 
-  cls()
- end
-
- FFT_FILL()
- KEY_CHECK()
-
- -- Effect timer mode and speed
- -- pos to add Beat% and Volume (all ffth)
- local ed = abs(EDivider)
- if ETimerMode == TTIME then
-  ET=t/1000/(2^ed)
- elseif ETimerMode == TBEAT then
-  ET=(bt/(2^ed))%4
- elseif ETimerMode == TBASS then
-  ET=BASS*5/(2^ed)
- elseif ETimerMode == TBASSC then
-  ET=BASSC/50/(2^ed)
- elseif ETimerMode == TMID then
-  ET=MID*8/(2^ed)
- elseif ETimerMode == TMIDC then
-  ET=MIDC/40/(2^ed)
- elseif ETimerMode == THIGH then
-  ET=HIGH*5/(2^ed)
- elseif ETimerMode == THIGHC then
-  ET=HIGHC/100/(2^ed)
- else
-  ET=0
- end
- if EDivider < 0 then
-  ET = -ET
- end
+	local effect = Effects[Effect]
+	if effect then
+		effect.draw(EControl, params, et)
+	end
  
- -- Effect modifier timer mode and speed
- local emd = abs(EMDivider)
- if EMTimerMode == TTIME then
-  EMT=t/1000/(2^emd)
- elseif EMTimerMode == TBEAT then
-  EMT=(bt/(2^emd))%4
- elseif EMTimerMode == TBASS then
-  EMT=BASS*5/(2^emd)
- elseif EMTimerMode == TBASSC then
-  EMT=BASSC/50/(2^emd)
-elseif EMTimerMode == TMID then
-  EMT=MID*8/(2^emd)
- elseif EMTimerMode == TMIDC then
-  EMT=MIDC/40/(2^emd)
-elseif EMTimerMode == THIGH then
-  EMT=HIGH*5/(2^emd)
- elseif EMTimerMode == THIGHC then
-  EMT=HIGHC/100/(2^emd)
- else
-  EMT=0
- end
- if EMDivider < 0 then
-  EMT = -EMT
- end
+	if EOrder == 1 then
+		ModifierHandler(EModifier, EMControl, params, emt)
+	end
+
+	vbank(1)
+	if OCLS then 
+		cls()
+	end
  
- ModifierHandler(EOrder,0,EModifier, EMT,EMControl)
+	if OOrder == 0 then
+		ModifierHandler(OModifier, OMControl, params, omt)
+	end
 
-local effect = Effects[Effect]
-effect.draw({t=t, et=ET, bt=bt, mid=MID, bass=BASS, bassc=BASSC})
- 
- ModifierHandler(EOrder,1,EModifier, EMT,EMControl)
+	local overlay = Overlays[Overlay]
+	if overlay then
+		overlay.draw(OControl, params, ot)
+	end
 
- vbank(1)
- if OCLS then 
-  cls()
- end
- 
- -- Overlay timer mode and speed
- local od = abs(ODivider)
- if OTimerMode == TTIME then
-  OT=(t/1000)/(2^od)
- elseif OTimerMode == TBEAT then
-  OT=(bt/(2^od))%4
- elseif OTimerMode == TBASS then
-  OT=(BASS*5)/(2^od)
- elseif OTimerMode == TBASSC then
-  OT=(BASSC/50)/(2^od)
-elseif OTimerMode == TMID then
-  OT=MID*8/(2^od)
- elseif OTimerMode == TMIDC then
-  OT=MIDC/40/(2^od)
-elseif OTimerMode == THIGH then
-  OT=HIGH*5/(2^od)
- elseif OTimerMode == THIGHC then
-  OT=HIGHC/100/(2^od)
- else
-  OT=0
- end
- if ODivider < 0 then
-  OT = -OT
- end
-
- -- overlay modifier timer mode and speed
- local omd = abs(OMDivider)
- if OMTimerMode == TTIME then
-  OMT=t/1000/(2^omd)
- elseif OMTimerMode == TBEAT then
-  OMT=(bt/(2^omd))%4
- elseif OMTimerMode == TBASS then
-  OMT=BASS*5/(2^omd)
- elseif OMTimerMode == TBASSC then
-  OMT=BASSC/50/(2^omd)
-elseif OMTimerMode == TMID then
-  OMT=MID*8/(2^omd)
- elseif OMTimerMode == TMIDC then
-  OMT=MIDC/40/(2^omd)
-elseif OMTimerMode == THIGH then
-  OMT=HIGH*5/(2^omd)
- elseif OMTimerMode == THIGHC then
-  OMT=HIGHC/100/(2^omd)
- else
-  OMT=0
- end
- if OMDivider < 0 then
-  OMT = -OMT
- end
-
- ModifierHandler(OOrder,0,OModifier, OMT,OMControl)
-
- if Overlay>0 then
-  local overlay = Overlays[Overlay]
-  overlay.draw({ot=OT, t=t, mid=MID, bass=BASS})
- end
-
- ModifierHandler(OOrder,1,OModifier, OMT,OMControl)
+	if OOrder == 1 then
+		ModifierHandler(OModifier, OMControl, params, omt)
+	end
 
  --[[if DEBUG == true then
   print("Effect: "..Effect.."|Ctrl: "..EControl.."|Timer: "..ETimerMode.."|Sped: "..EDivider.."|Pal: "..EPalette,0,100,12)
@@ -1223,15 +1050,85 @@ elseif OMTimerMode == THIGH then
   print("OModifier: "..OModifier.."|Ctrl: "..OMControl.."|Timer: "..OMTimerMode.."|Sped: "..OMDivider,0,124,12)
  end--]]
  
- if DEBUG == true then
-  print(EModifier.."|"..EMControl.."|"..EMTimerMode.."|"..EMDivider,0,100,12)
-  print(Effect.."|"..EControl.."|"..ETimerMode.."|"..EDivider,0,108,12)
-  print(Overlay.."|"..OControl.."|"..OTimerMode.."|"..ODivider,0,116,12)
-  print(OModifier.."|"..OMControl.."|"..OMTimerMode.."|"..OMDivider,0,124,12)
- end
-
+	if DEBUG == true then
+		print(EModifier.."|"..EMControl.."|"..EMTimerMode.."|"..EMDivider,0,100,12)
+		print(Effect.."|"..EControl.."|"..ETimerMode.."|"..EDivider,0,108,12)
+		print(Overlay.."|"..OControl.."|"..OTimerMode.."|"..ODivider,0,116,12)
+		print(OModifier.."|"..OMControl.."|"..OMTimerMode.."|"..OMDivider,0,124,12)
+	end
 end
 
+-- pos to add Beat% and Volume (all ffth)
+function getT(timerMode, divider, params)
+	local divPow=2^abs(divider)
+	local t=0
+	if timerMode == TM_TIME then
+		t = (params.t/1000)/divPow
+	elseif timerMode == TM_BEAT then
+		t = (params.bt/divPow)%4
+	elseif timerMode == TM_BASS then
+		t = (params.bass*5)/divPow
+	elseif timerMode == TM_BASSC then
+		t = (params.bassc/50)/divPow
+	elseif timerMode == TM_MID then
+		t = (params.mid*8)/divPow
+	elseif timerMode == TM_MIDC then
+		t = (params.midc/40)/divPow
+	elseif timerMode == TM_HIGH then
+		t = (params.high*5)/divPow
+	elseif timerMode == TM_HIGHC then
+		t = (params.highc/100)/divPow
+	end
+
+	return divider < 0 and -t or t
+end
+
+-- Configuration
+
+function setTexts(texts)
+	Texts = texts
+end
+
+-- Put all the effects into the EffectsLookup table...
+function setAvailableEffectsAll()
+	EffectsLookup = {}
+	for _,effect in ipairs(Effects) do
+		EffectsLookup[effect.id] = effect
+	end
+end	
+
+-- Put all the specified effects (a table of ids) into the EffectsLookup table...
+--[[
+function setAvailableEffects(effectIDs)
+	EffectsLookup = {}
+	for _,id in ipairs(effectIDs) do
+		for _,effect in ipairs(effectIDs) do
+			if id == effect.id then
+			end
+		end
+	end
+end
+--]]
+
+function setAvailableOverlaysAll()
+	OverlaysLookup = {}
+	for _,overlay in ipairs(Overlays) do
+		OverlaysLookup[overlay.id] = overlay
+	end
+end	
+
+function setAvailableModifiersAll()
+	ModifiersLookup = {}
+	for _,modifier in ipairs(Modifiers) do
+		ModifiersLookup[modifier.id] = modifier
+	end
+end	
+
+function TIC()
+	if TicFn then
+		TicFn()
+	end
+end
 
 -- <TILES2>
 -- 000:000000000000000000000000000000000cffffff0cffffff0cffffff0cffffff

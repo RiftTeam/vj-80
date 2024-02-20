@@ -78,14 +78,14 @@ Palettes = {
 	require("palette/sweetie_16"),
 	require("palette/blue_orange"),
 	require("palette/reddish"),
---	require("palette/pastels"),
---	require("palette/dutch"),
+--	("palette/pastels"),
+--	("palette/dutch"),
 	require("palette/blue_grey_sine"),
 	require("palette/grey_scale"),
---	require("palette/dimmed"),
+--	("palette/dimmed"),
 	require("palette/over_brown"),
---	require("palette/slow_white"),
---	require("palette/inverted"),
+--	("palette/slow_white"),
+--	("palette/inverted"),
 	require("palette/ukr"),
 	require("palette/trans"),
 	require("palette/eire"),
@@ -97,8 +97,7 @@ local TicFn = nil
 EffectsLookup={}
 OverlaysLookup={}
 ModifiersLookup={}
-
-NumPalettes=13
+PalettesLookup={}
 
 -- FFT setup
 
@@ -459,448 +458,438 @@ end
 
 
 function KEY_CHECK()
- -- 1-26: A-Z
- -- 27-36: 0-9
+	-- 1-26: A-Z
+	-- 27-36: 0-9
 
- -- panic! (alt)
- if key(65) then
-  -- q: effect
-  if keyp(17) == true then
-   Effect = 1
-   EControl = 1
-   ETimerMode=0
-   EDivider=1
-   EPalette = 0
-  end
+	-- panic! (alt)
+	if key(65) then
+		-- q: effect
+		if keyp(17) == true then
+			Effect = 1
+			EControl = 1
+			ETimerMode=0
+			EDivider=1
+			EPalette = 0
+		end
 
-  -- 1: effect mod
-  if keyp(28) == true then
-    EModifier=0
-    EMControl = 1
-    EMTimerMode=0
-    EMDivider=1
-    EStutter=0
-    ECLS=true
-   end
+		-- 1: effect mod
+		if keyp(28) == true then
+			EModifier=0
+			EMControl = 1
+			EMTimerMode=0
+			EMDivider=1
+			EStutter=0
+			ECLS=true
+		end
 
-  -- a: overlay
-  if keyp(1) == true then
-   Overlay = 1
-   OControl = 1
-   OTimerMode=0
-   ODivider=1
-   OPalette = 0
-  end
-  
-  -- z: overlay modifier
-  if keyp(26) == true then
-    OModifier=0
-    OMControl = 1
-    OMTimerMode=0
-    OMDivider=1
-    OStutter=0
-    OCLS=true
-  end
+		-- a: overlay
+		if keyp(1) == true then
+			Overlay = 1
+			OControl = 1
+			OTimerMode=0
+			ODivider=1
+			OPalette = 0
+		end
 
-   
-  return
- end
+		-- z: overlay modifier
+		if keyp(26) == true then
+			OModifier=0
+			OMControl = 1
+			OMTimerMode=0
+			OMDivider=1
+			OStutter=0
+			OCLS=true
+		end
 
- -- shift
- if key(64) then
- 	if keyp(51) then
-  	trace(
-    "\nEffect = " .. Effect ..
-   	"\nETimerMode = " .. ETimerMode ..
-    "\nEDivider = " .. EDivider ..
-    "\nEPalette = " .. EPalette ..
-    "\nEModifier = " .. EModifier ..
-    "\nEMControl = " .. EMControl ..
-    "\nEMTimerMode = " .. EMTimerMode ..
-    "\nEMDivider = " .. EMDivider ..
-    "\nEStutter = " .. EStutter ..
-    "\nECLS = " .. tostring(ECLS) ..
-    "\nOverlay = " .. Overlays[Overlay] ..
-    "\nOTimerMode = " .. OTimerMode ..
-    "\nODivider = " .. ODivider ..
-    "\nOControl = " .. OControl ..
-    "\nOPalette = " .. OPalette ..
-    "\nOModifier = " .. OModifier ..
-    "\nOStutter = " .. OStutter ..
-    "\nOCLS = " .. tostring(OCLS)
-) 
-  end
+		return
+	end
 
+	-- shift
+	if key(64) then
+		if keyp(51) then
+			trace(
+				"\nEffect = " .. Effect ..
+				"\nETimerMode = " .. ETimerMode ..
+				"\nEDivider = " .. EDivider ..
+				"\nEPalette = " .. EPalette ..
+				"\nEModifier = " .. EModifier ..
+				"\nEMControl = " .. EMControl ..
+				"\nEMTimerMode = " .. EMTimerMode ..
+				"\nEMDivider = " .. EMDivider ..
+				"\nEStutter = " .. EStutter ..
+				"\nECLS = " .. tostring(ECLS) ..
+				"\nOverlay = " .. Overlays[Overlay] ..
+				"\nOTimerMode = " .. OTimerMode ..
+				"\nODivider = " .. ODivider ..
+				"\nOControl = " .. OControl ..
+				"\nOPalette = " .. OPalette ..
+				"\nOModifier = " .. OModifier ..
+				"\nOStutter = " .. OStutter ..
+				"\nOCLS = " .. tostring(OCLS)
+			)
+		end
 
-  -- #TODO: sure there's better :)
-  for keycode=27,36 do
-    if keyp(keycode) then
-      triggerNumberShortcut(keycode-27)
-    end
-  end
+		-- #TODO: sure there's better :)
+		for keycode=27,36 do
+			if keyp(keycode) then
+				triggerNumberShortcut(keycode-27)
+			end
+		end
 
- -- left: increase 3d logo
-  if keyp(60) then
-   OL_ID = OL_ID + 1
-  end
-  
-  -- right: decrease 3d logo
-  if keyp(61) then
-   OL_ID = OL_ID - 1
-  end
+		-- left: increase 3d logo
+		if keyp(60) then
+			OL_ID = OL_ID + 1
+		end
 
-  -- #TODO: put this back in...
---  OL_ID = clamp(OL_ID%(#OldLogos+1),1,#OldLogos)
+		-- right: decrease 3d logo
+		if keyp(61) then
+			OL_ID = OL_ID - 1
+		end
 
-  -- home: FFTH_length up by 1
-  if keyp(56) then
-      FFTH_length = FFTH_length + 1
-  end
- 
- -- end: FFT_Length down by 1
- if keyp(57) then
-  FFTH_length = FFTH_length - 1
- end 
- FFTH_length = clamp(FFTH_length,2,60)
+		-- #TODO: put this back in...
+		--  OL_ID = clamp(OL_ID%(#OldLogos+1),1,#OldLogos)
 
- -- insert: stutter effect cls switch
- if keyp(53) == true then
-  if EStutter == 0 then 
-   EStutter = 1
-  else
-   EStutter = 0
-  end
- end
+		-- home: FFTH_length up by 1
+		if keyp(56) then
+			FFTH_length = FFTH_length + 1
+		end
 
- -- delete: stutter overlay cls switch
- if keyp(52) == true then
-  if OStutter == 0 then 
-   OStutter = 1
-  else
-   OStutter = 0
-  end
- end
+		-- end: FFT_Length down by 1
+		if keyp(57) then
+			FFTH_length = FFTH_length - 1
+		end 
+		FFTH_length = clamp(FFTH_length,2,60)
 
- return
- end
+		-- insert: stutter effect cls switch
+		if keyp(53) == true then
+			if EStutter == 0 then 
+				EStutter = 1
+			else
+				EStutter = 0
+			end
+		end
 
- -- Beat detection/input
- if keyp(48,10000,10) == true then
-  local currentbeat=clamp((BTC+1)%BEATS,1,BEATS)
-  BTA[currentbeat]= time()-LBT
-  LBT=time()
-  BTC=currentbeat
-  local beatssum = 0
-  for i=1,BEATS do
-   beatssum=beatssum+BTA[i]
-  end
-  BT=beatssum/BEATS
- end 
- 
- -- home: Loudness up by 0.1
- if keyp(56) then
-   Loudness = Loudness + 0.1
- end
+		-- delete: stutter overlay cls switch
+		if keyp(52) == true then
+			if OStutter == 0 then 
+				OStutter = 1
+			else
+				OStutter = 0
+			end
+		end
 
- -- end: Loudness down by 0.1
- if keyp(57) then
-   Loudness = Loudness - 0.1
- end
+		return
+	end
 
- Loudness = clamp(Loudness,0.1,10)
+	-- Beat detection/input
+	if keyp(48,10000,10) == true then
+		local currentbeat=clamp((BTC+1)%BEATS,1,BEATS)
+		BTA[currentbeat]= time()-LBT
+		LBT=T
+		BTC=currentbeat
+		local beatssum = 0
+		for i=1,BEATS do
+			beatssum=beatssum+BTA[i]
+		end
+		BT=beatssum/BEATS
+	end 
 
- -- up: increase text image
- if keyp(58) then
-  TIimageID = TIimageID + 1
- end
+	-- home: Loudness up by 0.1
+	if keyp(56) then
+		Loudness = Loudness + 0.1
+	end
 
- -- down: decrease text image
- if keyp(59) then
-  TIimageID = TIimageID + 1
- end
+	-- end: Loudness down by 0.1
+	if keyp(57) then
+		Loudness = Loudness - 0.1
+	end
+	Loudness = clamp(Loudness,0.1,10)
 
- TIimageID = clamp(TIimageID%(#TImages+1),1,#TImages)
+	-- up: increase text image
+	if keyp(58) then
+		TIimageID = TIimageID + 1
+	end
 
- -- left: decrease text image
- if keyp(60) then
-  TextID = TextID - 1
-  if TextID < 1 then TextID = #Texts end
- end
-  
- -- right: increase text image
- if keyp(61) then
-  TextID = TextID + 1
-  if TextID > #Texts then TextID = 1 end
- end
-  
+	-- down: decrease text image
+	if keyp(59) then
+		TIimageID = TIimageID + 1
+	end
+
+ 	TIimageID = clamp(TIimageID%(#TImages+1),1,#TImages)
+
+	-- left: decrease text image
+	if keyp(60) then
+		TextID = TextID - 1
+		if TextID < 1 then
+			TextID = #Texts
+		end
+	end
+
+	-- right: increase text image
+	if keyp(61) then
+		TextID = TextID + 1
+		if TextID > #Texts then
+			TextID = 1
+		end
+	end
+
  --TextID = clamp(TextID%(#Texts+1),1,#Texts)
   
- -- insert: effect cls switch
- if keyp(53) == true then
-  if ECLS == true then 
-   ECLS = false
-  else
-   ECLS = true
-  end
- end
+	-- insert: effect cls switch
+	if keyp(53) == true then
+		ECLS = ~ECLS
+	end
 
- -- pageup: effect modifier order switch
- if keyp(54) == true then
-  if EOrder == 0 then 
-    EOrder = 1
-  else
-    EOrder = 0
-  end
- end
+	-- pageup: effect modifier order switch
+	if keyp(54) == true then
+		EOrder = 1 - EOrder -- 0 <-> 1
+	end
+
+	-- q: effect down
+	if keyp(17) == true then
+		Effect = Effect - 1
+		if Effect < 1 then
+			Effect = #Effects
+		end
+	end
+
+	-- w: effect up
+	if keyp(23) == true then
+		Effect = Effect + 1
+		if Effect > #Effects then
+			Effect = 1
+		end
+	end
  
- -- q: effect down
- if keyp(17) == true then
-  Effect = Effect - 1
-  if Effect < 1 then Effect = #Effects end
- end
+	--Effect = clamp(Effect%(#Effects+1),0,#Effects)
 
- -- w: effect up
- if keyp(23) == true then
-  Effect = Effect + 1
-  if Effect > #Effects then Effect = 1 end
- end
+	-- TODO: key instead of keyp? limit?
+	-- e: effect control down
+	if keyp(5) == true then
+		EControl = EControl - 1
+	end 
+
+	-- r: effect control up
+	if keyp(18) == true then
+		EControl = EControl + 1
+	end 
+
+	-- t: effect timer down
+	if keyp(20) == true then
+		ETimerMode = ETimerMode - 1
+	end
+
+	-- y: effect timer up
+	if keyp(25) == true then
+		ETimerMode = ETimerMode + 1
+	end
+	ETimerMode = clamp(ETimerMode,0,TM_MAX)
+
+	-- u: effect divider down
+	if keyp(21) == true then
+		EDivider = EDivider - 1
+	end
+
+	-- i: effect divider up
+	if keyp(9) == true then
+		EDivider = EDivider + 1
+	end
+	EDivider = clamp(EDivider,-10,10)
+
+	-- o: effect palette down
+	if keyp(15) == true then
+		EPalette = EPalette - 1
+	end 
+
+	-- p: effect palette up
+	if keyp(16) == true then
+		EPalette = EPalette + 1
+	end 
+	EPalette = clamp(EPalette%(#PalettesLookup+1),0,#PalettesLookup)
  
- --Effect = clamp(Effect%(#Effects+1),0,#Effects)
+	-- 1: effect modifier down
+	if keyp(28) == true then
+		EModifier = EModifier - 1
+		if EModifier < 1 then
+			EModifier = #Modifiers
+		end
+	end
 
- -- TODO: key instead of keyp? limit?
- -- e: effect control down
- if keyp(5) == true then
-  EControl = EControl - 1
- end 
+	-- 2: effect modifier up
+	if keyp(29) == true then
+		EModifier = EModifier + 1
+		if EModifier > #Modifiers then
+			EModifier = 1
+		end
+	end
+	--EModifier = clamp(EModifier%(NumModifiers+1),0,NumModifiers)
+ 
+	-- 3: effect modifier control down
+	if keyp(30) == true then
+		EMControl = EMControl - 1
+	end
 
- -- r: effect control up
- if keyp(18) == true then
-  EControl = EControl + 1
- end 
+	-- 4: effect modifier control up
+	if keyp(31) == true then
+		EMControl = EMControl + 1
+	end
+
+	-- 5: effect modifier timer down
+	if keyp(32) == true then
+		EMTimerMode = EMTimerMode - 1
+	end
+
+	-- 6: effect modifier timer up
+	if keyp(33) == true then
+		EMTimerMode = EMTimerMode + 1
+	end
+	EMTimerMode = clamp(EMTimerMode,0,TM_MAX)
+
+	-- 7: effect modifier divider down
+	if keyp(34) == true then
+		EMDivider = EMDivider - 1
+	end
+
+	-- 8: effect modifier divider up
+	if keyp(35) == true then
+		EMDivider = EMDivider + 1
+	end
+	EMDivider = clamp(EMDivider,-10,10)
+
+	-- z: overlay modifier down
+	if keyp(26) == true then
+		OModifier = OModifier - 1
+		if OModifier < 1 then
+			OModifier = #Modifiers
+		end
+	end
+
+	-- x: overlay modifier up
+	if keyp(24) == true then
+		OModifier = OModifier + 1
+		if OModifier > #Modifiers then
+			OModifier = 1
+		end
+	end
+ 
+	--OModifier = clamp(OModifier%(NumModifiers+1),0,NumModifiers)
+
+	-- c: overlay modifier control down
+	if keyp(3) == true then
+		OMControl = OMControl - 1
+	end
+
+	-- v: overlay modifier control up
+	if keyp(22) == true then
+		OMControl = OMControl + 1
+	end
+
+	-- b: overlay modifier timer down
+	if keyp(2) == true then
+		OMTimerMode = OMTimerMode - 1
+	end
+
+	-- n: effect modifier timer up
+	if keyp(14) == true then
+		OMTimerMode = OMTimerMode + 1
+	end
   
- -- t: effect timer down
- if keyp(20) == true then
-  ETimerMode = ETimerMode - 1
- end
-
- -- y: effect timer up
- if keyp(25) == true then
-  ETimerMode = ETimerMode + 1
- end
-
- ETimerMode = clamp(ETimerMode,0,TM_MAX)
-
- -- u: effect divider down
- if keyp(21) == true then
-  EDivider = EDivider - 1
- end
-
- -- i: effect divider up
- if keyp(9) == true then
-  EDivider = EDivider + 1
- end
- EDivider = clamp(EDivider,-10,10)
-
- -- o: effect palette down
- if keyp(15) == true then
-  EPalette = EPalette - 1
- end 
-
- -- p: effect palette up
- if keyp(16) == true then
-  EPalette = EPalette + 1
- end 
-
- EPalette = clamp(EPalette%(#Palettes+1),0,#Palettes)
- 
- -- 1: effect modifier down
- if keyp(28) == true then
-  EModifier = EModifier - 1
-  if EModifier < 1 then EModifier = #Modifiers end
- end
-
- -- 2: effect modifier up
- if keyp(29) == true then
-  EModifier = EModifier + 1
-  if EModifier > #Modifiers then EModifier = 1 end
- end
- 
- --EModifier = clamp(EModifier%(NumModifiers+1),0,NumModifiers)
- 
- -- 3: effect modifier control down
- if keyp(30) == true then
-  EMControl = EMControl - 1
- end
-
- -- 4: effect modifier control up
- if keyp(31) == true then
-  EMControl = EMControl + 1
- end
- 
- -- 5: effect modifier timer down
- if keyp(32) == true then
-  EMTimerMode = EMTimerMode - 1
- end
-
- -- 6: effect modifier timer up
- if keyp(33) == true then
-  EMTimerMode = EMTimerMode + 1
- end
-
- EMTimerMode = clamp(EMTimerMode,0,TM_MAX)
-
- -- 7: effect modifier divider down
- if keyp(34) == true then
-  EMDivider = EMDivider - 1
- end
-
- -- 8: effect modifier divider up
- if keyp(35) == true then
-  EMDivider = EMDivider + 1
- end
- EMDivider = clamp(EMDivider,-10,10)
-
- -- z: overlay modifier down
- if keyp(26) == true then
-  OModifier = OModifier - 1
-  if OModifier < 1 then OModifier = #Modifiers end
- end
-
- -- x: overlay modifier up
- if keyp(24) == true then
-  OModifier = OModifier + 1
-  if OModifier > #Modifiers then OModifier = 1 end
- end
- 
- --OModifier = clamp(OModifier%(NumModifiers+1),0,NumModifiers)
-
- -- c: overlay modifier control down
- if keyp(3) == true then
-  OMControl = OMControl - 1
- end
-
- -- v: overlay modifier control up
- if keyp(22) == true then
-  OMControl = OMControl + 1
- end
-
- -- b: overlay modifier timer down
- if keyp(2) == true then
-  OMTimerMode = OMTimerMode - 1
- end
-  
- -- n: effect modifier timer up
- if keyp(14) == true then
-  OMTimerMode = OMTimerMode + 1
- end
-  
- OMTimerMode = clamp(OMTimerMode,0,TM_MAX)
+ 	OMTimerMode = clamp(OMTimerMode,0,TM_MAX)
   
  -- m: overlay modifier divider down
- if keyp(13) == true then
-  OMDivider = OMDivider - 1
- end
-  
- -- ,: overlay modifier divider up
- if keyp(45) == true then
-  OMDivider = OMDivider + 1
- end
- OMDivider = clamp(OMDivider,-10,10)
-  
- -- a: overlay down
- if keyp(1) == true then
-  Overlay = Overlay - 1
-  if Overlay < 1 then Overlay = #Overlays end
- end
+	if keyp(13) == true then
+		OMDivider = OMDivider - 1
+	end
 
- -- s: overlay up
- if keyp(19) == true then
-  Overlay = Overlay + 1
-  if Overlay > #Overlays then Overlay = 1 end
- end
+	-- ,: overlay modifier divider up
+	if keyp(45) == true then
+		OMDivider = OMDivider + 1
+	end
+	OMDivider = clamp(OMDivider,-10,10)
+  
+	-- a: overlay down
+	if keyp(1) == true then
+		Overlay = Overlay - 1
+		if Overlay < 1 then
+			Overlay = #Overlays
+		end
+	end
+
+	-- s: overlay up
+	if keyp(19) == true then
+		Overlay = Overlay + 1
+		if Overlay > #Overlays then
+			Overlay = 1
+		end
+	end
  
- --Overlay = clamp(Overlay%(NumOverlays+1),0,NumOverlays)
+	--Overlay = clamp(Overlay%(NumOverlays+1),0,NumOverlays)
   
- -- TODO: key instead of keyp? limit?
- -- d: overlay control down
- if keyp(4) == true then
-  OControl = OControl - 1
- end 
+	-- TODO: key instead of keyp? limit?
+	-- d: overlay control down
+	if keyp(4) == true then
+		OControl = OControl - 1
+	end 
 
- -- f: overlay control up
- if keyp(6) == true then
-  OControl = OControl + 1
- end 
-  
- -- g: overlay timer down
- if keyp(7) == true then
-  OTimerMode = OTimerMode - 1
- end
+	-- f: overlay control up
+	if keyp(6) == true then
+		OControl = OControl + 1
+	end 
 
- -- h: overlay timer up
- if keyp(8) == true then
-  OTimerMode = OTimerMode + 1
- end
+	-- g: overlay timer down
+	if keyp(7) == true then
+		OTimerMode = OTimerMode - 1
+	end
 
- OTimerMode = clamp(OTimerMode,0,TM_MAX)
+	-- h: overlay timer up
+	if keyp(8) == true then
+		OTimerMode = OTimerMode + 1
+	end
 
- -- j: overlay divider down
- if keyp(10) == true then
-  ODivider = ODivider - 1
- end
+	OTimerMode = clamp(OTimerMode,0,TM_MAX)
 
- -- k: overlay divider up
- if keyp(11) == true then
-  ODivider = ODivider + 1
- end
- ODivider = clamp(ODivider,-10,10)
+	-- j: overlay divider down
+	if keyp(10) == true then
+		ODivider = ODivider - 1
+	end
 
- -- l: overlay palette down
- if keyp(12) == true then
-  OPalette = OPalette - 1
- end 
+	-- k: overlay divider up
+	if keyp(11) == true then
+		ODivider = ODivider + 1
+	end
+	ODivider = clamp(ODivider,-10,10)
 
- -- ;: overlay palette up
- if keyp(42) == true then
-  OPalette = OPalette + 1
- end 
+	-- l: overlay palette down
+	if keyp(12) == true then
+		OPalette = OPalette - 1
+	end 
 
-OPalette = clamp(OPalette%(#Palettes+1),0,#Palettes)
+	-- ;: overlay palette up
+	if keyp(42) == true then
+		OPalette = OPalette + 1
+	end 
+	OPalette = clamp(OPalette%(#PalettesLookup+1),0,#PalettesLookup)
 
- -- delete: overlay cls switch
- if keyp(52) == true then
-  if OCLS == true then 
-   OCLS = false
-  else
-   OCLS = true
-  end
- end
+	-- delete: overlay cls switch
+	if keyp(52) == true then
+		OCLS = ~OCLS	-- false <-> true
+	end
 
- -- pagedown: effect modifier order switch
- if keyp(55) == true then
-  if OOrder == 0 then 
-    OOrder = 1
-  else
-    OOrder = 0
-  end
- end
- 
- 
- -- backslash: debug switch
- if keyp(41) == true then
-  cls()
-  
-  if DEBUG == true then 
-   DEBUG = false
-  else
-   DEBUG = true
-  end
- end
+	-- pagedown: effect modifier order switch
+	if keyp(55) == true then
+		OOrder = 1 - OOrder -- 0 <-> 1
+	end
 
- -- backspace: exit
- --if keyp(51) == true then
- -- exit()
- --end
+	-- backslash: debug switch
+	if keyp(41) == true then
+		cls()
+		DEBUG = ~DEBUG	-- false <-> true
+	end
+
+	-- backspace: exit
+	--if keyp(51) == true then
+	-- exit()
+	--end
 end
 
 function BDR(l)
@@ -932,6 +921,7 @@ function BOOT()
 	setAvailableEffectsAll()
 	setAvailableOverlaysAll()
 	setAvailableModifiersAll()
+	setAvailablePalettesAll()
 
 	-- We can override avaliable effects, overlays, and modifiers
 	-- And also set up our number shortcuts
@@ -977,11 +967,11 @@ function TICvj()
 
 	local bt=((T-LBT))/(BT)
 	if EStutter == 1 and SBT ~= bt//1 then
-		if ECLS == true then ECLS = false else ECLS = true end
+		ECLS = ~ECLS
 	end
 
 	if OStutter == 1 and SBT ~= bt//1 then
-		if OCLS == true then OCLS = false else OCLS = true end
+		OCLS = ~OCLS
 	end
 
 	SBT = bt//1
@@ -1092,8 +1082,8 @@ end
 -- Put all the effects into the EffectsLookup table...
 function setAvailableEffectsAll()
 	EffectsLookup = {}
-	for _,effect in ipairs(Effects) do
-		EffectsLookup[effect.id] = effect
+	for index,effect in ipairs(Effects) do
+		EffectsLookup[effect.id] = index
 	end
 end	
 
@@ -1112,15 +1102,22 @@ end
 
 function setAvailableOverlaysAll()
 	OverlaysLookup = {}
-	for _,overlay in ipairs(Overlays) do
-		OverlaysLookup[overlay.id] = overlay
+	for index,overlay in ipairs(Overlays) do
+		OverlaysLookup[overlay.id] = index
 	end
 end	
 
 function setAvailableModifiersAll()
 	ModifiersLookup = {}
-	for _,modifier in ipairs(Modifiers) do
-		ModifiersLookup[modifier.id] = modifier
+	for index,modifier in ipairs(Modifiers) do
+		ModifiersLookup[modifier.id] = index
+	end
+end	
+
+function setAvailablePalettesAll()
+	PalettesLookup = {}
+	for index,palette in ipairs(Palettes) do
+		PalettesLookup[palette.id] = index
 	end
 end	
 

@@ -237,73 +237,6 @@ function TestSheet_DRAW(it,ifft)
  end
 end
 
-
--- Palettes
-
-PAL_STATE=0 -- 1: changing, 0: static, -1:perline
-PAL_MOD=0 -- 0: done
-PAL_CURRENT=0
-
-function PAL_BOOT()
-  OLDPALE = Sweetie16PAL
-  OLDPALO = Sweetie16PAL
-end
-
-
-PAL_time = 0
-PAL_done = true
-PAL_olde = 0
-PAL_oldo = 0
-PAL_currente = 0
-PAL_currento = 0
-OLDPALE = {}
-OLDPALO = {}
-function PAL_Switch(ip, speed, buffer)
- if buffer == 0 and PAL_olde == PAL_currente then
-  --print("pt:"..PAL_time.."|old:"..PAL_olde.."|new:"..PAL_currente.."|buffer:"..buffer.."|s:"..speed,10,30,15)
-  return
- elseif buffer == 1 and PAL_oldo == PAL_currento then
-  --print("new",10,40)
-  return
- end
-
- if PAL_time >= 1 then
-  if buffer == 0 then
-   PAL_olde = PAL_currente
-   OLDPALE = ip
-  else 
-   PAL_oldo = PAL_currento
-   OLDPALO = ip
-  end
-  PAL_time = 0
- end
-
- PAL_time = clamp(PAL_time + speed,0,1)
-
- for i=0,47 do
-  --ic=peek(0x3fc0+i)
-  if buffer == 0 then
-   ic = OLDPALE[i]
-  else
-   ic = OLDPALO[i]
-  end
-  nc = ip[i] 
-
-  poke(0x3fc0+i, clamp(ic * (1-PAL_time) + nc *PAL_time,0,255))
- end
-
- --sprint("pt:"..PAL_time.."|old:"..PAL_olde.."|new:"..PAL_currente.."|buffer:"..buffer.."|s:"..speed,10,10,15)
-end
-
-
-function PAL_Fade(ip,l)
- local lm=68-abs(68-l)
- for i=0,47 do
-  poke(0x3fc0+i, clamp(ip[i]*lm/5.5,0,255))
- end
-end
-
-
 -- Beat timing
 BT=10 -- beat time in ms
 BTA={}
@@ -316,10 +249,10 @@ TextID=1
 TIimageID=1
 
 function BEATTIME_BOOT()
- for i=1,BEATS do
-  BTA[i]=0
- end
- BTC=0
+	for i=1,BEATS do
+		BTA[i]=0
+	end
+	BTC=0
 end
 
 
@@ -775,7 +708,6 @@ end
 function BOOT()
 	FFT_BOOT()
 	BEATTIME_BOOT()
-	PAL_BOOT()
 	FontBoot()
 
 	for _,effect in ipairs(Effects) do
@@ -843,8 +775,6 @@ function TICvj()
 	poke(0x3ffb,4)	-- remove mouse pointer but doesn't
 	
 	T=time()
- 
- 	vbank(0)
 
 	local bt=((T-LBT))/(BT)
 	if EStutter == 1 and SBT ~= bt//1 then
@@ -856,11 +786,7 @@ function TICvj()
 	end
 
 	SBT = bt//1
-
-	if ECLS then 
-		cls()
-	end
-
+ 
 	FFT_FILL()
 	KEY_CHECK()
 
@@ -883,6 +809,11 @@ function TICvj()
 	local ot = getT(OTimerMode, ODivider, params) -- overlay timer
 	local omt = getT(OMTimerMode, OMDivider, params) -- overlay modifier timer
  
+	vbank(0)
+	if ECLS then 
+		cls()
+	end
+
 	if EOrder == 0 then
 		ModifierHandler(EModifier, EMControl, params, emt)
 	end
@@ -913,13 +844,6 @@ function TICvj()
 	if OOrder == 1 then
 		ModifierHandler(OModifier, OMControl, params, omt)
 	end
-
- --[[if DEBUG == true then
-  print("Effect: "..Effect.."|Ctrl: "..EControl.."|Timer: "..ETimerMode.."|Sped: "..EDivider.."|Pal: "..EPalette,0,100,12)
-  print("EModifier: "..EModifier.."|Ctrl: "..EMControl.."|Timer: "..EMTimerMode.."|Sped: "..EMDivider.."|ET:"..ET,0,108,12)
-  print("Overlay: "..Overlay.."|Ctrl: "..OControl.."|Timer: "..OTimerMode.."|Sped: "..ODivider.."|Pal: "..OPalette,0,116,12)
-  print("OModifier: "..OModifier.."|Ctrl: "..OMControl.."|Timer: "..OMTimerMode.."|Sped: "..OMDivider,0,124,12)
- end--]]
  
 	if DEBUG == true then
 		if EModifier >= 1 then

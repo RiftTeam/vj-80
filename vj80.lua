@@ -9,8 +9,10 @@ local GigSetup=require("gig/20240210-lovebyte-ps-goto80")
 
 require("code/math")
 require("code/draw")
+require("code/palette")
 require("code/globals")
 require("code/state")
+require("code/scn")
 require("debug/fakefft")
 FontBoot=require("code/font")
 
@@ -78,14 +80,14 @@ Palettes = {
 	require("palette/sweetie_16"),
 	require("palette/blue_orange"),
 	require("palette/reddish"),
---	("palette/pastels"),
---	("palette/dutch"),
+	require("palette/pastels"),
+	require("palette/dutch"),
 	require("palette/blue_grey_sine"),
 	require("palette/grey_scale"),
---	("palette/dimmed"),
+	require("palette/dimmed"),
 	require("palette/over_brown"),
---	("palette/slow_white"),
---	("palette/inverted"),
+	require("palette/slow_white"),
+	require("palette/inverted"),
 	require("palette/ukr"),
 	require("palette/trans"),
 	require("palette/eire"),
@@ -98,6 +100,7 @@ EffectsLookup={}
 OverlaysLookup={}
 ModifiersLookup={}
 PalettesLookup={}
+PalettesLookupCount = 0
 
 -- FFT setup
 
@@ -114,6 +117,9 @@ HIGH=0
 HIGHC=0
 
 FFT_Mult=10
+
+SCN0=nil
+SCN1=nil
 
 function FFT_BOOT()
 	for i=0,255 do
@@ -289,151 +295,11 @@ function PAL_Switch(ip, speed, buffer)
  --sprint("pt:"..PAL_time.."|old:"..PAL_olde.."|new:"..PAL_currente.."|buffer:"..buffer.."|s:"..speed,10,10,15)
 end
 
-BlueOrange=5
-BlueOrangePAL={}
 
 function PAL_Fade(ip,l)
  local lm=68-abs(68-l)
  for i=0,47 do
   poke(0x3fc0+i, clamp(ip[i]*lm/5.5,0,255))
- end
-end
-
--- pastels
-Pastels = 8
-
--- TODO smooth ffs
-function PAL_Rotate1(it,l)
-  it=it/8
-  for i=0,47 do
-    poke(16320+i,(sin(it/8*sin(i//3)+(i%3)))*99)
-  end
-end
-
-Dutch = 6
-function PAL_Rotate2(it,l)
-  grader=sin(it*1/7+l/150)+1
-  gradeg=sin(it*1/13+l/150)+1
-  gradeb=sin(it*1/11+l/150)+1
-  for i=0,15 do
-   poke(0x3fc0+i*3,  clamp(i*16*(grader),0,255))
-   poke(0x3fc0+i*3+1,clamp(i*16*(gradeg),0,255))
-   poke(0x3fc0+i*3+2,clamp(i*16*(gradeb),0,255))
-  end
-end
-
-Dimmed = 7
-function PAL_Rotate3(it,l)
- for i=0,15 do
-  r=i*(8+8*(sin(tau/6*5+it+l/100)))
-  poke(0x3fc0+i*3,clamp(r,0,255))
-  g=i*(8+8*(sin(it+l/100)))
-  poke(0x3fc0+i*3+1,clamp(g,0,255))
-  b=i*(8+8*(cos(it+l/100)))
-  poke(0x3fc0+i*3+2,clamp(b,0,255))
- end
-end    
-
-SlowWhite = 9
-function PAL_SlowWhite(it)
- ta=96*(sin(it/10)+1)
- tb=96*(sin(it/10+tau/3)+1)
- tc=96*(sin(it/10+tau*4/3)+1)
-
- for i=0,7 do
-  poke(0x3fc0+i*3,(i/7*(ta)) )
-  poke(0x3fc0+i*3+1,(i/7*(tb)) )
-  poke(0x3fc0+i*3+2,(i/7*(tc)) )
- end
- for i=8,15 do
-  poke(0x3fc0+i*3,min(255,(15-i)/7*ta + (i-7)/8*255) )
-  poke(0x3fc0+i*3+1,min(255,(15-i)/7*tb + (i-7)/8*255) )
-  poke(0x3fc0+i*3+2,min(255,(15-i)/7*tc + (i-7)/8*255) )
- end
-end
-
-Inverted = 10
-function PAL_Rotate4(it,l)
- it=it/8
- grader=sin(it*1/7+l/150)+1
- gradeg=sin(it*1/13+l/150)+1
- gradeb=sin(it*1/11+l/150)+1
- for i=0,15 do
-  poke(0x3fc0+i*3, 255-(8+4*grader)*i)
-  poke(0x3fc0+i*3+1, max(0,min(255,255-(8+4*gradeg)*i)))
-  poke(0x3fc0+i*3+2, max(0,min(255,255-(8+4*gradeb)*i)))
- end
-end
-
-function PAL_Handle(np,l,b,t)
- if np == Sweetie16 and l == 0 then
-  if b == 0 then 
-   PAL_currente = Sweetie16
-  else
-   PAL_currento = Sweetie16
-  end
-  PAL_Switch(Sweetie16PAL,0.01,b)
- elseif np == BlueOrange then
-  PAL_Fade(BlueOrangePAL,l)
- elseif np == Reddish and l == 0 then
-  if b == 0 then 
-   PAL_currente = Reddish
-  else
-   PAL_currento = Reddish
-  end
-  PAL_Switch(ReddishPAL,0.01,b)
- elseif np == Pastels then
-  PAL_Rotate1(t/BT,l)
- elseif np == Dutch then
-  PAL_Rotate2(t/BT,l)
- elseif np == BlueGreySine and l == 0 then
-  if b == 0 then 
-   PAL_currente = BlueGreySine
-  else
-   PAL_currento = BlueGreySine
-  end
-  PAL_Switch(BlueGreySinePAL,0.01,b)
- elseif np == GreyScale and l == 0 then
-  if b == 0 then 
-    PAL_currente = GreyScale
-   else
-    PAL_currento = GreyScale
-   end
-   PAL_Switch(GreyScalePAL,0.01,b)
- elseif np == Dimmed then
-  PAL_Rotate3(t/BT,l)
- elseif np == OverBrown and l == 0 then
-  if b == 0 then 
-    PAL_currente = OverBrown
-   else
-    PAL_currento = OverBrown
-   end
-   PAL_Switch(OverBrownPAL,0.01,b)
- elseif np == SlowWhite then
-  PAL_SlowWhite(t/BT,l)
- elseif np == Inverted then
-  PAL_Rotate4(t/BT,l)
- elseif np == UKR and l == 0 then
-  if b == 0 then 
-   PAL_currente = UKR
-  else
-   PAL_currento = UKR
-  end
-  PAL_Switch(UKRPAL,0.01,b)
- elseif np == Trans and l == 0 then
-  if b == 0 then 
-   PAL_currente = Trans
-  else
-   PAL_currento = Trans
-  end
-  PAL_Switch(TransPAL,0.01,b)
- elseif np == Eire and l == 0 then
-  if b == 0 then 
-   PAL_currente = Eire
-  else
-   PAL_currento = Eire
-  end
-  PAL_Switch(EirePAL,0.01,b)
  end
 end
 
@@ -637,7 +503,7 @@ function KEY_CHECK()
   
 	-- insert: effect cls switch
 	if keyp(53) == true then
-		ECLS = ~ECLS
+		ECLS = not ECLS
 	end
 
 	-- pageup: effect modifier order switch
@@ -697,16 +563,13 @@ function KEY_CHECK()
 	EDivider = clamp(EDivider,-10,10)
 
 	-- o: effect palette down
-	if keyp(15) == true then
-		EPalette = EPalette - 1
-	end 
-
 	-- p: effect palette up
-	if keyp(16) == true then
-		EPalette = EPalette + 1
-	end 
-	EPalette = clamp(EPalette%(#PalettesLookup+1),0,#PalettesLookup)
- 
+	local oldPalette = EPalette
+	EPalette = (EPalette - (keyp(15) and 1 or 0) + (keyp(16) and 1 or 0)) % PalettesLookupCount
+	if oldPalette ~= EPalette then
+		SCN0:setPalette(Palettes[EPalette + 1])
+	end
+	
 	-- 1: effect modifier down
 	if keyp(28) == true then
 		EModifier = EModifier - 1
@@ -859,20 +722,18 @@ function KEY_CHECK()
 	end
 	ODivider = clamp(ODivider,-10,10)
 
-	-- l: overlay palette down
-	if keyp(12) == true then
-		OPalette = OPalette - 1
-	end 
 
+	-- l: overlay palette down
 	-- ;: overlay palette up
-	if keyp(42) == true then
-		OPalette = OPalette + 1
-	end 
-	OPalette = clamp(OPalette%(#PalettesLookup+1),0,#PalettesLookup)
+	local oldPalette = OPalette
+	OPalette = (OPalette - (keyp(12) and 1 or 0) + (keyp(42) and 1 or 0)) % PalettesLookupCount
+	if oldPalette ~= OPalette then
+		SCN1:setPalette(Palettes[OPalette + 1])
+	end
 
 	-- delete: overlay cls switch
 	if keyp(52) == true then
-		OCLS = ~OCLS	-- false <-> true
+		OCLS = not OCLS	-- false <-> true
 	end
 
 	-- pagedown: effect modifier order switch
@@ -883,7 +744,7 @@ function KEY_CHECK()
 	-- backslash: debug switch
 	if keyp(41) == true then
 		cls()
-		DEBUG = ~DEBUG	-- false <-> true
+		DEBUG = not DEBUG	-- false <-> true
 	end
 
 	-- backspace: exit
@@ -892,12 +753,23 @@ function KEY_CHECK()
 	--end
 end
 
-function BDR(l)
+function SCN(y)
 	vbank(0)
-	PAL_Handle(EPalette,l,0,T)
+	if SCN0 then
+		local scn=SCN0:get(y)
+		for i,c in pairs(scn.rgbs) do
+			poke(16320+i,c)
+		end
+	end
 
 	vbank(1)
-	PAL_Handle(OPalette,l,1,T)
+	
+	if SCN1 then
+		local scn=SCN1:get(y)
+		for i,c in pairs(scn.rgbs) do
+			poke(16320+i,c)
+		end
+	end
 end
 
 function BOOT()
@@ -918,6 +790,12 @@ function BOOT()
 		end
 	end
 
+	for _,palette in ipairs(Palettes) do
+		if palette.boot then
+			palette.boot()
+		end
+	end
+
 	setAvailableEffectsAll()
 	setAvailableOverlaysAll()
 	setAvailableModifiersAll()
@@ -927,6 +805,9 @@ function BOOT()
 	-- And also set up our number shortcuts
 	GigSetup.boot()
 
+	SCN0 = Scn:new(Palettes[EPalette+1])
+	SCN1 = Scn:new(Palettes[OPalette+1])
+	
 	TicFn = TICstartup
 end
 
@@ -967,11 +848,11 @@ function TICvj()
 
 	local bt=((T-LBT))/(BT)
 	if EStutter == 1 and SBT ~= bt//1 then
-		ECLS = ~ECLS
+		ECLS = not ECLS
 	end
 
 	if OStutter == 1 and SBT ~= bt//1 then
-		OCLS = ~OCLS
+		OCLS = not OCLS
 	end
 
 	SBT = bt//1
@@ -1041,11 +922,20 @@ function TICvj()
  end--]]
  
 	if DEBUG == true then
-		print(EModifier.."|"..EMControl.."|"..EMTimerMode.."|"..EMDivider,0,100,12)
-		print(Effect.."|"..EControl.."|"..ETimerMode.."|"..EDivider,0,108,12)
-		print(Overlay.."|"..OControl.."|"..OTimerMode.."|"..ODivider,0,116,12)
-		print(OModifier.."|"..OMControl.."|"..OMTimerMode.."|"..OMDivider,0,124,12)
+		if EModifier >= 1 then
+			print(Modifiers[EModifier].id.."|"..EMControl.."|"..EMTimerMode.."|"..EMDivider,0,100,12)
+		end
+		print(Effects[Effect].id.."|"..EControl.."|"..ETimerMode.."|"..EDivider.."|"..Palettes[EPalette+1].id,0,108,12)
+		if Overlay >= 1 then
+			print(Overlays[Overlay].id.."|"..OControl.."|"..OTimerMode.."|"..ODivider.."|"..Palettes[OPalette+1].id,0,116,12)
+		end
+		if OModifier >= 1 then
+			print(Modifiers[OModifier].id.."|"..OMControl.."|"..OMTimerMode.."|"..OMDivider,0,124,12)
+		end
 	end
+
+	SCN0:update(T/BT)
+	SCN1:update(T/BT)
 end
 
 -- pos to add Beat% and Volume (all ffth)
@@ -1116,8 +1006,10 @@ end
 
 function setAvailablePalettesAll()
 	PalettesLookup = {}
+	PalettesLookupCount = 0
 	for index,palette in ipairs(Palettes) do
 		PalettesLookup[palette.id] = index
+		PalettesLookupCount = PalettesLookupCount + 1
 	end
 end	
 

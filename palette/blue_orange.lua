@@ -7,7 +7,7 @@ return {
 			palette[i]=clamp(sin(i)^2*i,0,255)
 		end
 	end,
-	get=function()
+	get=function(y, t)
 		return palette
 	end,
 }

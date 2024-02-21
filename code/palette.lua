@@ -23,3 +23,14 @@ function makePalette3(r1,g1,b1,r2,g2,b2,r3,g3,b3)
 	end
 	return pal
 end
+
+
+function loadRGBs(rgbs)
+	local pal={}
+	local index=0
+	for _,v in ipairs(rgbs) do
+		pal[index] = v
+		index = index + 1
+	end
+	return pal
+end

@@ -1,6 +1,6 @@
 -- was: palette index 0
 
-local palette = {
+local rgbs = loadRGBs({
 	0x1a,0x1c,0x2c,
 	0x5d,0x27,0x5d,
 	0xb1,0x3e,0x53,
@@ -17,13 +17,13 @@ local palette = {
 	0x94,0xb0,0xc2,
 	0x56,0x6c,0x86,
 	0x33,0x3c,0x57,
-}
+})
 
 return {
 	id="sweetie_16",
 	boot=function()
 	end,
-	get=function()
-		return palette
+	get=function(y, t)
+		return rgbs
 	end,
 }

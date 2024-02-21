@@ -11,7 +11,7 @@ return {
 			palette[i*3+2]=i*17
 		end
 	end,
-	get=function()
+	get=function(y, t)
 		return palette
 	end,
 }

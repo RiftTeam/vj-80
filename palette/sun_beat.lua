@@ -11,7 +11,7 @@ return {
 			palette[i*3+2]=clamp(i*24-256,0,255)
 		end
 	end,
-	get=function()
+	get=function(y, t)
 		return palette
 	end,
 }

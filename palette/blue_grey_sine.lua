@@ -9,7 +9,7 @@ return {
 			palette[i]=sin(i/15)*255
 		end
 	end,
-	get=function()
+	get=function(y, t)
 		return palette
 	end,
 }

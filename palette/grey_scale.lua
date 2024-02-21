@@ -9,7 +9,7 @@ return {
 			palette[i]=i*5.6
 		end
 	end,
-	get=function()
+	get=function(y, t)
 		return palette
 	end,
 }

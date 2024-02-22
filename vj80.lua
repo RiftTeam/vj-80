@@ -11,6 +11,7 @@ require("code/math")
 require("code/draw")
 require("code/palette")
 require("code/globals")
+require("code/gig")
 require("code/state")
 require("code/scn")
 require("debug/fakefft")
@@ -76,31 +77,11 @@ Modifiers={
 	require("modifier/line_scratch"),
 }
 
-Palettes = {
-	require("palette/sweetie_16"),
-	require("palette/blue_orange"),
-	require("palette/reddish"),
-	require("palette/pastels"),
-	require("palette/dutch"),
-	require("palette/blue_grey_sine"),
-	require("palette/grey_scale"),
-	require("palette/dimmed"),
-	require("palette/over_brown"),
-	require("palette/slow_white"),
-	require("palette/inverted"),
-	require("palette/ukr"),
-	require("palette/trans"),
-	require("palette/eire"),
-}
-
-
 local TicFn = nil
 
 EffectsLookup={}
 OverlaysLookup={}
 ModifiersLookup={}
-PalettesLookup={}
-PalettesLookupCount = 0
 
 -- FFT setup
 
@@ -498,9 +479,9 @@ function KEY_CHECK()
 	-- o: effect palette down
 	-- p: effect palette up
 	local oldPalette = EPalette
-	EPalette = (EPalette - (keyp(15) and 1 or 0) + (keyp(16) and 1 or 0)) % PalettesLookupCount
+	EPalette = (EPalette - (keyp(15) and 1 or 0) + (keyp(16) and 1 or 0)) % getPaletteCount()
 	if oldPalette ~= EPalette then
-		SCN0:setPalette(Palettes[EPalette + 1])
+		SCN0:setPalette(getPaletteByIndex(EPalette + 1))
 	end
 	
 	-- 1: effect modifier down
@@ -659,9 +640,9 @@ function KEY_CHECK()
 	-- l: overlay palette down
 	-- ;: overlay palette up
 	local oldPalette = OPalette
-	OPalette = (OPalette - (keyp(12) and 1 or 0) + (keyp(42) and 1 or 0)) % PalettesLookupCount
+	OPalette = (OPalette - (keyp(12) and 1 or 0) + (keyp(42) and 1 or 0)) % getPaletteCount()
 	if oldPalette ~= OPalette then
-		SCN1:setPalette(Palettes[OPalette + 1])
+		SCN1:setPalette(getPaletteByIndex(OPalette + 1))
 	end
 
 	-- delete: overlay cls switch
@@ -722,23 +703,18 @@ function BOOT()
 		end
 	end
 
-	for _,palette in ipairs(Palettes) do
-		if palette.boot then
-			palette.boot()
-		end
-	end
-
 	setAvailableEffectsAll()
 	setAvailableOverlaysAll()
 	setAvailableModifiersAll()
-	setAvailablePalettesAll()
 
 	-- We can override avaliable effects, overlays, and modifiers
 	-- And also set up our number shortcuts
 	GigSetup.boot()
 
-	SCN0 = Scn:new(Palettes[EPalette+1])
-	SCN1 = Scn:new(Palettes[OPalette+1])
+	bootPalettes()
+
+	SCN0 = Scn:new(getPaletteByIndex(EPalette+1))
+	SCN1 = Scn:new(getPaletteByIndex(OPalette+1))
 	
 	TicFn = TICstartup
 end
@@ -763,8 +739,8 @@ function TICstartup()
 		print(modifier.id,120,8+i*6,13)
 	end
 
-	for i,palette in ipairs(Palettes) do
-		print(palette.id,180,8+i*6,13)
+	for i,id in ipairs(getPaletteIDs()) do
+		print(id,180,8+i*6,13)
 	end
 
 	print("Space to start", 80,128,12)
@@ -849,9 +825,9 @@ function TICvj()
 		if EModifier >= 1 then
 			print(Modifiers[EModifier].id.."|"..EMControl.."|"..EMTimerMode.."|"..EMDivider,0,100,12)
 		end
-		print(Effects[Effect].id.."|"..EControl.."|"..ETimerMode.."|"..EDivider.."|"..Palettes[EPalette+1].id,0,108,12)
+		print(Effects[Effect].id.."|"..EControl.."|"..ETimerMode.."|"..EDivider.."|"..getPaletteIDByIndex(EPalette+1),0,108,12)
 		if Overlay >= 1 then
-			print(Overlays[Overlay].id.."|"..OControl.."|"..OTimerMode.."|"..ODivider.."|"..Palettes[OPalette+1].id,0,116,12)
+			print(Overlays[Overlay].id.."|"..OControl.."|"..OTimerMode.."|"..ODivider.."|"..getPaletteIDByIndex(OPalette+1),0,116,12)
 		end
 		if OModifier >= 1 then
 			print(Modifiers[OModifier].id.."|"..OMControl.."|"..OMTimerMode.."|"..OMDivider,0,124,12)
@@ -925,15 +901,6 @@ function setAvailableModifiersAll()
 	ModifiersLookup = {}
 	for index,modifier in ipairs(Modifiers) do
 		ModifiersLookup[modifier.id] = index
-	end
-end	
-
-function setAvailablePalettesAll()
-	PalettesLookup = {}
-	PalettesLookupCount = 0
-	for index,palette in ipairs(Palettes) do
-		PalettesLookup[palette.id] = index
-		PalettesLookupCount = PalettesLookupCount + 1
 	end
 end	
 

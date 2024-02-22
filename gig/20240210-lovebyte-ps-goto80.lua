@@ -31,6 +31,23 @@ return {
 		})
 		--]]
 
+		setPalettes({
+			require("palette/sweetie_16"),
+			require("palette/blue_orange"),
+			require("palette/reddish"),
+			require("palette/pastels"),
+			require("palette/dutch"),
+			require("palette/blue_grey_sine"),
+			require("palette/grey_scale"),
+			require("palette/dimmed"),
+			require("palette/over_brown"),
+			require("palette/slow_white"),
+			require("palette/inverted"),
+			require("palette/ukr"),
+			require("palette/trans"),
+			require("palette/eire"),		
+		})
+
 		setNumberShortcut(1, function()
 			setEffect('sun_beat', {timerMode=3, divider=1, palette='reddish', stutter=0, modifier=0, modControl=1, modTimerMode=1, modDivider=1, cls=false})
 			setOverlay('smoke_circles', {timerMode=1, divider=1, palette='eire', control=2, stutter=0, modifier=1, cls=false})

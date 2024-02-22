@@ -64,12 +64,6 @@ return {
 			require("modifier/post_squares"),
 			require("modifier/line_scratch"),		
 		})
-		--[[
-		setModifiers({
-			'pix_noise', 'pix_zoom', 'grid_dim',	'post_circ', 'pix_motion_blur', 'pix_motion_blur',
-			'pix_jump_blur', 'rot_vert',	'rot_horz', 'sft_vert', 'sft_horz', 'post_squares',
-		})
-		--]]
 
 		setPalettes({
 			require("palette/sweetie_16"),
@@ -139,7 +133,3 @@ return {
 		end)
 	end,
 }
-
--- #TODO: I don't think this one made it...
---  setEffect('revision_back', {timerMode=5, divider=6, palette=1, stutter=0, modifier=3, modControl=1, modTimerMode=1, modDivider=1, cls=false})
---  setOverlay('bobs', {timerMode=8, divider=0, palette=13, control=4, stutter=0, modifier=1, cls=true})

@@ -1,3 +1,116 @@
+-- ========
+-- EFFECTS
+-- effects follow the template: {boot=function(), draw=function(), bdr=function()}
+
+local EFFECTS = {}
+local EFFECT_IDS = {}
+
+-- Send in a table of effect objects (this will probably be a list of requires)
+function setEffects(effects)
+	EFFECTS = effects
+end
+
+function bootEffects()
+	for i,effect in ipairs(EFFECTS) do
+		if effect.boot then
+			effect.boot()
+		end
+		table.insert(EFFECT_IDS, effect.id)
+	end
+end
+
+function getEffectByIndex(index)
+	return EFFECTS[index]
+end
+
+function getEffectIDByIndex(index)
+	return EFFECTS[index].id
+end
+
+function getEffectIDs()
+	return EFFECT_IDS
+end
+
+function getEffectCount()
+	return #EFFECTS
+end
+
+-- ========
+-- OVERLAYS
+-- overlays follow the template: {id='', boot=function(), draw=function(), bdr=function()}
+
+local OVERLAYS = {}
+local OVERLAY_IDS = {}
+
+-- Send in a table of overlay objects (this will probably be a list of requires)
+function setOverlays(overlays)
+	OVERLAYS = overlays
+end
+
+function bootOverlays()
+	for i,overlay in ipairs(OVERLAYS) do
+		if overlay.boot then
+			overlay.boot()
+		end
+		table.insert(OVERLAY_IDS, overlay.id)
+	end
+end
+
+function getOverlayByIndex(index)
+	return OVERLAYS[index]
+end
+
+function getOverlayIDByIndex(index)
+	return OVERLAYS[index].id
+end
+
+function getOverlayIDs()
+	return OVERLAY_IDS
+end
+
+function getOverlayCount()
+	return #OVERLAYS
+end
+
+-- =========
+-- MODIFIERS
+
+local MODIFIERS = {}
+local MODIFIER_IDS = {}
+
+-- Send in a table of overlay objects (this will probably be a list of requires)
+function setModifiers(modifiers)
+	MODIFIERS = modifiers
+end
+
+function bootModifiers()
+	for i,modifier in ipairs(MODIFIERS) do
+		if modifier.boot then
+			modifier.boot()
+		end
+		table.insert(MODIFIER_IDS, modifier.id)
+	end
+end
+
+function getModifierByIndex(index)
+	return MODIFIERS[index]
+end
+
+function getModifierIDByIndex(index)
+	return MODIFIERS[index].id
+end
+
+function getModifierIDs()
+	return MODIFIER_IDS
+end
+
+function getModifierCount()
+	return #MODIFIERS
+end
+
+-- ========
+-- PALETTES
+
 local PALETTES = {}
 local PALETTE_IDS = {}
 

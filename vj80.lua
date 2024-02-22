@@ -23,65 +23,7 @@ Texts={
 	{"COOL", "KRAZY", "GFX"},
 }
 
--- effects follow the template: {boot=function(), draw=function(), bdr=function()}
-Effects={
-	require("effect/vol_test"),
-	require("effect/twist_fft"),
-	require("effect/sun_beat"),
-	--  require("effect/fuji_twist"),
-	require("effect/at_tunnel"),
-	require("effect/quup"),
-	require("effect/tunnel_wall"),
-	require("effect/cloud_tunnel"),
-	require("effect/swirl_tunnel"),
-	require("effect/chladni"),
-	require("effect/circle_column"),
-	require("effect/broken_egg"),
-	require("effect/para_flower"),
-	require("effect/fft_circ"),
-	require("effect/proxima"),
-	require("effect/lemons"),
-	require("effect/revision_back"),
-	require("effect/bitnick"),
-	require("effect/worms"),
-}
-
--- overlays follow the template: {id='', boot=function(), draw=function(), bdr=function()}
-Overlays = {
-	require("overlay/bobs"),
-	require("overlay/joy_division"),
-	require("overlay/line_cut"),
-	require("overlay/revision_top"),
-	require("overlay/sinebobs"),
-	require("overlay/smiley_faces"),
-	require("overlay/smoke_circles"),
-	require("overlay/snow"),
-	require("overlay/spiral"),
-	require("overlay/sticker_lens"),
-	require("overlay/text_bounce_up"),
-	require("overlay/text_warp"),
-}
-
-Modifiers={
-	require("modifier/pix_noise"),
-	require("modifier/pix_zoom"),
-	require("modifier/grid_dim"),
-	require("modifier/post_circ"),
-	require("modifier/pix_motion_blur"),
-	require("modifier/pix_jump_blur"),
-	require("modifier/rot_vert"),
-	require("modifier/rot_horz"),
-	require("modifier/sft_vert"),
-	require("modifier/sft_horz"),
-	require("modifier/post_squares"),
-	require("modifier/line_scratch"),
-}
-
 local TicFn = nil
-
-EffectsLookup={}
-OverlaysLookup={}
-ModifiersLookup={}
 
 -- FFT setup
 
@@ -194,7 +136,7 @@ DEBUG=true
 -- Modifiers
 
 function ModifierHandler(iModifier, control, params, t)
-	local modifier = Modifiers[iModifier]
+	local modifier = getModifierByIndex(iModifier)
 	if modifier ~= nil then
 		modifier.draw(1000*HIGH, control, params, t)
 	end
@@ -426,22 +368,9 @@ function KEY_CHECK()
 	end
 
 	-- q: effect down
-	if keyp(17) == true then
-		Effect = Effect - 1
-		if Effect < 1 then
-			Effect = #Effects
-		end
-	end
-
 	-- w: effect up
-	if keyp(23) == true then
-		Effect = Effect + 1
-		if Effect > #Effects then
-			Effect = 1
-		end
-	end
- 
-	--Effect = clamp(Effect%(#Effects+1),0,#Effects)
+	Effect = Effect + (keyp(17) and -1 or 0) + (keyp(23) and 1 or 0)
+	Effect = clamp(Effect, 1, getEffectCount())
 
 	-- TODO: key instead of keyp? limit?
 	-- e: effect control down
@@ -479,28 +408,15 @@ function KEY_CHECK()
 	-- o: effect palette down
 	-- p: effect palette up
 	local oldPalette = EPalette
-	EPalette = (EPalette - (keyp(15) and 1 or 0) + (keyp(16) and 1 or 0)) % getPaletteCount()
+	EPalette = (EPalette + (keyp(15) and -1 or 0) + (keyp(16) and 1 or 0)) % getPaletteCount()
 	if oldPalette ~= EPalette then
 		SCN0:setPalette(getPaletteByIndex(EPalette + 1))
 	end
 	
 	-- 1: effect modifier down
-	if keyp(28) == true then
-		EModifier = EModifier - 1
-		if EModifier < 1 then
-			EModifier = #Modifiers
-		end
-	end
-
 	-- 2: effect modifier up
-	if keyp(29) == true then
-		EModifier = EModifier + 1
-		if EModifier > #Modifiers then
-			EModifier = 1
-		end
-	end
-	--EModifier = clamp(EModifier%(NumModifiers+1),0,NumModifiers)
- 
+	EModifier = (EModifier + (keyp(28) and -1 or 0) + (keyp(29) and 1 or 0)) % getModifierCount()
+
 	-- 3: effect modifier control down
 	if keyp(30) == true then
 		EMControl = EMControl - 1
@@ -534,22 +450,8 @@ function KEY_CHECK()
 	EMDivider = clamp(EMDivider,-10,10)
 
 	-- z: overlay modifier down
-	if keyp(26) == true then
-		OModifier = OModifier - 1
-		if OModifier < 1 then
-			OModifier = #Modifiers
-		end
-	end
-
 	-- x: overlay modifier up
-	if keyp(24) == true then
-		OModifier = OModifier + 1
-		if OModifier > #Modifiers then
-			OModifier = 1
-		end
-	end
- 
-	--OModifier = clamp(OModifier%(NumModifiers+1),0,NumModifiers)
+	OModifier = (OModifier + (keyp(26) and -1 or 0) + (keyp(24) and 1 or 0)) % getModifierCount()
 
 	-- c: overlay modifier control down
 	if keyp(3) == true then
@@ -583,24 +485,10 @@ function KEY_CHECK()
 		OMDivider = OMDivider + 1
 	end
 	OMDivider = clamp(OMDivider,-10,10)
-  
-	-- a: overlay down
-	if keyp(1) == true then
-		Overlay = Overlay - 1
-		if Overlay < 1 then
-			Overlay = #Overlays
-		end
-	end
 
-	-- s: overlay up
-	if keyp(19) == true then
-		Overlay = Overlay + 1
-		if Overlay > #Overlays then
-			Overlay = 1
-		end
-	end
- 
-	--Overlay = clamp(Overlay%(NumOverlays+1),0,NumOverlays)
+	-- a: effect down
+	-- s: effect up
+	Overlay = (Overlay + (keyp(1) and -1 or 0) + (keyp(19) and 1 or 0)) % getOverlayCount()
   
 	-- TODO: key instead of keyp? limit?
 	-- d: overlay control down
@@ -640,7 +528,7 @@ function KEY_CHECK()
 	-- l: overlay palette down
 	-- ;: overlay palette up
 	local oldPalette = OPalette
-	OPalette = (OPalette - (keyp(12) and 1 or 0) + (keyp(42) and 1 or 0)) % getPaletteCount()
+	OPalette = (OPalette + (keyp(12) and -1 or 0) + (keyp(42) and 1 or 0)) % getPaletteCount()
 	if oldPalette ~= OPalette then
 		SCN1:setPalette(getPaletteByIndex(OPalette + 1))
 	end
@@ -691,26 +579,13 @@ function BOOT()
 	BEATTIME_BOOT()
 	FontBoot()
 
-	for _,effect in ipairs(Effects) do
-		if effect.boot then
-			effect.boot()
-		end
-	end
-
-	for _,overlay in ipairs(Overlays) do
-		if overlay.boot then
-			overlay.boot()
-		end
-	end
-
-	setAvailableEffectsAll()
-	setAvailableOverlaysAll()
-	setAvailableModifiersAll()
-
 	-- We can override avaliable effects, overlays, and modifiers
 	-- And also set up our number shortcuts
 	GigSetup.boot()
 
+	bootEffects()
+	bootOverlays()
+	bootModifiers()
 	bootPalettes()
 
 	SCN0 = Scn:new(getPaletteByIndex(EPalette+1))
@@ -727,16 +602,16 @@ function TICstartup()
 		TicFn = TICvj
 	end
 
-	for i,effect in ipairs(Effects) do
-		print(effect.id,0,8+i*6,13)
+	for i,id in ipairs(getEffectIDs()) do
+		print(id,0,8+i*6,13)
 	end
 
-	for i,overlay in ipairs(Overlays) do
-		print(overlay.id,60,8+i*6,13)
+	for i,id in ipairs(getOverlayIDs()) do
+		print(id,60,8+i*6,13)
 	end
 
-	for i,modifier in ipairs(Modifiers) do
-		print(modifier.id,120,8+i*6,13)
+	for i,id in ipairs(getModifierIDs()) do
+		print(id,120,8+i*6,13)
 	end
 
 	for i,id in ipairs(getPaletteIDs()) do
@@ -794,7 +669,7 @@ function TICvj()
 		ModifierHandler(EModifier, EMControl, params, emt)
 	end
 
-	local effect = Effects[Effect]
+	local effect = getEffectByIndex(Effect)
 	if effect then
 		effect.draw(EControl, params, et)
 	end
@@ -812,7 +687,7 @@ function TICvj()
 		ModifierHandler(OModifier, OMControl, params, omt)
 	end
 
-	local overlay = Overlays[Overlay]
+	local overlay = getOverlayByIndex(Overlay)
 	if overlay then
 		overlay.draw(OControl, params, ot)
 	end
@@ -823,14 +698,14 @@ function TICvj()
  
 	if DEBUG == true then
 		if EModifier >= 1 then
-			print(Modifiers[EModifier].id.."|"..EMControl.."|"..EMTimerMode.."|"..EMDivider,0,100,12)
+			print(getModifierIDByIndex(EModifier).."|"..EMControl.."|"..EMTimerMode.."|"..EMDivider,0,100,12)
 		end
-		print(Effects[Effect].id.."|"..EControl.."|"..ETimerMode.."|"..EDivider.."|"..getPaletteIDByIndex(EPalette+1),0,108,12)
+		print(getEffectIDByIndex(Effect).."|"..EControl.."|"..ETimerMode.."|"..EDivider.."|"..getPaletteIDByIndex(EPalette+1),0,108,12)
 		if Overlay >= 1 then
-			print(Overlays[Overlay].id.."|"..OControl.."|"..OTimerMode.."|"..ODivider.."|"..getPaletteIDByIndex(OPalette+1),0,116,12)
+			print(getOverlayIDByIndex(Overlay).."|"..OControl.."|"..OTimerMode.."|"..ODivider.."|"..getPaletteIDByIndex(OPalette+1),0,116,12)
 		end
 		if OModifier >= 1 then
-			print(Modifiers[OModifier].id.."|"..OMControl.."|"..OMTimerMode.."|"..OMDivider,0,124,12)
+			print(getModifierIDByIndex(OModifier).."|"..OMControl.."|"..OMTimerMode.."|"..OMDivider,0,124,12)
 		end
 	end
 
@@ -868,41 +743,6 @@ end
 function setTexts(texts)
 	Texts = texts
 end
-
--- Put all the effects into the EffectsLookup table...
-function setAvailableEffectsAll()
-	EffectsLookup = {}
-	for index,effect in ipairs(Effects) do
-		EffectsLookup[effect.id] = index
-	end
-end	
-
--- Put all the specified effects (a table of ids) into the EffectsLookup table...
---[[
-function setAvailableEffects(effectIDs)
-	EffectsLookup = {}
-	for _,id in ipairs(effectIDs) do
-		for _,effect in ipairs(effectIDs) do
-			if id == effect.id then
-			end
-		end
-	end
-end
---]]
-
-function setAvailableOverlaysAll()
-	OverlaysLookup = {}
-	for index,overlay in ipairs(Overlays) do
-		OverlaysLookup[overlay.id] = index
-	end
-end	
-
-function setAvailableModifiersAll()
-	ModifiersLookup = {}
-	for index,modifier in ipairs(Modifiers) do
-		ModifiersLookup[modifier.id] = index
-	end
-end	
 
 function TIC()
 	if TicFn then

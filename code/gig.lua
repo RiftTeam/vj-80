@@ -27,6 +27,15 @@ function getEffectIDByIndex(index)
 	return EFFECTS[index].id
 end
 
+function getEffectIndexByID(id)
+	for i,effect in ipairs(EFFECTS) do
+		if effect.id == id then
+			return i
+		end
+	end
+	return 0
+end
+
 function getEffectIDs()
 	return EFFECT_IDS
 end
@@ -62,6 +71,15 @@ end
 
 function getOverlayIDByIndex(index)
 	return OVERLAYS[index].id
+end
+
+function getOverlayIndexByID(id)
+	for i,overlay in ipairs(OVERLAYS) do
+		if overlay.id == id then
+			return i
+		end
+	end
+	return 0
 end
 
 function getOverlayIDs()
@@ -100,6 +118,15 @@ function getModifierIDByIndex(index)
 	return MODIFIERS[index].id
 end
 
+function getModifierIndexByID(id)
+	for i,modifier in ipairs(MODIFIERS) do
+		if modifier.id == id then
+			return i
+		end
+	end
+	return 0
+end
+
 function getModifierIDs()
 	return MODIFIER_IDS
 end
@@ -129,11 +156,20 @@ function bootPalettes()
 end
 
 function getPaletteByIndex(index)
-	return PALETTES[index]
+	return PALETTES[index + 1]
 end
 
 function getPaletteIDByIndex(index)
-	return PALETTES[index].id
+	return PALETTES[index + 1].id
+end
+
+function getPaletteIndexByID(id)
+	for i,palette in ipairs(PALETTES) do
+		if palette.id == id then
+			return i-1
+		end
+	end
+	return 0
 end
 
 function getPaletteIDs()

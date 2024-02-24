@@ -13,32 +13,37 @@ local ChPTY={}
 local Chfreq=.75
 local ChNPKD = 15
 
-function ChResetPoints(t)
+function resetPoints(t)
 	for i=1,ChNP do
 		ChPTX[i]=120-ChNPKD/2+ChNPKD*i/3+30*sin(t/20+ i/ChNP * 2 * pi)
 		ChPTY[i]=68-ChNPKD/2+ChNPKD*i/3+26*cos(t/20+i/ChNP * 2 * pi)
 	end
 end
 
+function resetAll()
+	resetPoints(0)
+	for i=1,ChN do
+		ChPX[i] = rand(240);
+		ChPY[i] = rand(136);
+	end
+end
+
 return {
 	id='chladni',
 	boot=function()
-		ChResetPoints(0)
-		for i=1,ChN do
-			ChPX[i] = rand(240);
-			ChPY[i] = rand(136);
-		end
+		resetAll()
 	end,
 	draw = function(control, params, t)
 		ChT = t--ChT+.2
 		ChTT = (t*10)//1--ChTT+1
-		ChResetPoints(t)
 
 		if ChTT%100 == 0 then
 			ChNP = 3 + control*rand()
 			Chfreq = .3 + rand()
 			ChNPKD = 10 + 30*rand()
-			Chladni_BOOT()
+			resetAll()
+		else
+			resetPoints(t)
 		end
 
 		for i=1,ChN do

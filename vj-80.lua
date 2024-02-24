@@ -5,7 +5,8 @@
 
 package.path=package.path..";C:\\Users\\micro\\AppData\\Roaming\\com.nesbox.tic\\TIC-80\\mantratronic-vj-80\\?.lua"	-- jtruk
 
-local GigSetup=require("gig/20240210-lovebyte-ps-goto80")
+--local GigSetup=require("gig/20240210-lovebyte-ps-goto80")
+local GigSetup=require("gig/jtruk-debug")
 
 require("code/math")
 require("code/draw")
@@ -15,13 +16,7 @@ require("code/gig")
 require("code/state")
 require("code/scn")
 require("debug/fakefft")
-FontBoot=require("code/font")
-
-Texts={
-	{"HIGH", "RAPID", "VOTE!"},
-	{"FUNNY", "NICE", "CODE"},
-	{"COOL", "KRAZY", "GFX"},
-}
+bootFont=require("code/font")
 
 local TicFn = nil
 
@@ -38,8 +33,6 @@ MIDC=0
 HIGHDIV=50
 HIGH=0
 HIGHC=0
-
-FFT_Mult=10
 
 SCN0=nil
 SCN1=nil
@@ -135,7 +128,7 @@ DEBUG=true
 
 -- Modifiers
 
-function ModifierHandler(iModifier, control, params, t)
+function DrawModifier(iModifier, control, params, t)
 	local modifier = getModifierByIndex(iModifier)
 	if modifier ~= nil then
 		modifier.draw(1000*HIGH, control, params, t)
@@ -189,18 +182,18 @@ function KEY_CHECK()
 		if keyp(17) then
 			Effect = 1
 			EControl = 1
-			ETimerMode=0
-			EDivider=1
-			EPalette = 0
+			ETimerMode= 0
+			EDivider = 1
+			EPalette = 1
 		end
 
 		-- 1: effect mod
 		if keyp(28) then
 			EModifier=0
 			EMControl = 1
-			EMTimerMode=0
-			EMDivider=1
-			EStutter=0
+			EMTimerMode = 0
+			EMDivider = 1
+			EStutter = 0
 			ECLS=true
 		end
 
@@ -208,18 +201,18 @@ function KEY_CHECK()
 		if keyp(1) then
 			Overlay = 1
 			OControl = 1
-			OTimerMode=0
-			ODivider=1
-			OPalette = 0
+			OTimerMode = 0
+			ODivider = 1
+			OPalette = 1
 		end
 
 		-- z: overlay modifier
 		if keyp(26) then
-			OModifier=0
+			OModifier = 0
 			OMControl = 1
-			OMTimerMode=0
-			OMDivider=1
-			OStutter=0
+			OMTimerMode = 0
+			OMDivider = 1
+			OStutter = 0
 			OCLS=true
 		end
 
@@ -260,13 +253,15 @@ function KEY_CHECK()
 
 		-- left: increase 3d logo
 		-- right: decrease 3d logo
-		OL_ID = OL_ID + (keyp(60) and 1 or 0) + (keyp(61) and -1 or 0)
+		-- This is for Fuji-Twist effect
+		-- #TODO: put this back in...
+		-- OL_ID = OL_ID + (keyp(60) and 1 or 0) + (keyp(61) and -1 or 0)
 
 		-- #TODO: put this back in...
 		--  OL_ID = clamp(OL_ID%(#OldLogos+1),1,#OldLogos)
 
 		-- home: FFTH_length up by 1
-		-- end: FFT_Length down by 1
+		-- end: FFTH_length down by 1
 		FFTH_length = clamp(FFTH_length + (keyp(56) and 1 or 0) + (keyp(57) and -1 or 0), 2, 60)
 
 		-- insert: stutter effect cls switch
@@ -299,15 +294,17 @@ function KEY_CHECK()
 	-- end: Loudness down by 0.1
 	Loudness = clamp(Loudness + (keyp(56) and 0.1 or 0) + (keyp(57) and -0.1 or 0), 0.1, 10)
 
+	-- #TODO: Look at texts
+
 	-- up: increase text image
 	-- down: decrease text image
-	TIimageID = TIimageID + (keyp(58) and 1 or 0) + (keyp(59) and -1 or 0)
- 	TIimageID = clamp(TIimageID%(#TImages+1),1,#TImages)
+--	TIimageID = TIimageID + (keyp(58) and 1 or 0) + (keyp(59) and -1 or 0)
+-- 	TIimageID = clamp(TIimageID%(#TImages+1),1,#TImages)
 
 	-- left: decrease text image
 	-- right: increase text image
-	TextID = TextID + (keyp(60) and -1 or 0) + (keyp(61) and 1 or 0)
- 	TextID = clamp(TextID%(#Texts+1),1,#Texts)
+--	TextID = TextID + (keyp(60) and -1 or 0) + (keyp(61) and 1 or 0)
+-- 	TextID = clamp(TextID%(#Texts+1),1,#Texts)
   
 	-- insert: effect cls switch
 	if keyp(53) then
@@ -342,12 +339,12 @@ function KEY_CHECK()
 	local oldPalette = EPalette
 	EPalette = (EPalette + (keyp(15) and -1 or 0) + (keyp(16) and 1 or 0)) % getPaletteCount()
 	if oldPalette ~= EPalette then
-		SCN0:setPalette(getPaletteByIndex(EPalette + 1))
+		SCN0:setPalette(getPaletteByIndex(EPalette))
 	end
 	
 	-- 1: effect modifier down
 	-- 2: effect modifier up
-	EModifier = (EModifier + (keyp(28) and -1 or 0) + (keyp(29) and 1 or 0)) % getModifierCount()
+	EModifier = (EModifier + (keyp(28) and -1 or 0) + (keyp(29) and 1 or 0)) % (getModifierCount()+1)
 
 	-- 3: effect modifier control down
 	-- 4: effect modifier control up
@@ -363,7 +360,7 @@ function KEY_CHECK()
 
 	-- z: overlay modifier down
 	-- x: overlay modifier up
-	OModifier = (OModifier + (keyp(26) and -1 or 0) + (keyp(24) and 1 or 0)) % getModifierCount()
+	OModifier = (OModifier + (keyp(26) and -1 or 0) + (keyp(24) and 1 or 0)) % (getModifierCount()+1)
 
 	-- c: overlay modifier control down
 	-- v: overlay modifier control up
@@ -379,7 +376,7 @@ function KEY_CHECK()
 
 	-- a: effect down
 	-- s: effect up
-	Overlay = (Overlay + (keyp(1) and -1 or 0) + (keyp(19) and 1 or 0)) % getOverlayCount()
+	Overlay = (Overlay + (keyp(1) and -1 or 0) + (keyp(19) and 1 or 0)) % (getOverlayCount()+1)
   
 	-- TODO: key instead of keyp? limit?
 	-- d: overlay control down
@@ -399,7 +396,7 @@ function KEY_CHECK()
 	local oldPalette = OPalette
 	OPalette = (OPalette + (keyp(12) and -1 or 0) + (keyp(42) and 1 or 0)) % getPaletteCount()
 	if oldPalette ~= OPalette then
-		SCN1:setPalette(getPaletteByIndex(OPalette + 1))
+		SCN1:setPalette(getPaletteByIndex(OPalette))
 	end
 
 	-- delete: overlay cls switch
@@ -413,7 +410,7 @@ function KEY_CHECK()
 	end
 
 	-- backslash: debug switch
-	if keyp(41) then
+	if keyp(49) then
 		cls()
 		DEBUG = not DEBUG	-- false <-> true
 	end
@@ -444,9 +441,10 @@ function SCN(y)
 end
 
 function BOOT()
+	bootFont()
+
 	FFT_BOOT()
 	BEATTIME_BOOT()
-	FontBoot()
 
 	-- We can override avaliable effects, overlays, and modifiers
 	-- And also set up our number shortcuts
@@ -457,8 +455,8 @@ function BOOT()
 	bootModifiers()
 	bootPalettes()
 
-	SCN0 = Scn:new(getPaletteByIndex(EPalette+1))
-	SCN1 = Scn:new(getPaletteByIndex(OPalette+1))
+	SCN0 = Scn:new(getPaletteByIndex(EPalette))
+	SCN1 = Scn:new(getPaletteByIndex(OPalette))
 	
 	TicFn = TICstartup
 end
@@ -535,7 +533,7 @@ function TICvj()
 	end
 
 	if EOrder == 0 then
-		ModifierHandler(EModifier, EMControl, params, emt)
+		DrawModifier(EModifier, EMControl, params, emt)
 	end
 
 	local effect = getEffectByIndex(Effect)
@@ -544,7 +542,7 @@ function TICvj()
 	end
  
 	if EOrder == 1 then
-		ModifierHandler(EModifier, EMControl, params, emt)
+		DrawModifier(EModifier, EMControl, params, emt)
 	end
 
 	vbank(1)
@@ -553,29 +551,33 @@ function TICvj()
 	end
  
 	if OOrder == 0 then
-		ModifierHandler(OModifier, OMControl, params, omt)
+		DrawModifier(OModifier, OMControl, params, omt)
 	end
 
-	local overlay = getOverlayByIndex(Overlay)
-	if overlay then
-		overlay.draw(OControl, params, ot)
+	if Overlay > 0 then
+		local overlay = getOverlayByIndex(Overlay)
+		if overlay then
+			overlay.draw(OControl, params, ot)
+		end
 	end
 
 	if OOrder == 1 then
-		ModifierHandler(OModifier, OMControl, params, omt)
+		DrawModifier(OModifier, OMControl, params, omt)
 	end
  
 	if DEBUG then
+		rect(4,94,180,40,15)
 		if EModifier >= 1 then
-			print(getModifierIDByIndex(EModifier).."|"..EMControl.."|"..EMTimerMode.."|"..EMDivider,0,100,12)
+			print(getModifierIDByIndex(EModifier).."|"..EMControl.."|"..EMTimerMode.."|"..EMDivider.."|"..EStutter,6,96,12)
 		end
-		print(getEffectIDByIndex(Effect).."|"..EControl.."|"..ETimerMode.."|"..EDivider.."|"..getPaletteIDByIndex(EPalette+1),0,108,12)
+		print(getEffectIDByIndex(Effect).."|"..EControl.."|"..ETimerMode.."|"..EDivider.."|"..getPaletteIDByIndex(EPalette),6,104,12)
 		if Overlay >= 1 then
-			print(getOverlayIDByIndex(Overlay).."|"..OControl.."|"..OTimerMode.."|"..ODivider.."|"..getPaletteIDByIndex(OPalette+1),0,116,12)
+			print(getOverlayIDByIndex(Overlay).."|"..OControl.."|"..OTimerMode.."|"..ODivider.."|"..getPaletteIDByIndex(OPalette),6,112,12)
 		end
 		if OModifier >= 1 then
-			print(getModifierIDByIndex(OModifier).."|"..OMControl.."|"..OMTimerMode.."|"..OMDivider,0,124,12)
+			print(getModifierIDByIndex(OModifier).."|"..OMControl.."|"..OMTimerMode.."|"..OMDivider.."|"..OStutter,6,120,12)
 		end
+		print((ECLS and 1 or 0).."|"..(OCLS and 1 or 0).."|"..FFTH_length.."|"..Loudness,6,128,12)
 	end
 
 	SCN0:update(T/BT)
@@ -605,12 +607,6 @@ function getT(timerMode, divider, params)
 	end
 
 	return divider < 0 and -t or t
-end
-
--- Configuration
-
-function setTexts(texts)
-	Texts = texts
 end
 
 function TIC()

@@ -1,10 +1,10 @@
 function setEffect(id, config)
-    Effect = EffectsLookup[id]
+    Effect = getEffectIndexByID(id)
     ETimerMode = config.timerMode
     EDivider = config.divider
-    EPalette = config.palette
+    EPalette = getPaletteIndexByID(config.palette)
     EStutter = config.stutter
-    EModifier = config.modifier
+    EModifier = getModifierIndexByID(config.modifier)
     EMControl = config.modControl
     EMTimerMode = config.modTimerMode
     EMDivider = config.modDivider
@@ -12,13 +12,13 @@ function setEffect(id, config)
   end
   
   function setOverlay(id, config)
-    Overlay = OverlaysLookup[id]
+    Overlay = getOverlayIndexByID(id)
     OTimerMode = config.timerMode
     ODivider = config.divider
     OControl = config.control
-    OPalette = config.palette
+    OPalette = getPaletteIndexByID(config.palette)
     OStutter = config.stutter
-    OModifier = config.modifier
+    OModifier = getModifierIndexByID(config.modifier)
     OCLS = config.cls
   end
   

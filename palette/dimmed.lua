@@ -1,4 +1,5 @@
 -- was: palette index 7
+-- Warning: Fast flashing / photosensitivity!
 
 local palette = {}
 

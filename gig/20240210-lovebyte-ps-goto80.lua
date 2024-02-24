@@ -1,23 +1,10 @@
 return {
-	-- #TODO: This might get renamed...
 	boot=function()
-		setTexts({
-			{"LOVEBYTE","2024","+ + +","GOTO80","+ + +"},
-			{"ACID","DANCE","ROBOT","NINJA"},
-			{"LOVE","LIFE","LIVE","LEFT","LOUD","LINE"},
-			{"MATH","SINE","CIRC","LINE","CLS","RECT"},
-			{"MUNCH","---"},
-			{"I","DONT","KNOW"},
-			{"SHALALA","---"},
-			{"HARDCORE","FAMILY"},
-			{"BREAK","BEAT","DANCE","HIT","HOP","SHOUT","SCREAM","JUMP"},
-		})
-
 		setEffects({
 			require("effect/vol_test"),
 			require("effect/twist_fft"),
 			require("effect/sun_beat"),
-			--  require("effect/fuji_twist"),
+--			require("effect/fuji_twist"),
 			require("effect/at_tunnel"),
 			require("effect/quup"),
 			require("effect/tunnel_wall"),
@@ -45,9 +32,37 @@ return {
 			require("overlay/smoke_circles"),
 			require("overlay/snow"),
 			require("overlay/spiral"),
-			require("overlay/sticker_lens"),
-			require("overlay/text_bounce_up"),
-			require("overlay/text_warp"),			
+			require("overlay/sticker_lens")({function()
+				local l=flength("GOTO80",3,4)
+				fprint("GOTO80",120-l/2,38,3,1,12,4)	
+			end, function()
+				l=flength("LOVEBYTE",3,2)
+				fprint("LOVEBYTE",120-l/2,35,3,1,12,2)
+				l=flength("2024",3,2)
+				fprint("2024",120-l/2,70,3,1,12,2)
+				table.insert(TImages, screenToPoints())
+			end}),
+			require("overlay/text_bounce_up")({
+				{"LOVEBYTE","2024","+ + +","GOTO80","+ + +"},
+				{"ACID","DANCE","ROBOT","NINJA"},
+				{"LOVE","LIFE","LIVE","LEFT","LOUD","LINE"},
+				{"MATH","SINE","CIRC","LINE","CLS","RECT"},
+				{"MUNCH","---"},
+				{"I","DONT","KNOW"},
+				{"SHALALA","---"},
+				{"HARDCORE","FAMILY"},
+				{"BREAK","BEAT","DANCE","HIT","HOP","SHOUT","SCREAM","JUMP"},
+			}),
+			require("overlay/warp")({function()
+				local l=flength("GOTO80",3,4)
+				fprint("GOTO80",120-l/2,38,3,1,12,4)	
+			end, function()
+				l=flength("LOVEBYTE",3,2)
+				fprint("LOVEBYTE",120-l/2,35,3,1,12,2)
+				l=flength("2024",3,2)
+				fprint("2024",120-l/2,70,3,1,12,2)
+				table.insert(TImages, screenToPoints())
+			end}),
 		})
 
 		setModifiers({
@@ -83,53 +98,53 @@ return {
 		})
 
 		setNumberShortcut(1, function()
-			setEffect('sun_beat', {timerMode=3, divider=1, palette='reddish', stutter=0, modifier=0, modControl=1, modTimerMode=1, modDivider=1, cls=false})
-			setOverlay('smoke_circles', {timerMode=1, divider=1, palette='eire', control=2, stutter=0, modifier=1, cls=false})
+			setEffect('sun_beat', {timerMode=3, divider=1, palette='reddish', stutter=0, modifier=nil, modControl=1, modTimerMode=1, modDivider=1, cls=false})
+			setOverlay('smoke_circles', {timerMode=1, divider=1, palette='eire', control=2, stutter=0, modifier='pix_noise', cls=false})
 		end)
 
 		setNumberShortcut(2, function()
-			setEffect('lemons', {timerMode=1, divider=1, palette=5, stutter=0, modifier=5, modControl=1, modTimerMode=1, modDivider=1, cls=true})
-			setOverlay('text_warp', {timerMode=4, divider=6, palette=7, control=13, stutter=0, modifier=5, cls=true})
+			setEffect('lemons', {timerMode=1, divider=1, palette='blue_orange', stutter=0, modifier='pix_motion_blur', modControl=1, modTimerMode=1, modDivider=1, cls=true})
+			setOverlay('text_warp', {timerMode=4, divider=6, palette='dimmed', control=13, stutter=0, modifier='pix_motion_blur', cls=true})
 		end)
 
 		setNumberShortcut(3, function()
-			setEffect('twist_fft', {timerMode=1, divider=1, palette=7, stutter=0, modifier=6, modControl=1, modTimerMode=1, modDivider=1, cls=false})
-			setOverlay('text_bounce_up', {timerMode=1, divider=1, palette=5, control=2, stutter=0, modifier=7, cls=true})
+			setEffect('twist_fft', {timerMode=1, divider=1, palette='dimmed', stutter=0, modifier='pix_jump_blur', modControl=1, modTimerMode=1, modDivider=1, cls=false})
+			setOverlay('text_bounce_up', {timerMode=1, divider=1, palette='blue_orange', control=2, stutter=0, modifier='rot_vert', cls=true})
 		end)
 
 		setNumberShortcut(4, function()
-			setEffect('quup', {timerMode=1, divider=1, palette='reddish', stutter=0, modifier=11, modControl=33, modTimerMode=4, modDivider=1, cls=false})
-			setOverlay('bobs', {timerMode=1, divider=1, palette=6, control=2, stutter=0, modifier=11, cls=false})
+			setEffect('quup', {timerMode=1, divider=1, palette='reddish', stutter=0, modifier='post_squares', modControl=33, modTimerMode=4, modDivider=1, cls=false})
+			setOverlay('bobs', {timerMode=1, divider=1, palette='dutch', control=2, stutter=0, modifier='post_squares', cls=false})
 		end)
 
 		setNumberShortcut(5, function()
-			setEffect('at_tunnel', {timerMode=1, divider=1, palette='sweetie_16', stutter=0, modifier=13, modControl=1, modTimerMode=1, modDivider=1, cls=false})
-			setOverlay('spiral', {timerMode=2, divider=6, palette=10, control=3, stutter=0, modifier=13, cls=false})
+			setEffect('at_tunnel', {timerMode=1, divider=1, palette='sweetie_16', stutter=0, modifier='line_scratch', modControl=1, modTimerMode=1, modDivider=1, cls=false})
+			setOverlay('spiral', {timerMode=2, divider=6, palette='inverted', control=3, stutter=0, modifier='line_scratch', cls=false})
 		end)
 
 		setNumberShortcut(6, function()
-			setEffect('worms', {timerMode=2, divider=5, palette='over_brown', stutter=0, modifier=12, modControl=1, modTimerMode=1, modDivider=1, cls=true})
-			setOverlay('line_cut', {timerMode=1, divider=1, palette='ukr', control=1, stutter=0, modifier=2, cls=true})
+			setEffect('worms', {timerMode=2, divider=5, palette='over_brown', stutter=0, modifier='evilpaul_glitch', modControl=1, modTimerMode=1, modDivider=1, cls=true})
+			setOverlay('line_cut', {timerMode=1, divider=1, palette='ukr', control=1, stutter=0, modifier='pix_zoom', cls=true})
 		end)
 
 		setNumberShortcut(7, function()
-			setEffect('quup', {timerMode=2, divider=1, palette='ukr', stutter=0, modifier=11, modControl=1, modTimerMode=1, modDivider=1, cls=false})
-			setOverlay('smiley_faces', {timerMode=1, divider=1, palette=7, control=15, stutter=0, modifier=2, cls=true})
+			setEffect('quup', {timerMode=2, divider=1, palette='ukr', stutter=0, modifier='post_squares', modControl=1, modTimerMode=1, modDivider=1, cls=false})
+			setOverlay('smiley_faces', {timerMode=1, divider=1, palette='dimmed', control=15, stutter=0, modifier='pix_zoom', cls=true})
 		end)
 
 		setNumberShortcut(8, function()
-			setEffect('bitnick', {timerMode=1, divider=1, palette='over_brown', stutter=0, modifier=12, modControl=1, modTimerMode=1, modDivider=1, cls=false})
-			setOverlay('sinebobs', {timerMode=3, divider=5, palette=9, control=1, stutter=0, modifier=6, cls=true})
+			setEffect('bitnick', {timerMode=1, divider=1, palette='over_brown', stutter=0, modifier='evilpaul_glitch', modControl=1, modTimerMode=1, modDivider=1, cls=false})
+			setOverlay('sinebobs', {timerMode=3, divider=5, palette='slow_white', control=1, stutter=0, modifier='pix_jump_blue', cls=true})
 		end)
 
 		setNumberShortcut(9, function()
-			setEffect('at_tunnel', {timerMode=5, divider=3, palette='grey_scale', stutter=0, modifier=13, modControl=1, modTimerMode=1, modDivider=1, cls=true})
-			setOverlay('bobs', {timerMode=1, divider=1, palette='eire', control=1, stutter=0, modifier=12, cls=false})
+			setEffect('at_tunnel', {timerMode=5, divider=3, palette='grey_scale', stutter=0, modifier='line_scratch', modControl=1, modTimerMode=1, modDivider=1, cls=true})
+			setOverlay('bobs', {timerMode=1, divider=1, palette='eire', control=1, stutter=0, modifier='evilpaul_glitch', cls=false})
 		end)
 
 		setNumberShortcut(0, function()
-			setEffect('worms', {timerMode=1, divider=1, palette=7, stutter=0, modifier=7, modControl=0, modTimerMode=3, modDivider=0, cls=false})
-			setOverlay('sticker_lens', {timerMode=3, divider=1, palette=5, control=1, stutter=0, modifier=13, cls=true})
+			setEffect('worms', {timerMode=1, divider=1, palette='dimmed', stutter=0, modifier='rot_vert', modControl=0, modTimerMode=3, modDivider=0, cls=false})
+			setOverlay('sticker_lens', {timerMode=3, divider=1, palette='blue_orange', control=1, stutter=0, modifier='line_scratch', cls=true})
 		end)
 	end,
 }

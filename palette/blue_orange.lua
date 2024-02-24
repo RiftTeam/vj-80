@@ -1,5 +1,6 @@
 local palette = {}
 
+-- Is this right? It's very dark
 return {
 	id="blue_orange",
 	boot=function()

@@ -1,8 +1,8 @@
 return {
 	boot=function()
 		setEffects({
+			require("effect/debug-squares"),
 --			require("effect/fuji_twist"),
-			--require("effect/debug-squares"),
 --			require("effect/vol_test"),
 			require("effect/twist_fft"),
 			require("effect/sun_beat"),
@@ -24,24 +24,10 @@ return {
 		})
 
 		setOverlays({
-			require("overlay/sticker_lens")({function()
-				local sz=3
-				local l=flength("TOPLAP20",3,sz)
-				fprint("TOPLAP20",120-l/2,38,3,1,12,sz)
-			end}),
 			require("overlay/bobs"),
---			require("overlay/joy_division"),
-			require("overlay/text_bounce_up")({
-				{"CREATIVE", "CODE", "CLUB", "NEWCASTLE"},
-			}),
 			require("overlay/line_cut"),
 			require("overlay/revision_top"),
 			require("overlay/sinebobs"),
-			require("overlay/warp")({function()
-				local sz=3
-				local l=flength("TOPLAP20",3,sz)
-				fprint("TOPLAP20",120-l/2,38,3,1,12,sz)
-			end}),
 			require("overlay/smiley_faces"),
 			require("overlay/smoke_circles"),
 			require("overlay/snow"),

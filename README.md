@@ -101,3 +101,4 @@ The FFT version of TIC will not load `lua` files, so we need to compile the code
 - Fix `text_bounce_up` hack.
 - Mouse effects?
 - Save to PMEM, so we can resume.
+- Change default time state for each layer from 'no time' to 'beat'?

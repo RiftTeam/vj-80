@@ -2,3 +2,5 @@
 *.gif
 madtixxsmall.lua
 rev.tic
+_temp/*
+.vscode/*
